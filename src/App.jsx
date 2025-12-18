@@ -1322,32 +1322,33 @@ export default function PES_Universal_Calculator() {
               >
               <Plus className="w-4 h-4" /> Add Custom Subject
             </button>
+
+            {/* Alerts Banner - Inside subjects tab */}
+            {alerts.length > 0 && (
+              <div className="space-y-2">
+                {alerts. filter(a => a.type === 'critical').map((alert, i) => (
+                  <div key={i} className="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 p-3 rounded-r-lg flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-600 dark: text-red-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-red-800 dark:text-red-300">{alert.subject}:  </span>
+                      <span className="text-red-700 dark:text-red-400 text-sm">{alert.message}</span>
+                    </div>
+                  </div>
+                ))}
+                {alerts.filter(a => a.type === 'opportunity').slice(0, 2).map((alert, i) => (
+                  <div key={i} className="bg-blue-100 dark: bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded-r-lg flex items-start gap-2">
+                    <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-blue-800 dark:text-blue-300">{alert.subject}:  </span>
+                      <span className="text-blue-700 dark:text-blue-400 text-sm">{alert.message}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
-        {/* Alerts Banner - Moved to bottom */}
-        {alerts.length > 0 && (
-          <div className="space-y-2">
-            {alerts. filter(a => a.type === 'critical').map((alert, i) => (
-              <div key={i} className="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 p-3 rounded-r-lg flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600 dark: text-red-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-red-800 dark:text-red-300">{alert.subject}:  </span>
-                  <span className="text-red-700 dark:text-red-400 text-sm">{alert.message}</span>
-                </div>
-              </div>
-            ))}
-            {alerts.filter(a => a.type === 'opportunity').slice(0, 2).map((alert, i) => (
-              <div key={i} className="bg-blue-100 dark: bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded-r-lg flex items-start gap-2">
-                <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-blue-800 dark:text-blue-300">{alert.subject}:  </span>
-                  <span className="text-blue-700 dark:text-blue-400 text-sm">{alert.message}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
         {/* ==================== ANALYSIS TAB ==================== */}
         {activeTab === 'analysis' && (
           <div className="space-y-6">
