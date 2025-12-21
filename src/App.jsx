@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { 
   Trash2, Plus, Settings, ChevronDown, ChevronUp, 
   RotateCcw, GraduationCap, Target, 
@@ -1983,6 +1984,7 @@ export default function PES_Universal_Calculator() {
         </div>
       </div>
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
