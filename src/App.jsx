@@ -13,20 +13,20 @@ import {
 
 // --- Default Data for Reset ---
 const ChemistryCycleDefaults = [
-  { id:  1, name:  "Mathematics - I", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id:  1, name:  "Mathematics - I/II", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 2, name: "Engineering Chemistry", credits: 5, hasLab:  true, hasAssignment: true, isaWeight: 20, assignmentWeight:  10, labWeight: 20, esaWeight:  50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 3, name: "Problem Solving with C", credits: 5, hasLab:  true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Python for Computational Problem Solving/Problem Solving with C", credits: 5, hasLab:  true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 4, name: "Engineering Mechanics", credits: 4, hasLab:  false, hasAssignment:  true, isaWeight:  20, assignmentWeight: 10, labWeight: 0, esaWeight:  50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 5, name: "Electronic Principles", credits: 4, hasLab:  false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 6, name: "Constitution of India", credits: 2, hasLab:  false, hasAssignment:  false, isaWeight: 25, assignmentWeight:  0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
 ];
 
 const PhysicsCycleDefaults = [
-  { id: 1, name: "Mathematics - II", credits: 4, hasLab:  false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 1, name: "Mathematics - I/II", credits: 4, hasLab:  false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 2, name: "Engineering Physics", credits: 5, hasLab:  true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 3, name: "Basic Electrical Engineering", credits: 4, hasLab: false, hasAssignment: false, isaWeight: 20, assignmentWeight: 10, labWeight:  0, esaWeight: 50, isa1Max:  40, isa2Max: 40, esaMax:  100 },
-  { id: 4, name: "Mechanical Engineering", credits: 4, hasLab:  false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 5, name: "Python for Computational Problem Solving", credits: 5, hasLab:  true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Elements of Electrical Engineering", credits: 4, hasLab: false, hasAssignment: false, isaWeight: 20, assignmentWeight: 10, labWeight:  0, esaWeight: 50, isa1Max:  40, isa2Max: 40, esaMax:  100 },
+  { id: 4, name: "Mechanical Engineering Sciences", credits: 4, hasLab:  false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Python for Computational Problem Solving/Problem Solving with C", credits: 5, hasLab:  true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 6, name: "Environmental Studies", credits: 2, hasLab:  false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max:  30, esaMax: 50 },
 ];
 
