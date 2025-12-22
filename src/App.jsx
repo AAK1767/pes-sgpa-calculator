@@ -349,8 +349,8 @@ export default function PES_Universal_Calculator() {
 
   // --- Calculations ---
   const getSubjectMetrics = (subject) => {
-    const m = marks[subject. id];
-    if (!m) return { finalScore: 0, currentInternals: 0, totalWeight: 100, momentumScore: 0 };
+    const m = marks[subject.id];
+    if (!m) return { finalScore: 0, currentInternals: 0, totalWeight: 100, momentumScore: 0, hasIsa1: false, hasIsa2: false };
 
     const calcComponent = (score, max, weight) => {
       const s = parseFloat(score);
@@ -359,39 +359,115 @@ export default function PES_Universal_Calculator() {
       return (s / mx) * weight;
     };
 
-    // 1. Calculate Internals
+    // Check which scores are available
+    const hasIsa1 = m.isa1 !== '' && m.isa1 !== undefined && !isNaN(parseFloat(m.isa1));
+    const hasIsa2 = m.isa2 !== '' && m.isa2 !== undefined && !isNaN(parseFloat(m.isa2));
+    const hasAssignment = m.assignment !== '' && m.assignment !== undefined && !isNaN(parseFloat(m.assignment));
+    const hasLab = m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab));
+    const hasEsa = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
+
+    // 1. Calculate actual Internals (only filled values)
     let currentInternals = 0;
-    currentInternals += calcComponent(m. isa1, m. isa1Max, subject.isaWeight);
+    currentInternals += calcComponent(m.isa1, m.isa1Max, subject.isaWeight);
     currentInternals += calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
     if (subject.hasAssignment) currentInternals += calcComponent(m.assignment, m.assignmentMax, subject.assignmentWeight);
     if (subject.hasLab) currentInternals += calcComponent(m.lab, m.labMax, subject.labWeight);
 
     // 2. Calculate Current ESA
-    let esaComponent = calcComponent(m. esa, m.esaMax, subject. esaWeight);
+    let esaComponent = calcComponent(m.esa, m.esaMax, subject.esaWeight);
     
     // 3. Weights Logic
     let totalInternalWeight = (subject.isaWeight * 2) + 
-                              (subject.hasAssignment ? subject. assignmentWeight : 0) + 
-                              (subject. hasLab ? subject.labWeight : 0);
+                              (subject.hasAssignment ? subject.assignmentWeight : 0) + 
+                              (subject.hasLab ? subject.labWeight : 0);
     let totalWeight = totalInternalWeight + subject.esaWeight;
 
-    // 4. Standard Final Score
+    // 4. Standard Final Score (based on actual entered marks only)
     let rawSum = currentInternals + esaComponent;
     let finalScore = Math.ceil((rawSum / totalWeight) * 100);
 
-    // 5. Momentum Logic
-    let internalPerformanceRatio = totalInternalWeight > 0 ? (currentInternals / totalInternalWeight) : 0;
-    let predictedESA = subject.esaWeight * internalPerformanceRatio;
-    let momentumESA = (m. esa && m.esa !== '') ? esaComponent :  predictedESA;
-    let momentumRawSum = currentInternals + momentumESA;
-    let momentumScore = Math.ceil((momentumRawSum / totalWeight) * 100);
+    // 5. Momentum Logic - Project unfilled components
+    let momentumScore = 0;
+    
+    if (hasIsa1 || hasIsa2 || hasAssignment || hasLab) {
+      // Calculate ISA-only performance ratio (for projecting ISA2)
+      let isaPerformance = 0;
+      let isaWeightFilled = 0;
+      
+      if (hasIsa1) {
+        isaPerformance += calcComponent(m.isa1, m.isa1Max, subject.isaWeight);
+        isaWeightFilled += subject.isaWeight;
+      }
+      if (hasIsa2) {
+        isaPerformance += calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
+        isaWeightFilled += subject.isaWeight;
+      }
+      
+      // ISA performance ratio (how well they're doing in ISAs specifically)
+      const isaRatio = isaWeightFilled > 0 ? (isaPerformance / isaWeightFilled) : 0;
+      
+      // Calculate overall internal performance ratio (for projecting assignment/lab/ESA)
+      let filledInternalScore = 0;
+      let filledInternalWeight = 0;
+      
+      if (hasIsa1) {
+        filledInternalScore += calcComponent(m.isa1, m.isa1Max, subject.isaWeight);
+        filledInternalWeight += subject.isaWeight;
+      }
+      if (hasIsa2) {
+        filledInternalScore += calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
+        filledInternalWeight += subject.isaWeight;
+      }
+      if (subject.hasAssignment && hasAssignment) {
+        filledInternalScore += calcComponent(m.assignment, m.assignmentMax, subject.assignmentWeight);
+        filledInternalWeight += subject.assignmentWeight;
+      }
+      if (subject.hasLab && hasLab) {
+        filledInternalScore += calcComponent(m.lab, m.labMax, subject.labWeight);
+        filledInternalWeight += subject.labWeight;
+      }
+      
+      const overallInternalRatio = filledInternalWeight > 0 ? (filledInternalScore / filledInternalWeight) : 0;
+      
+      // Start with actual internals
+      let projectedInternals = currentInternals;
+      
+      // Project ISA2 based on ISA1 performance (if only ISA1 is filled)
+      // This makes sense because ISA1 and ISA2 are similar exam formats
+      if (!hasIsa2 && hasIsa1) {
+        projectedInternals += isaRatio * subject.isaWeight;
+      }
+      
+      // Project assignment based on overall internal performance (if not filled)
+      // We use overall ratio here because assignment performance may differ from ISA
+      if (subject.hasAssignment && !hasAssignment) {
+        projectedInternals += overallInternalRatio * subject.assignmentWeight;
+      }
+      
+      // Project lab based on overall internal performance (if not filled)
+      if (subject.hasLab && !hasLab) {
+        projectedInternals += overallInternalRatio * subject.labWeight;
+      }
+      
+      // Project ESA based on overall internal performance
+      let momentumESA = hasEsa ? esaComponent : (subject.esaWeight * overallInternalRatio);
+      
+      // Calculate momentum score
+      let momentumRawSum = projectedInternals + momentumESA;
+      momentumScore = Math.ceil((momentumRawSum / totalWeight) * 100);
+    } else {
+      // No data at all, momentum equals final score (which would be 0)
+      momentumScore = finalScore;
+    }
 
     return {
-      finalScore:  Math.min(100, Math. max(0, finalScore)),
+      finalScore: Math.min(100, Math.max(0, finalScore)),
       currentInternals, 
       totalWeight,
-      momentumScore:  Math.min(100, Math.max(0, momentumScore)),
-      esaWeight: subject.esaWeight
+      momentumScore: Math.min(100, Math.max(0, momentumScore)),
+      esaWeight: subject.esaWeight,
+      hasIsa1,
+      hasIsa2
     };
   };
 
@@ -715,13 +791,13 @@ export default function PES_Universal_Calculator() {
     const totalAchievableGP = results.reduce((sum, r) => {
       if (r.isImpossible) {
         // Best possible grade
-        const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(subjects. find(s => s.id === r. id));
+        const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(subjects.find(s => s.id === r.id));
         const esaMax = r.esaMax;
         const maxEsaComponent = esaWeight;
         const maxScore = Math.ceil(((currentInternals + maxEsaComponent) / totalWeight) * 100);
         return sum + getGradePoint(Math.min(100, maxScore)) * r.credits;
       }
-      return sum + r. gp * r. credits;
+      return sum + r.gp * r.credits;
     }, 0);
     
     const achievableSGPA = (totalAchievableGP / totalCredits).toFixed(2);
@@ -1447,13 +1523,12 @@ export default function PES_Universal_Calculator() {
                 <Lightbulb className="w-5 h-5" /> Path to Target ({targetSgpa} SGPA)
               </h2>
               
-              {strategy.plan.length === 0 && ! strategy.impossible && parseFloat(metrics.momentumSGPA) >= targetSgpa ? (
+              {strategy.plan.length === 0 && !strategy.impossible && parseFloat(metrics.momentumSGPA) >= targetSgpa ? (
                 <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 flex items-center gap-3">
                   <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
                   <div>
                     <div className="font-bold text-green-300">You're on track!</div>
-                    <div className="text-xs text-green-200/60">Your current momentum ({metrics.momentumSGPA}) meets or exceeds your target SGPA.</div>
-                  </div>
+                    <div className="text-xs text-green-200/60">Your current momentum ({metrics.momentumSGPA}) meets or exceeds your target SGPA.</div>                  </div>
                 </div>
               ) : strategy.impossible ? (
                 <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 flex items-center gap-3">
