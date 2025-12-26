@@ -479,10 +479,83 @@ export default function PES_Universal_Calculator() {
   };
 
   const getGradeInfo = (score) => {
-    return GradeMap. find(g => score >= g.min) || GradeMap[GradeMap.length - 1];
+    return GradeMap.find(g => score >= g.min) || GradeMap[GradeMap.length - 1];
   };
 
-  // SGPA Calculation
+  // Helper function to calculate required ESA with safety margin
+  const getRequiredESAForGrade = (subject, targetScore, withSafetyMargin = true) => {
+    const m = marks[subject.id] || {};
+    const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(subject);
+    const esaMax = m.esaMax || 100;
+    
+    // First check: Is this grade even achievable with max ESA?
+    // Calculate what score we'd get with perfect ESA
+    const maxEsaComponent = (esaMax / esaMax) * esaWeight; // = esaWeight
+    const maxPossibleRaw = ((currentInternals + maxEsaComponent) / totalWeight) * 100;
+    const maxPossibleScore = Math.ceil(maxPossibleRaw);
+    
+    // If even with perfect ESA we can't reach the target, it's impossible
+    if (maxPossibleScore < targetScore) {
+      return { safe: null, minimum: null };
+    }
+    
+    if (withSafetyMargin) {
+      // Safe calculation: Ensure we DEFINITELY get the grade
+      // We need: ceil((currentInternals + esaComponent) / totalWeight * 100) >= targetScore
+      // To guarantee this, we need the raw percentage to be >= targetScore - 0.5 (midpoint for ceiling)
+      // But to be SAFE, we calculate for exactly targetScore (no rounding benefit)
+      const requiredWeightedTotal = (targetScore * totalWeight) / 100;
+      const requiredEsaComponent = requiredWeightedTotal - currentInternals;
+      
+      if (requiredEsaComponent <= 0) return { safe: 0, minimum: 0 };
+      
+      const requiredEsaMarks = (requiredEsaComponent / esaWeight) * esaMax;
+      
+      // Safe value: round up to ensure we hit the target
+      const safeEsa = Math.ceil(requiredEsaMarks);
+      
+      // Minimum value: the absolute minimum that could work due to ceiling
+      // We need ceil(x) >= targetScore, so x > targetScore - 1
+      // Find the minimum ESA where ceil gives us targetScore
+      const minWeightedTotal = ((targetScore - 1) * totalWeight / 100) + 0.001;
+      const minRequiredEsaComponent = minWeightedTotal - currentInternals;
+      const minEsaMarks = minRequiredEsaComponent > 0 
+        ? Math.ceil((minRequiredEsaComponent / esaWeight) * esaMax)
+        : 0;
+      
+      // Cap at esaMax - if safe > esaMax but minimum <= esaMax, show minimum as safe
+      if (safeEsa > esaMax) {
+        // Safe isn't achievable, but minimum might be (due to rounding)
+        if (minEsaMarks <= esaMax) {
+          return { 
+            safe: esaMax, // Best we can do
+            minimum: Math.max(0, minEsaMarks),
+            requiresRounding: true // Flag to indicate this relies on rounding
+          };
+        }
+        return { safe: null, minimum: null };
+      }
+      
+      return { 
+        safe: Math.min(esaMax, safeEsa), 
+        minimum: Math.max(0, Math.min(esaMax, minEsaMarks))
+      };
+    } else {
+      // Original calculation (minimum possible)
+      const minWeightedTotal = ((targetScore - 1) * totalWeight / 100) + 0.001;
+      const requiredEsaComponent = minWeightedTotal - currentInternals;
+      
+      if (requiredEsaComponent <= 0) return 0;
+      
+      const requiredEsaMarks = (requiredEsaComponent / esaWeight) * esaMax;
+      
+      if (requiredEsaMarks > esaMax) return null;
+      
+      return Math.ceil(requiredEsaMarks);
+    }
+  };
+
+  // --- SGPA Calculation ---
   useEffect(() => {
     let totalCredits = 0;
     let weightedPoints = 0;
@@ -495,71 +568,6 @@ export default function PES_Universal_Calculator() {
     });
 
     setSgpa(totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : 0);
-  }, [marks, subjects]);
-
-  // --- Grade Distribution ---
-  const gradeDistribution = useMemo(() => {
-    const distribution = { S: 0, A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
-    subjects. forEach(sub => {
-      const { finalScore } = getSubjectMetrics(sub);
-      const grade = getGradeInfo(finalScore).grade;
-      distribution[grade]++;
-    });
-    return distribution;
-  }, [marks, subjects]);
-
-  // --- Grade Boundary Alerts ---
-  const alerts = useMemo(() => {
-    const alertList = [];
-    
-    subjects.forEach(sub => {
-      const { finalScore } = getSubjectMetrics(sub);
-      
-      // Failing alert
-      if (finalScore < 40) {
-        alertList.push({
-          type: 'critical',
-          subject: sub. name,
-          message: `Currently FAILING!  Need ${40 - finalScore} more marks to pass.`,
-          score: finalScore,
-          needed: 40 - finalScore
-        });
-        return;
-      }
-      
-      // Check proximity to grade boundaries
-      for (let i = 0; i < GradeMap.length - 1; i++) {
-        const g = GradeMap[i];
-        const diff = finalScore - g.min;
-        
-        // Just above boundary (could slip down)
-        if (diff >= 0 && diff <= 3 && i < GradeMap.length - 2) {
-          alertList.push({
-            type: 'danger',
-            subject:  sub.name,
-            message: `Only ${diff} marks above ${g.grade} boundary!  Risk of dropping. `,
-            score: finalScore,
-            boundary: g.min
-          });
-          break;
-        }
-        
-        // Just below boundary (easy upgrade)
-        if (diff < 0 && diff >= -5) {
-          alertList.push({
-            type: 'opportunity',
-            subject:  sub.name,
-            message: `Only ${Math.abs(diff)} marks away from ${g.grade} grade! `,
-            score: finalScore,
-            boundary: g.min,
-            needed: Math.abs(diff)
-          });
-          break;
-        }
-      }
-    });
-    
-    return alertList;
   }, [marks, subjects]);
 
   // --- Analysis Calculations ---
@@ -583,20 +591,20 @@ export default function PES_Universal_Calculator() {
       const loss = 10 - currentGP; 
       currentLostGP += (loss * sub.credits);
 
-      const getRequiredESA = (targetScore) => {
-        const requiredTotal = (targetScore * totalWeight) / 100;
-        const requiredEsaPart = requiredTotal - currentInternals;
-        if (requiredEsaPart <= 0) return 0;
-        const requiredEsaMarks = (requiredEsaPart / esaWeight) * (marks[sub.id]?.esaMax || 100);
-        return requiredEsaMarks > (marks[sub.id]?.esaMax || 100) ? null : Math.ceil(requiredEsaMarks);
-      };
+      // Use the new helper function with safety margin
+      const reqSData = getRequiredESAForGrade(sub, 90, true);
+      const reqAData = getRequiredESAForGrade(sub, 80, true);
 
       analysisData.push({
         id: sub.id,
         name: sub.name,
         credits: sub.credits,
-        reqS: getRequiredESA(90),
-        reqA: getRequiredESA(80),
+        reqS: reqSData.safe,
+        reqSMin: reqSData.minimum,
+        reqSRequiresRounding: reqSData.requiresRounding || false,
+        reqA: reqAData.safe,
+        reqAMin: reqAData.minimum,
+        reqARequiresRounding: reqAData.requiresRounding || false,
         currentGP,
         momentumGP,
         momentumScore,
@@ -618,7 +626,7 @@ export default function PES_Universal_Calculator() {
     };
   };
 
-  // --- Optimization Strategy Engine (Fixed) ---
+  // --- Smart Strategy Engine (Fixed) ---
   const getSmartSuggestions = () => {
     const totalCredits = subjects. reduce((acc, s) => acc + s.credits, 0);
     const targetTotalGP = totalCredits * targetSgpa;
@@ -704,7 +712,7 @@ export default function PES_Universal_Calculator() {
       const newMin = GradeMap.find(g => g. grade === best.toGrade).min;
       
       simState[best.idx]. currentGP = newGP;
-      simState[best. idx].currentScore = newMin;
+      simState[best.idx].currentScore = newMin;
       
       deficit -= best.gpGain;
     }
@@ -885,30 +893,30 @@ export default function PES_Universal_Calculator() {
       const esaMax = marks[sub.id]?.esaMax || 100;
       
       const gradeRequirements = GradeMap.slice(0, -1).map(g => {
-        const requiredTotal = (g.min * totalWeight) / 100;
-        const requiredEsaComponent = requiredTotal - currentInternals;
-        const requiredEsa = Math.ceil((requiredEsaComponent / esaWeight) * esaMax);
+        const result = getRequiredESAForGrade(sub, g.min, true);
         
         return {
           grade: g.grade,
           gp: g.gp,
-          requiredEsa:  Math.max(0, requiredEsa),
-          possible: requiredEsa <= esaMax,
-          alreadyAchieved: requiredEsa <= 0,
-          easy: requiredEsa > 0 && requiredEsa <= 50,
-          moderate: requiredEsa > 50 && requiredEsa <= 75,
-          hard:  requiredEsa > 75
+          requiredEsa: result.safe !== null ? Math.max(0, result.safe) : null,
+          minimumEsa: result.minimum !== null ? Math.max(0, result.minimum) : null,
+          possible: result.safe !== null,
+          alreadyAchieved: result.safe === 0,
+          requiresRounding: result.requiresRounding || false,
+          easy: result.safe > 0 && result.safe <= 50 && !result.requiresRounding,
+          moderate: result.safe > 50 && result.safe <= 75 && !result.requiresRounding,
+          hard: (result.safe > 75 && !result.requiresRounding) || result.requiresRounding
         };
       });
       
       const passReq = gradeRequirements.find(g => g.grade === 'E');
       
       return {
-        ... sub,
+        ...sub,
         esaMax,
         gradeRequirements,
-        minimumToPass: passReq?. requiredEsa || 0,
-        canPass: passReq?. possible || false
+        minimumToPass: passReq?.requiredEsa || 0,
+        canPass: passReq?.possible || false
       };
     });
   };
@@ -918,6 +926,55 @@ export default function PES_Universal_Calculator() {
   const reverseResults = calculateReverseRequirements();
   const studyPriorities = getStudyPriorities();
   const minimumPassingTable = getMinimumPassingTable();
+
+  // Grade Distribution Calculation
+  const gradeDistribution = useMemo(() => {
+    const dist = { S: 0, A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+    subjects.forEach(sub => {
+      const { finalScore } = getSubjectMetrics(sub);
+      const gradeInfo = getGradeInfo(finalScore);
+      dist[gradeInfo.grade]++;
+    });
+    return dist;
+  }, [subjects, marks]);
+
+  // Alerts Calculation
+  const alerts = useMemo(() => {
+    const alertList = [];
+    subjects.forEach(sub => {
+      const { finalScore, momentumScore } = getSubjectMetrics(sub);
+      const m = marks[sub.id] || {};
+      
+      // Critical: Failing
+      if (finalScore < 40 && (m.isa1 !== '' || m.isa2 !== '')) {
+        alertList.push({
+          type: 'critical',
+          subject: sub.name,
+          message: `Currently at ${finalScore}%. Risk of failing!`
+        });
+      }
+      
+      // Opportunity: Easy grade jump
+      const currentGP = getGradePoint(finalScore);
+      const nextGrade = GradeMap.slice().reverse().find(g => g.gp > currentGP);
+      if (nextGrade) {
+        const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
+        const esaMax = m.esaMax || 100;
+        const requiredTotal = (nextGrade.min * totalWeight) / 100;
+        const requiredEsaComponent = requiredTotal - currentInternals;
+        const requiredEsa = Math.ceil((requiredEsaComponent / esaWeight) * esaMax);
+        
+        if (requiredEsa > 0 && requiredEsa <= 40 && !m.esa) {
+          alertList.push({
+            type: 'opportunity',
+            subject: sub.name,
+            message: `Just ${requiredEsa}/${esaMax} in ESA gets you ${nextGrade.grade} grade!`
+          });
+        }
+      }
+    });
+    return alertList;
+  }, [subjects, marks]);
 
   // CGPA Logic
   const calculateCGPA = () => {
@@ -1485,7 +1542,7 @@ export default function PES_Universal_Calculator() {
                   <div key={i} className="grid grid-cols-12 gap-2 items-center text-sm py-2 border-b border-slate-700/50 hover:bg-slate-700/30 rounded transition-colors">
                     <div className="col-span-5 truncate text-slate-300 font-medium">{d.name}</div>
                     <div className="col-span-2 text-center">
-                      <span className={`font-bold ${d. momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-slate-300' : 'text-red-400'}`}>
+                      <span className={`font-bold ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-slate-300' : 'text-red-400'}`}>
                         {d.momentumScore}
                       </span>
                     </div>
@@ -1495,7 +1552,15 @@ export default function PES_Universal_Calculator() {
                       ) : d.reqA === 0 ? (
                         <span className="text-green-500 text-xs">✓ Done</span>
                       ) : (
-                        <span className="text-blue-300 font-mono font-bold">{d.reqA}</span>
+                        <div>
+                          <span className={`font-mono font-bold ${d.reqARequiresRounding ? 'text-orange-300' : 'text-blue-300'}`}>{d.reqA}</span>
+                          {d.reqAMin !== null && d.reqAMin < d.reqA && (
+                            <div className="text-[9px] text-slate-500">min: {d.reqAMin}</div>
+                          )}
+                          {d.reqARequiresRounding && (
+                            <div className="text-[9px] text-orange-400">*rounding</div>
+                          )}
+                        </div>
                       )}
                     </div>
                     <div className="col-span-2 text-center">
@@ -1504,16 +1569,35 @@ export default function PES_Universal_Calculator() {
                       ) : d.reqS === 0 ? (
                         <span className="text-green-500 text-xs">✓ Done</span>
                       ) : (
-                        <span className="text-yellow-300 font-mono font-bold">{d.reqS}</span>
+                        <div>
+                          <span className={`font-mono font-bold ${d.reqSRequiresRounding ? 'text-orange-300' : 'text-yellow-300'}`}>{d.reqS}</span>
+                          {d.reqSMin !== null && d.reqSMin < d.reqS && (
+                            <div className="text-[9px] text-slate-500">min: {d.reqSMin}</div>
+                          )}
+                          {d.reqSRequiresRounding && (
+                            <div className="text-[9px] text-orange-400">*rounding</div>
+                          )}
+                        </div>
                       )}
                     </div>
                     <div className="col-span-1 text-center">
-                      <span className={`text-xs font-bold px-1. 5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
+                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
                         {d.currentGP}
                       </span>
                     </div>
                   </div>
                 ))}
+              </div>
+              
+              {/* Add notice about minimum scores */}
+              <div className="mt-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                <div className="flex items-start gap-2 text-xs text-slate-400">
+                  <Lightbulb className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-slate-300">Safe vs Minimum scores:</strong> The main number is the <strong>safe</strong> ESA score that guarantees the grade. 
+                    The "min" value (when shown) is the absolute minimum that <em>might</em> work due to rounding up, but scoring the safe value is recommended.
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1710,27 +1794,36 @@ export default function PES_Universal_Calculator() {
                   </thead>
                   <tbody>
                     {minimumPassingTable.map(sub => (
-                      <tr key={sub.id} className={`border-b ${themeClasses. border} hover:${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+                      <tr key={sub.id} className={`border-b ${themeClasses.border} hover:${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
                         <td className="py-3 px-2 font-medium">
                           <div>{sub.name}</div>
-                          <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max:  {sub.esaMax}</div>
+                          <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max: {sub.esaMax}</div>
                         </td>
                         {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
-                          const req = sub.gradeRequirements. find(g => g.grade === grade);
+                          const req = sub.gradeRequirements.find(g => g.grade === grade);
                           return (
                             <td key={grade} className="text-center py-3 px-2">
-                              {! req?. possible ? (
+                              {!req?.possible ? (
                                 <span className="text-red-500 text-xs font-bold">✗</span>
                               ) : req.alreadyAchieved ? (
                                 <span className="text-green-600 dark:text-green-400 font-bold">✓</span>
                               ) : (
-                                <span className={`font-mono font-bold ${
-                                  req. easy ? 'text-green-600 dark:text-green-400' : 
-                                  req. moderate ? 'text-blue-600 dark: text-blue-400' : 
-                                  'text-orange-600 dark: text-orange-400'
-                                }`}>
-                                  {req.requiredEsa}
-                                </span>
+                                <div>
+                                  <span className={`font-mono font-bold ${
+                                    req.requiresRounding ? 'text-orange-600 dark:text-orange-400' :
+                                    req.easy ? 'text-green-600 dark:text-green-400' : 
+                                    req.moderate ? 'text-blue-600 dark:text-blue-400' : 
+                                    'text-orange-600 dark:text-orange-400'
+                                  }`}>
+                                    {req.requiredEsa}
+                                    {req.requiresRounding && '*'}
+                                  </span>
+                                  {req.minimumEsa !== null && req.minimumEsa < req.requiredEsa && (
+                                    <div className={`text-[9px] ${themeClasses.muted}`}>
+                                      ({req.minimumEsa})
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </td>
                           );
@@ -1741,12 +1834,14 @@ export default function PES_Universal_Calculator() {
                 </table>
               </div>
               
-              <div className={`flex flex-wrap gap-4 mt-4 text-xs ${themeClasses. muted} pt-4 border-t ${themeClasses. border}`}>
+              <div className={`flex flex-wrap gap-4 mt-4 text-xs ${themeClasses.muted} pt-4 border-t ${themeClasses.border}`}>
                 <span><span className="text-green-600 dark:text-green-400 font-bold">✓</span> Already achieved</span>
-                <span><span className="text-green-600 dark: text-green-400">Green</span> Easy (≤40)</span>
-                <span><span className="text-blue-600 dark: text-blue-400">Blue</span> Moderate (51-75)</span>
+                <span><span className="text-green-600 dark:text-green-400">Green</span> Easy (≤50)</span>
+                <span><span className="text-blue-600 dark:text-blue-400">Blue</span> Moderate (51-75)</span>
                 <span><span className="text-orange-600 dark:text-orange-400">Orange</span> Hard (&gt;75)</span>
                 <span><span className="text-red-500 font-bold">✗</span> Not possible</span>
+                <span><span className={themeClasses.muted}>(xx)</span> Best case (with rounding)</span>
+                <span><span className="text-orange-600 dark:text-orange-400">*</span> Requires rounding luck</span>
               </div>
             </div>
           </div>
@@ -1886,7 +1981,7 @@ export default function PES_Universal_Calculator() {
             <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
               <GraduationCap className="absolute top-[-20px] right-[-20px] w-40 h-40 text-white opacity-10" />
               
-              <h2 className="text-lg font-bold flex items-center gap-2 mb-4 relative z-10">
+              <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
                 <Calculator className="w-5 h-5" /> Cumulative GPA (CGPA)
               </h2>
               
@@ -1937,7 +2032,7 @@ export default function PES_Universal_Calculator() {
                     <span className="text-sm font-bold text-indigo-100 uppercase tracking-wide block">Projected CGPA</span>
                     {finalCgpa && (
                       <span className="text-xs text-indigo-200/70">
-                        Based on {parseFloat(prevCgpaDetails. credits) + metrics.totalCredits} total credits
+                        Based on {parseFloat(prevCgpaDetails.credits) + metrics.totalCredits} total credits
                       </span>
                     )}
                   </div>
@@ -1991,7 +2086,7 @@ export default function PES_Universal_Calculator() {
                         }`}>
                           {scenarioCgpa.toFixed(2)}
                         </div>
-                        <div className={`text-[10px] ${themeClasses. muted}`}>CGPA</div>
+                        <div className={`text-[10px] ${themeClasses.muted}`}>CGPA</div>
                       </div>
                     );
                   })}
