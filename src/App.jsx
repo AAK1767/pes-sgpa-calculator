@@ -635,21 +635,21 @@ export default function PES_Universal_Calculator() {
     let subState = subjects.map(s => {
       const m = marks[s.id] || {};
       const { momentumScore, currentInternals, totalWeight, esaWeight } = getSubjectMetrics(s);
-      
-      // If ESA is already entered, this subject is effectively "Final"
       const isFinal = m.esa && m.esa !== '' && !isNaN(parseFloat(m.esa));
       
-      const gp = getGradePoint(momentumScore);
+      // Calculate current projected ESA score based on momentum
+      // momentumScore = (ProjectedInternals + ProjectedESA) / TotalWeight * 100
+      // We essentially want to know: "What is the ESA score baked into this momentum?"
+      // But simpler: We just need to know the gap between Momentum and Target.
       
       return { 
         ...s, 
         currentScore: momentumScore, 
-        currentGP: gp, 
-        currentInternals,
+        currentGP: getGradePoint(momentumScore), 
         totalWeight,
         esaWeight,
         esaMax: m.esaMax || 100,
-        isFinal // Mark as final so we don't try to upgrade it later
+        isFinal
       };
     });
 
@@ -660,48 +660,61 @@ export default function PES_Universal_Calculator() {
     let impossible = false;
     let iterations = 0;
     
-    // Clone state to simulate upgrades
     let simState = JSON.parse(JSON.stringify(subState));
 
-    // 2. Optimization Loop
     while (deficit > 0.01 && iterations < 50) {
       iterations++;
       let candidates = [];
 
       simState.forEach((sub, idx) => {
-        // Skip if subject is finalized (ESA entered) or already maxed (S grade)
         if (sub.isFinal || sub.currentGP >= 10) return;
 
         const currentG = sub.currentGP;
         const nextGrade = GradeMap.slice().reverse().find(g => g.gp > currentG);
         
         if (nextGrade) {
-          // Calculate cost to reach NEXT grade
-          const requiredWeightedTotal = (nextGrade.min * sub.totalWeight) / 100;
-          const requiredEsaComponent = requiredWeightedTotal - sub.currentInternals;
-          const esaNeeded = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
+          // LOGIC FIX: Calculate gap from MOMENTUM, not raw internals.
+          // We assume unfilled internals will follow the momentum trend.
+          // We only need to bridge the gap between Current Score (Momentum) and Target.
+          
+          const scoreGap = nextGrade.min - sub.currentScore;
+          
+          // Convert % gap to weighted points
+          const weightGap = (scoreGap * sub.totalWeight) / 100;
+          
+          // Convert weighted points to ESA marks
+          const esaMarksGap = Math.ceil((weightGap / sub.esaWeight) * sub.esaMax);
+          
+          // Calculate the specific ESA score needed
+          // We derive the "Current Projected ESA" from the momentum to add the gap to it
+          // This is an estimation, but it aligns the Strategy with the Analysis tab
+          const currentProjectedEsa = ((sub.currentScore * sub.totalWeight / 100) - (sub.currentScore * (sub.totalWeight - sub.esaWeight) / 100)) / sub.esaWeight * sub.esaMax;
+          
+          // Actually, simpler: We don't need absolute ESA, we just need cost.
+          // But to check feasibility (<= 100), we need the absolute.
+          // Let's rely on the Analysis tab's logic for the "Base" requirement and add the gap.
+          
+          // Safe Fallback: Assume the gap must be covered by ESA.
+          // Current projected ESA mark inside the momentum score:
+          // We can approximate it by assuming the ESA performance ratio matches the overall momentum.
+          const projectedEsaMark = (sub.currentScore / 100) * sub.esaMax;
+          const esaNeeded = Math.ceil(projectedEsaMark + esaMarksGap);
 
-          // Check if physically possible
           if (esaNeeded <= sub.esaMax) {
-            // How many marks do we need relative to where we are NOW?
-            // "Cost" is the extra ESA marks needed on top of what momentum predicts
-            const currentProjectedEsa = ((sub.currentScore * sub.totalWeight / 100) - sub.currentInternals) / sub.esaWeight * sub.esaMax;
-            
-            // If we are already projected to get 40, and need 45, cost is 5.
-            // If we are projected to get 30, and need 45, cost is 15.
-            const cost = Math.max(0, esaNeeded - Math.max(0, currentProjectedEsa));
-            
             const gpGain = (nextGrade.gp - currentG) * sub.credits;
+            
+            // Cost is the EXTRA marks needed on top of current projection
+            const cost = Math.max(0, esaMarksGap);
             
             candidates.push({
               idx,
               name: sub.name,
               fromGrade: GradeMap.find(g => g.gp === currentG)?.grade || 'F',
               toGrade: nextGrade.grade,
-              esaNeeded: Math.max(0, esaNeeded), // The absolute ESA score needed
+              esaNeeded: Math.max(0, esaNeeded),
               esaMax: sub.esaMax,
               gpGain,
-              cost, // The "marginal cost" used for sorting efficiency
+              cost, 
               credits: sub.credits,
               efficiency: cost <= 0 ? Infinity : gpGain / cost
             });
@@ -714,23 +727,21 @@ export default function PES_Universal_Calculator() {
         break;
       }
 
-      // Sort by Efficiency (Cheap GP first)
       candidates.sort((a, b) => {
         if (b.efficiency !== a.efficiency) {
           if (b.efficiency === Infinity) return 1;
           if (a.efficiency === Infinity) return -1;
           return b.efficiency - a.efficiency;
         }
-        return a.esaNeeded - b.esaNeeded; // Tie-breaker: lower absolute marks
+        return a.esaNeeded - b.esaNeeded;
       });
 
       const best = candidates[0];
       plan.push(best);
       
-      // Update the simulation state
       const newGradeInfo = GradeMap.find(g => g.grade === best.toGrade);
       simState[best.idx].currentGP = newGradeInfo.gp;
-      simState[best.idx].currentScore = newGradeInfo.min; // Move baseline to the new grade's minimum
+      simState[best.idx].currentScore = newGradeInfo.min;
       
       deficit -= best.gpGain;
     }
