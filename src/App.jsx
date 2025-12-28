@@ -720,103 +720,118 @@ export default function PES_Universal_Calculator() {
     return { plan, impossible, deficit };
   };
 
-  // --- Reverse Calculator Logic ---
+// --- Advanced Reverse Calculator (Smart Greedy Strategy) ---
   const calculateReverseRequirements = () => {
     const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
-    const targetGP = reverseTargetSgpa * totalCredits;
-    
-    let results = [];
-    let lockedGP = 0;
-    let lockedCredits = 0;
-    
-    // First pass: Calculate locked subjects
-    subjects.forEach(sub => {
+    const targetTotalGP = reverseTargetSgpa * totalCredits;
+
+    // 1. Initialization: Start everyone at "Zero Effort" (or locked value)
+    let state = subjects.map(sub => {
+      // Handle Locked Subjects
       if (lockedSubjects[sub.id] !== undefined) {
         const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
         const lockedEsa = lockedSubjects[sub.id];
         const esaMax = marks[sub.id]?.esaMax || 100;
         const esaComponent = (lockedEsa / esaMax) * esaWeight;
         const totalScore = Math.ceil(((currentInternals + esaComponent) / totalWeight) * 100);
-        const gp = getGradePoint(Math.min(100, totalScore));
+        const gradeInfo = getGradeInfo(Math.min(100, totalScore));
         
-        lockedGP += (gp * sub.credits);
-        lockedCredits += sub.credits;
-        
-        results.push({
+        return {
           ...sub,
           locked: true,
+          currentGradeInfo: gradeInfo,
+          currentGP: gradeInfo.gp,
           requiredEsa: lockedEsa,
           esaMax,
-          projectedScore: Math.min(100, totalScore),
-          projectedGrade: getGradeInfo(Math.min(100, totalScore)).grade,
-          gp
-        });
+          isImpossible: lockedEsa > esaMax,
+          currentInternals, totalWeight, esaWeight // Store for loop
+        };
       }
+
+      // Handle Unlocked: Start at baseline (0 ESA marks)
+      const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
+      const esaMax = marks[sub.id]?.esaMax || 100;
+      // Calculate grade with 0 ESA
+      const zeroEsaScore = Math.ceil((currentInternals / totalWeight) * 100);
+      const startGradeInfo = getGradeInfo(zeroEsaScore);
+
+      return {
+        ...sub,
+        locked: false,
+        currentGradeInfo: startGradeInfo,
+        currentGP: startGradeInfo.gp,
+        requiredEsa: 0,
+        esaMax,
+        isImpossible: false,
+        currentInternals, totalWeight, esaWeight
+      };
     });
-    
-    // Calculate remaining GP needed
-    const remainingGP = targetGP - lockedGP;
-    const remainingCredits = totalCredits - lockedCredits;
-    const avgGPNeeded = remainingCredits > 0 ? remainingGP / remainingCredits : 0;
-    
-    // --- FIX START: Search from lowest to highest grade ---
-    // We use slice().reverse() to create a temporary reversed copy of the array
-    let targetGrade = GradeMap.slice().reverse().find(g => g.gp >= avgGPNeeded);
-    
-    // If even 'S' isn't enough (avgGPNeeded > 10), default to 'S'
-    if (!targetGrade) targetGrade = GradeMap[0]; 
-    // --- FIX END ---
-    
-    // Second pass: Calculate unlocked subjects
-    subjects.forEach(sub => {
-      if (lockedSubjects[sub.id] === undefined) {
-        const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
-        const esaMax = marks[sub.id]?.esaMax || 100;
+
+    let currentTotalGP = state.reduce((sum, s) => sum + (s.currentGP * s.credits), 0);
+
+    // 2. Optimization Loop (Hill Climbing)
+    // Keep upgrading the "cheapest" subject until we hit target
+    let iterations = 0;
+    while (currentTotalGP < targetTotalGP && iterations < 1000) {
+      iterations++;
+      let bestUpgrade = null;
+      let maxEfficiency = -1; // Higher is better
+
+      state.forEach((sub, idx) => {
+        if (sub.locked || sub.isImpossible) return;
+
+        // Find next grade tier
+        const nextGrade = GradeMap.slice().reverse().find(g => g.gp > sub.currentGP);
+        if (!nextGrade) return; // Already at S (10)
+
+        // Calculate Cost (ESA Marks needed)
+        const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
+        const requiredEsaComponent = requiredTotal - sub.currentInternals;
+        const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
         
-        const requiredTotal = (targetGrade.min * totalWeight) / 100;
-        const requiredEsaComponent = requiredTotal - currentInternals;
-        const requiredEsa = Math.ceil((requiredEsaComponent / esaWeight) * esaMax);
+        // If impossible to reach next grade, skip
+        if (requiredEsa > sub.esaMax) return;
+
+        const markCost = requiredEsa - sub.requiredEsa;
+        const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
         
-        const isImpossible = requiredEsa > esaMax;
-        const alreadyAchieved = requiredEsa <= 0;
-        
-        results.push({
-          ...sub,
-          locked: false,
-          requiredEsa: Math.max(0, Math.min(esaMax, requiredEsa)),
-          esaMax,
-          projectedScore: targetGrade.min,
-          projectedGrade: targetGrade.grade,
-          gp: targetGrade.gp,
-          isImpossible,
-          alreadyAchieved
-        });
-      }
+        // Efficiency: GP gained per ESA mark spent. 
+        // We add a tiny epsilon (0.0001) to avoid division by zero if cost is 0 (free upgrade)
+        const efficiency = gpGain / (markCost <= 0 ? 0.0001 : markCost);
+
+        if (efficiency > maxEfficiency) {
+          maxEfficiency = efficiency;
+          bestUpgrade = { idx, nextGrade, requiredEsa, gpGain };
+        }
+      });
+
+      if (!bestUpgrade) break; // No upgrades possible
+
+      // Apply Upgrade
+      const targetSub = state[bestUpgrade.idx];
+      targetSub.currentGradeInfo = bestUpgrade.nextGrade;
+      targetSub.currentGP = bestUpgrade.nextGrade.gp;
+      targetSub.requiredEsa = Math.max(0, bestUpgrade.requiredEsa);
+      currentTotalGP += bestUpgrade.gpGain;
+    }
+
+    // 3. Final Formatting
+    const results = state.map(s => ({
+      ...s,
+      projectedScore: s.currentGradeInfo.min,
+      projectedGrade: s.currentGradeInfo.grade,
+      gp: s.currentGP,
+      isImpossible: s.requiredEsa > s.esaMax,
+      alreadyAchieved: s.requiredEsa <= 0
+    })).sort((a, b) => {
+        if (a.locked !== b.locked) return a.locked ? -1 : 1;
+        return a.name.localeCompare(b.name);
     });
-    
-    // Sort: locked first, then by name
-    results.sort((a, b) => {
-      if (a.locked !== b.locked) return a.locked ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
-    
-    // Calculate if target is achievable
-    const totalAchievableGP = results.reduce((sum, r) => {
-      if (r.isImpossible) {
-        // Best possible grade
-        const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(subjects.find(s => s.id === r.id));
-        const esaMax = r.esaMax;
-        const maxEsaComponent = esaWeight;
-        const maxScore = Math.ceil(((currentInternals + maxEsaComponent) / totalWeight) * 100);
-        return sum + getGradePoint(Math.min(100, maxScore)) * r.credits;
-      }
-      return sum + r.gp * r.credits;
-    }, 0);
-    
-    const achievableSGPA = (totalAchievableGP / totalCredits).toFixed(2);
+
+    const achievableSGPA = (currentTotalGP / totalCredits).toFixed(2);
     const isTargetAchievable = parseFloat(achievableSGPA) >= reverseTargetSgpa;
-    
-    return { results, isTargetAchievable, achievableSGPA, avgGPNeeded };
+
+    return { results, isTargetAchievable, achievableSGPA, avgGPNeeded: 0 };
   };
 
   // --- Study Priority Logic ---
@@ -1767,9 +1782,15 @@ export default function PES_Universal_Calculator() {
               <div className="mt-6 p-4 bg-white/10 rounded-lg">
                 <div className="flex items-start gap-2 text-sm">
                   <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <strong>How to use:</strong> Lock subjects where you're confident about your ESA score. 
-                    The calculator will then adjust the requirements for other subjects to compensate.
+                  <div className="space-y-2">
+                    <p>
+                      <strong>How to use:</strong> Lock subjects where you're confident about your ESA score. 
+                      The calculator will then adjust the requirements for other subjects to compensate.
+                    </p>
+                    <p className="text-emerald-200/60 text-xs italic border-t border-white/10 pt-2">
+                      <strong>Note:</strong> There are many combinations of grades that can achieve your target. 
+                      This result is just the most efficient path (requiring the least amount of total marks).
+                    </p>
                   </div>
                 </div>
               </div>
