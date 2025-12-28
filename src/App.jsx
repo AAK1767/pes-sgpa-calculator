@@ -941,6 +941,58 @@ export default function PES_Universal_Calculator() {
     });
   };
 
+// --- Range Calculation (Min/Max Achievable) ---
+  const sgpaRange = useMemo(() => {
+    let totalCredits = 0;
+    let minWeightedGP = 0;
+    let maxWeightedGP = 0;
+
+    subjects.forEach(sub => {
+      const m = marks[sub.id] || {};
+      const { totalWeight } = getSubjectMetrics(sub);
+      
+      let rawLoss = 0;    // Marks definitively lost
+      let rawSecured = 0; // Marks definitively secured
+
+      // Helper to check components
+      const checkComp = (val, max, weight) => {
+        if (val !== '' && val !== undefined && !isNaN(parseFloat(val))) {
+          const v = parseFloat(val);
+          const mx = parseFloat(max);
+          const w = parseFloat(weight);
+          // Calculate raw weighted score
+          const score = (v / mx) * w;
+          rawSecured += score;
+          // Calculate raw lost marks
+          rawLoss += (w - score);
+        }
+      };
+
+      checkComp(m.isa1, m.isa1Max, sub.isaWeight);
+      checkComp(m.isa2, m.isa2Max, sub.isaWeight);
+      if (sub.hasAssignment) checkComp(m.assignment, m.assignmentMax, sub.assignmentWeight);
+      if (sub.hasLab) checkComp(m.lab, m.labMax, sub.labWeight);
+      // For ESA: If not entered, Max assumes full marks, Min assumes 0
+      checkComp(m.esa, m.esaMax, sub.esaWeight);
+
+      // WORST CASE: Assumes 0 in all empty fields
+      const minPercent = Math.ceil((rawSecured / totalWeight) * 100);
+      
+      // BEST CASE: Assumes Full Marks in all empty fields
+      const maxRawScore = totalWeight - rawLoss;
+      const maxPercent = Math.ceil((maxRawScore / totalWeight) * 100);
+
+      minWeightedGP += getGradePoint(minPercent) * sub.credits;
+      maxWeightedGP += getGradePoint(maxPercent) * sub.credits;
+      totalCredits += sub.credits;
+    });
+
+    return {
+      min: totalCredits > 0 ? (minWeightedGP / totalCredits).toFixed(2) : 0,
+      max: totalCredits > 0 ? (maxWeightedGP / totalCredits).toFixed(2) : 10
+    };
+  }, [subjects, marks]);
+
   const metrics = calculateAnalysis();
   const strategy = getSmartSuggestions();
   const reverseResults = calculateReverseRequirements();
@@ -1526,26 +1578,56 @@ export default function PES_Universal_Calculator() {
                 </div>
               </div>
 
+              {/* Updated Grid with Range */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-                  <div className="text-2xl font-bold">{metrics.totalCredits}</div>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Total Credits</div>
+                
+                {/* 1. Range Card (Replaces Credits & Current SGPA) */}
+                <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 col-span-2 relative overflow-hidden group">
+                  <div className="flex justify-between items-end mb-2">
+                    <div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Achievable Range</div>
+                      <div className="text-2xl font-bold text-white flex items-baseline gap-2">
+                        {sgpaRange.min} <span className="text-sm text-slate-500 font-normal">to</span> {sgpaRange.max}
+                      </div>
+                    </div>
+                    <Activity className="w-8 h-8 text-slate-600 group-hover:text-blue-500/50 transition-colors" />
+                  </div>
+                  {/* Visual Range Bar */}
+                  <div className="w-full bg-slate-800 h-2 rounded-full mt-2 overflow-hidden relative">
+                    <div 
+                      className="absolute h-full bg-blue-500/30"
+                      style={{ 
+                        left: `${(sgpaRange.min / 10) * 100}%`, 
+                        right: `${100 - (sgpaRange.max / 10) * 100}%` 
+                      }}
+                    />
+                    <div 
+                      className="absolute h-full w-1 bg-yellow-400 top-0 z-10"
+                      style={{ left: `${(Math.min(Math.max(sgpa, sgpaRange.min), sgpaRange.max) / 10) * 100}%` }}
+                      title={`Current Prediction: ${sgpa}`}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[9px] text-slate-500 mt-1 font-mono">
+                    <span>{sgpaRange.min}</span>
+                    <span className="text-yellow-500 font-bold">Curr: {sgpa}</span>
+                    <span>{sgpaRange.max}</span>
+                  </div>
                 </div>
-                <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-                  <div className="text-2xl font-bold">{sgpa}</div>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Current SGPA</div>
-                </div>
+
+                {/* 2. Target Gap */}
                 <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-2 opacity-10"><Target className="w-10 h-10"/></div>
-                  <div className="text-2xl font-bold">{metrics. allowableLoss. toFixed(1)}</div>
+                  <div className="text-2xl font-bold">{metrics.allowableLoss.toFixed(1)}</div>
                   <div className="text-[10px] text-slate-400 uppercase tracking-wider">GP Budget</div>
-                  <p className="text-[10px] text-slate-500 mt-1">Points you can lose for {targetSgpa}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Points you can lose to hit {targetSgpa}</p>
                 </div>
+
+                {/* 3. Momentum */}
                 <div className="bg-indigo-900/40 rounded-lg p-4 border border-indigo-500/30 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-10 h-10"/></div>
                   <div className="text-2xl font-bold text-indigo-300">{metrics.momentumSGPA}</div>
                   <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">Momentum SGPA</div>
-                  <p className="text-[10px] text-indigo-200/50 mt-1">If ESA = Internal performance</p>
+                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form</p>
                 </div>
               </div>
 
