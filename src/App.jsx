@@ -52,8 +52,29 @@ export default function PES_Universal_Calculator() {
     return saved ? saved === 'dark' : false;
   });
 
-  // --- Core State ---
-  const [subjects, setSubjects] = useState(() => {
+const [subjects, setSubjects] = useState(() => {
+    // --- THE RESET LOGIC ---
+    const CURRENT_VERSION = '2025_END'; // Change this string whenever you want to nuke again
+    const savedVersion = localStorage.getItem('pes_version');
+
+    if (savedVersion !== CURRENT_VERSION) {
+      console.log('New version detected. Wiping old data...');
+      
+      // Option A: Wipe SPECIFIC data (Safest)
+      localStorage.removeItem('pes_subjects');
+      localStorage.removeItem('pes_marks');
+      localStorage.removeItem('pes_cgpa_details');
+      
+      // Option B: Wipe EVERYTHING (Themes, other apps on same domain)
+      // localStorage.clear(); 
+
+      // Save the new version so this doesn't happen on next reload
+      localStorage.setItem('pes_version', CURRENT_VERSION);
+      
+      return ChemistryCycleDefaults;
+    }
+    // --- END RESET LOGIC ---
+
     const saved = localStorage.getItem('pes_subjects');
     return saved ? JSON.parse(saved) : ChemistryCycleDefaults;
   });
