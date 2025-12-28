@@ -753,6 +753,7 @@ export default function PES_Universal_Calculator() {
   const calculateReverseRequirements = () => {
     const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
     const targetTotalGP = reverseTargetSgpa * totalCredits;
+    let usingMomentum = false; // NEW FLAG
 
     // 1. Initialization: Start everyone at "Zero Effort" (or locked value)
     let state = subjects.map(sub => {
@@ -773,15 +774,26 @@ export default function PES_Universal_Calculator() {
           requiredEsa: lockedEsa,
           esaMax,
           isImpossible: lockedEsa > esaMax,
-          currentInternals, totalWeight, esaWeight // Store for loop
+          currentInternals, totalWeight, esaWeight 
         };
       }
 
-      // Handle Unlocked: Start at baseline (0 ESA marks)
-      const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
-      const esaMax = marks[sub.id]?.esaMax || 100;
-      // Calculate grade with 0 ESA
-      const zeroEsaScore = Math.ceil((currentInternals / totalWeight) * 100);
+      // Handle Unlocked
+      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
+      const m = marks[sub.id] || {};
+      const esaMax = m.esaMax || 100;
+
+      // FIX: Use Projected Internals derived from Momentum
+      const projectedEsaScore = (momentumScore / 100) * esaWeight;
+      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
+
+      // DETECT: Are we guessing marks? (If projected > actual, we are filling blanks)
+      if (projectedInternals > currentInternals + 0.1) {
+        usingMomentum = true;
+      }
+
+      // Calculate grade with 0 ESA using the PROJECTED internals
+      const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
       const startGradeInfo = getGradeInfo(zeroEsaScore);
 
       return {
@@ -792,40 +804,37 @@ export default function PES_Universal_Calculator() {
         requiredEsa: 0,
         esaMax,
         isImpossible: false,
-        currentInternals, totalWeight, esaWeight
+        currentInternals: projectedInternals, 
+        totalWeight, 
+        esaWeight
       };
     });
 
     let currentTotalGP = state.reduce((sum, s) => sum + (s.currentGP * s.credits), 0);
 
     // 2. Optimization Loop (Hill Climbing)
-    // Keep upgrading the "cheapest" subject until we hit target
     let iterations = 0;
     while (currentTotalGP < targetTotalGP && iterations < 1000) {
       iterations++;
       let bestUpgrade = null;
-      let maxEfficiency = -1; // Higher is better
+      let maxEfficiency = -1; 
 
       state.forEach((sub, idx) => {
         if (sub.locked || sub.isImpossible) return;
 
-        // Find next grade tier
         const nextGrade = GradeMap.slice().reverse().find(g => g.gp > sub.currentGP);
-        if (!nextGrade) return; // Already at S (10)
+        if (!nextGrade) return; 
 
         // Calculate Cost (ESA Marks needed)
         const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
         const requiredEsaComponent = requiredTotal - sub.currentInternals;
         const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
         
-        // If impossible to reach next grade, skip
         if (requiredEsa > sub.esaMax) return;
 
         const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
         
-        // Efficiency: GP gained per ESA mark spent. 
-        // We add a tiny epsilon (0.0001) to avoid division by zero if cost is 0 (free upgrade)
         const efficiency = gpGain / (markCost <= 0 ? 0.0001 : markCost);
 
         if (efficiency > maxEfficiency) {
@@ -834,9 +843,8 @@ export default function PES_Universal_Calculator() {
         }
       });
 
-      if (!bestUpgrade) break; // No upgrades possible
+      if (!bestUpgrade) break; 
 
-      // Apply Upgrade
       const targetSub = state[bestUpgrade.idx];
       targetSub.currentGradeInfo = bestUpgrade.nextGrade;
       targetSub.currentGP = bestUpgrade.nextGrade.gp;
@@ -860,7 +868,7 @@ export default function PES_Universal_Calculator() {
     const achievableSGPA = (currentTotalGP / totalCredits).toFixed(2);
     const isTargetAchievable = parseFloat(achievableSGPA) >= reverseTargetSgpa;
 
-    return { results, isTargetAchievable, achievableSGPA, avgGPNeeded: 0 };
+    return { results, isTargetAchievable, achievableSGPA, avgGPNeeded: 0, usingMomentum };
   };
 
   // --- Study Priority Logic ---
@@ -1933,6 +1941,19 @@ export default function PES_Universal_Calculator() {
                   </div>
                 </div>
               </div>
+
+              {/* MOMENTUM WARNING BANNER (Bottom Placement) */}
+              {reverseResults.usingMomentum && (
+                <div className="mt-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
+                  <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <strong className="text-yellow-200">Using Momentum Scores</strong>
+                    <p className="text-yellow-100/70 text-xs mt-1">
+                      Some internals (like Lab/ISA2/Assignment) are empty. We are projecting these based on your current performance trend so the calculator doesn't panic.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Minimum Passing Table */}
