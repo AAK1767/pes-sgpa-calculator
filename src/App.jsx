@@ -626,25 +626,30 @@ export default function PES_Universal_Calculator() {
     };
   };
 
-  // --- Smart Strategy Engine (Fixed) ---
+// --- Smart Strategy Engine (Fixed) ---
   const getSmartSuggestions = () => {
-    const totalCredits = subjects. reduce((acc, s) => acc + s.credits, 0);
+    const totalCredits = subjects.reduce((acc, s) => acc + s.credits, 0);
     const targetTotalGP = totalCredits * targetSgpa;
     
+    // 1. Build Current State
     let subState = subjects.map(s => {
-      const m = marks[s. id] || {};
+      const m = marks[s.id] || {};
       const { momentumScore, currentInternals, totalWeight, esaWeight } = getSubjectMetrics(s);
+      
+      // If ESA is already entered, this subject is effectively "Final"
+      const isFinal = m.esa && m.esa !== '' && !isNaN(parseFloat(m.esa));
+      
       const gp = getGradePoint(momentumScore);
       
       return { 
-        ... s, 
+        ...s, 
         currentScore: momentumScore, 
         currentGP: gp, 
         currentInternals,
         totalWeight,
         esaWeight,
-        esaMax: m. esaMax || 100,
-        esaEntered: m.esa && m.esa !== ''
+        esaMax: m.esaMax || 100,
+        isFinal // Mark as final so we don't try to upgrade it later
       };
     });
 
@@ -655,37 +660,50 @@ export default function PES_Universal_Calculator() {
     let impossible = false;
     let iterations = 0;
     
-    let simState = JSON.parse(JSON. stringify(subState));
+    // Clone state to simulate upgrades
+    let simState = JSON.parse(JSON.stringify(subState));
 
+    // 2. Optimization Loop
     while (deficit > 0.01 && iterations < 50) {
       iterations++;
       let candidates = [];
 
       simState.forEach((sub, idx) => {
+        // Skip if subject is finalized (ESA entered) or already maxed (S grade)
+        if (sub.isFinal || sub.currentGP >= 10) return;
+
         const currentG = sub.currentGP;
-        const nextGrade = GradeMap. slice().reverse().find(g => g.gp > currentG);
+        const nextGrade = GradeMap.slice().reverse().find(g => g.gp > currentG);
         
         if (nextGrade) {
-          const requiredWeightedTotal = (nextGrade.min * sub. totalWeight) / 100;
-          const requiredEsaComponent = requiredWeightedTotal - sub. currentInternals;
+          // Calculate cost to reach NEXT grade
+          const requiredWeightedTotal = (nextGrade.min * sub.totalWeight) / 100;
+          const requiredEsaComponent = requiredWeightedTotal - sub.currentInternals;
           const esaNeeded = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
 
-          if (esaNeeded >= 0 && esaNeeded <= sub. esaMax) {
+          // Check if physically possible
+          if (esaNeeded <= sub.esaMax) {
+            // How many marks do we need relative to where we are NOW?
+            // "Cost" is the extra ESA marks needed on top of what momentum predicts
             const currentProjectedEsa = ((sub.currentScore * sub.totalWeight / 100) - sub.currentInternals) / sub.esaWeight * sub.esaMax;
-            const cost = Math.max(0, esaNeeded - currentProjectedEsa);
+            
+            // If we are already projected to get 40, and need 45, cost is 5.
+            // If we are projected to get 30, and need 45, cost is 15.
+            const cost = Math.max(0, esaNeeded - Math.max(0, currentProjectedEsa));
+            
             const gpGain = (nextGrade.gp - currentG) * sub.credits;
             
             candidates.push({
               idx,
               name: sub.name,
-              fromGrade: GradeMap. find(g => g.gp === currentG)?.grade || 'F',
+              fromGrade: GradeMap.find(g => g.gp === currentG)?.grade || 'F',
               toGrade: nextGrade.grade,
-              esaNeeded:  Math.max(0, esaNeeded),
+              esaNeeded: Math.max(0, esaNeeded), // The absolute ESA score needed
               esaMax: sub.esaMax,
               gpGain,
-              cost,
+              cost, // The "marginal cost" used for sorting efficiency
               credits: sub.credits,
-              efficiency: cost > 0 ? gpGain / cost :  Infinity
+              efficiency: cost <= 0 ? Infinity : gpGain / cost
             });
           }
         }
@@ -696,23 +714,23 @@ export default function PES_Universal_Calculator() {
         break;
       }
 
+      // Sort by Efficiency (Cheap GP first)
       candidates.sort((a, b) => {
         if (b.efficiency !== a.efficiency) {
           if (b.efficiency === Infinity) return 1;
           if (a.efficiency === Infinity) return -1;
           return b.efficiency - a.efficiency;
         }
-        return a.esaNeeded - b.esaNeeded;
+        return a.esaNeeded - b.esaNeeded; // Tie-breaker: lower absolute marks
       });
 
       const best = candidates[0];
       plan.push(best);
       
-      const newGP = GradeMap.find(g => g. grade === best.toGrade).gp;
-      const newMin = GradeMap.find(g => g. grade === best.toGrade).min;
-      
-      simState[best.idx]. currentGP = newGP;
-      simState[best.idx].currentScore = newMin;
+      // Update the simulation state
+      const newGradeInfo = GradeMap.find(g => g.grade === best.toGrade);
+      simState[best.idx].currentGP = newGradeInfo.gp;
+      simState[best.idx].currentScore = newGradeInfo.min; // Move baseline to the new grade's minimum
       
       deficit -= best.gpGain;
     }
