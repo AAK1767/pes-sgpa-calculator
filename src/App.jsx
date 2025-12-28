@@ -722,7 +722,7 @@ export default function PES_Universal_Calculator() {
 
   // --- Reverse Calculator Logic ---
   const calculateReverseRequirements = () => {
-    const totalCredits = subjects. reduce((sum, s) => sum + s.credits, 0);
+    const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
     const targetGP = reverseTargetSgpa * totalCredits;
     
     let results = [];
@@ -739,11 +739,11 @@ export default function PES_Universal_Calculator() {
         const totalScore = Math.ceil(((currentInternals + esaComponent) / totalWeight) * 100);
         const gp = getGradePoint(Math.min(100, totalScore));
         
-        lockedGP += (gp * sub. credits);
+        lockedGP += (gp * sub.credits);
         lockedCredits += sub.credits;
         
         results.push({
-          ... sub,
+          ...sub,
           locked: true,
           requiredEsa: lockedEsa,
           esaMax,
@@ -759,8 +759,13 @@ export default function PES_Universal_Calculator() {
     const remainingCredits = totalCredits - lockedCredits;
     const avgGPNeeded = remainingCredits > 0 ? remainingGP / remainingCredits : 0;
     
-    // Find target grade for unlocked subjects
-    let targetGrade = GradeMap.find(g => g. gp >= avgGPNeeded) || GradeMap[GradeMap.length - 1];
+    // --- FIX START: Search from lowest to highest grade ---
+    // We use slice().reverse() to create a temporary reversed copy of the array
+    let targetGrade = GradeMap.slice().reverse().find(g => g.gp >= avgGPNeeded);
+    
+    // If even 'S' isn't enough (avgGPNeeded > 10), default to 'S'
+    if (!targetGrade) targetGrade = GradeMap[0]; 
+    // --- FIX END ---
     
     // Second pass: Calculate unlocked subjects
     subjects.forEach(sub => {
@@ -778,21 +783,21 @@ export default function PES_Universal_Calculator() {
         results.push({
           ...sub,
           locked: false,
-          requiredEsa:  Math.max(0, Math.min(esaMax, requiredEsa)),
+          requiredEsa: Math.max(0, Math.min(esaMax, requiredEsa)),
           esaMax,
           projectedScore: targetGrade.min,
           projectedGrade: targetGrade.grade,
-          gp:  targetGrade.gp,
+          gp: targetGrade.gp,
           isImpossible,
           alreadyAchieved
         });
       }
     });
     
-    // Sort:  locked first, then by name
+    // Sort: locked first, then by name
     results.sort((a, b) => {
       if (a.locked !== b.locked) return a.locked ? -1 : 1;
-      return a.name.localeCompare(b. name);
+      return a.name.localeCompare(b.name);
     });
     
     // Calculate if target is achievable
