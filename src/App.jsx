@@ -1731,27 +1731,55 @@ export default function PES_Universal_Calculator() {
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        {sub.isImpossible ? (
-                          <div>
-                            <div className="text-red-300 font-bold">Not Possible</div>
-                            <div className="text-[10px] text-red-200/60">Internals too low</div>
+                    <div className="text-right">
+                      {sub.locked ? (
+                        /* CASE 1: LOCKED (Show Editable Input) */
+                        <div className="flex flex-col items-end">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              max={sub.esaMax}
+                              value={lockedSubjects[sub.id]}
+                              onChange={(e) => {
+                                // Allow user to type their own locked value
+                                const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                                setLockedSubjects(prev => ({
+                                  ...prev,
+                                  [sub.id]: val
+                                }));
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-20 p-1 text-right bg-yellow-500/20 border border-yellow-500/50 rounded text-yellow-200 font-bold focus:outline-none focus:border-yellow-400 focus:bg-yellow-500/30 transition-all"
+                            />
+                            <span className="text-sm text-yellow-200/50">/{sub.esaMax}</span>
                           </div>
-                        ) : sub.alreadyAchieved ? (
-                          <div>
-                            <div className="text-green-300 font-bold flex items-center gap-1">
-                              <CheckCircle2 className="w-4 h-4" /> Already there
-                            </div>
-                            <div className="text-[10px] text-green-200/60">No ESA needed for this grade</div>
+                          <div className="text-[10px] text-yellow-200/60 mt-1">Manual Override</div>
+                        </div>
+                      ) : sub.isImpossible ? (
+                        /* CASE 2: IMPOSSIBLE */
+                        <div>
+                          <div className="text-red-300 font-bold">Not Possible</div>
+                          <div className="text-[10px] text-red-200/60">Internals too low</div>
+                        </div>
+                      ) : sub.alreadyAchieved ? (
+                        /* CASE 3: ALREADY DONE */
+                        <div>
+                          <div className="text-green-300 font-bold flex items-center gap-1">
+                            <CheckCircle2 className="w-4 h-4" /> Already there
                           </div>
-                        ) : (
-                          <div>
-                            <div className="text-2xl font-bold">{sub.requiredEsa}<span className="text-sm text-emerald-200/70">/{sub.esaMax}</span></div>
-                            <div className="text-[10px] text-emerald-200/60">ESA marks needed</div>
+                          <div className="text-[10px] text-green-200/60">No ESA needed</div>
+                        </div>
+                      ) : (
+                        /* CASE 4: STANDARD CALCULATION */
+                        <div>
+                          <div className="text-2xl font-bold">
+                            {sub.requiredEsa}
+                            <span className="text-sm text-emerald-200/70">/{sub.esaMax}</span>
                           </div>
-                        )}
-                      </div>
+                          <div className="text-[10px] text-emerald-200/60">ESA marks needed</div>
+                        </div>
+                      )}
                       
                       {/* Lock toggle */}
                       <button
