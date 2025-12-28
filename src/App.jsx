@@ -753,46 +753,62 @@ export default function PES_Universal_Calculator() {
   const calculateReverseRequirements = () => {
     const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
     const targetTotalGP = reverseTargetSgpa * totalCredits;
-    let usingMomentum = false; // NEW FLAG
+    let usingMomentum = false;
 
-    // 1. Initialization: Start everyone at "Zero Effort" (or locked value)
+    // 1. Initialization
     let state = subjects.map(sub => {
-      // Handle Locked Subjects
-      if (lockedSubjects[sub.id] !== undefined) {
-        const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
-        const lockedEsa = lockedSubjects[sub.id];
-        const esaMax = marks[sub.id]?.esaMax || 100;
-        const esaComponent = (lockedEsa / esaMax) * esaWeight;
-        const totalScore = Math.ceil(((currentInternals + esaComponent) / totalWeight) * 100);
+      const m = marks[sub.id] || {};
+      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
+      const esaMax = m.esaMax || 100;
+      
+      // LOGIC FIX 1: Calculate Projected Internals from Momentum
+      // We reverse-engineer the internals that momentum is "assuming" we have.
+      // This prevents the "Zero Lab" trap for both Locked and Unlocked subjects.
+      const projectedEsaScore = (momentumScore / 100) * esaWeight;
+      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
+
+      // Check if we are relying on projection (Momentum > Actual)
+      // We use a small epsilon (0.1) to handle floating point errors
+      const isProjecting = projectedInternals > currentInternals + 0.1;
+      if (isProjecting) usingMomentum = true;
+
+      // LOGIC FIX 2: Check if subject is effectively "Locked"
+      // It is locked if: 
+      // a) User manually locked it in UI
+      // b) User already entered an ESA mark in the main Subjects tab
+      const isEsaEntered = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
+      const manualLockVal = lockedSubjects[sub.id];
+      const isLocked = manualLockVal !== undefined || isEsaEntered;
+
+      // Determine the Effective ESA to use
+      // If manually locked, use that. If ESA entered, use that. Otherwise 0.
+      let effectiveEsa = 0;
+      if (manualLockVal !== undefined) effectiveEsa = manualLockVal;
+      else if (isEsaEntered) effectiveEsa = parseFloat(m.esa);
+
+      if (isLocked) {
+        // Use PROJECTED internals for the total calculation to avoid the trap
+        const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
+        const esaComponent = (effectiveEsa / esaMax) * esaWeight;
+        const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
         const gradeInfo = getGradeInfo(Math.min(100, totalScore));
         
         return {
           ...sub,
-          locked: true,
+          locked: true, // Treat as locked
           currentGradeInfo: gradeInfo,
           currentGP: gradeInfo.gp,
-          requiredEsa: lockedEsa,
+          requiredEsa: effectiveEsa,
           esaMax,
-          isImpossible: lockedEsa > esaMax,
-          currentInternals, totalWeight, esaWeight 
+          isImpossible: effectiveEsa > esaMax,
+          currentInternals: effectiveInternals, // Pass projected
+          totalWeight, esaWeight,
+          isManualLock: manualLockVal !== undefined // Distinguish for UI
         };
       }
 
       // Handle Unlocked
-      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
-      const m = marks[sub.id] || {};
-      const esaMax = m.esaMax || 100;
-
-      // FIX: Use Projected Internals derived from Momentum
-      const projectedEsaScore = (momentumScore / 100) * esaWeight;
-      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
-
-      // DETECT: Are we guessing marks? (If projected > actual, we are filling blanks)
-      if (projectedInternals > currentInternals + 0.1) {
-        usingMomentum = true;
-      }
-
-      // Calculate grade with 0 ESA using the PROJECTED internals
+      // Calculate grade with 0 ESA using PROJECTED internals
       const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
       const startGradeInfo = getGradeInfo(zeroEsaScore);
 
@@ -825,7 +841,7 @@ export default function PES_Universal_Calculator() {
         const nextGrade = GradeMap.slice().reverse().find(g => g.gp > sub.currentGP);
         if (!nextGrade) return; 
 
-        // Calculate Cost (ESA Marks needed)
+        // Calculate Cost
         const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
         const requiredEsaComponent = requiredTotal - sub.currentInternals;
         const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
@@ -835,6 +851,7 @@ export default function PES_Universal_Calculator() {
         const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
         
+        // Efficiency: GP gained per ESA mark
         const efficiency = gpGain / (markCost <= 0 ? 0.0001 : markCost);
 
         if (efficiency > maxEfficiency) {
@@ -859,7 +876,9 @@ export default function PES_Universal_Calculator() {
       projectedGrade: s.currentGradeInfo.grade,
       gp: s.currentGP,
       isImpossible: s.requiredEsa > s.esaMax,
-      alreadyAchieved: s.requiredEsa <= 0
+      alreadyAchieved: s.requiredEsa <= 0,
+      // Pass this flag so UI knows if it's a "Hard Lock" (User typed ESA in main tab)
+      isHardLocked: !s.isManualLock && s.locked 
     })).sort((a, b) => {
         if (a.locked !== b.locked) return a.locked ? -1 : 1;
         return a.name.localeCompare(b.name);
@@ -1851,17 +1870,19 @@ export default function PES_Universal_Calculator() {
                     </div>
                     
                     <div className="text-right">
-                      {sub.locked ? (
-                        /* CASE 1: LOCKED (Show Editable Input) */
+{sub.locked ? (
+                        /* CASE 1: LOCKED (Hard Lock vs Manual Lock) */
                         <div className="flex flex-col items-end">
                           <div className="flex items-center gap-1">
                             <input
                               type="number"
                               min="0"
                               max={sub.esaMax}
-                              value={lockedSubjects[sub.id]}
+                              /* FIX: If Hard Locked (entered in main tab), show that value. Else show manual override. */
+                              value={sub.isHardLocked ? (marks[sub.id]?.esa || 0) : lockedSubjects[sub.id]}
+                              disabled={sub.isHardLocked} // Disable input if it comes from the main tab
                               onChange={(e) => {
-                                // Allow user to type their own locked value
+                                if (sub.isHardLocked) return; // Prevent editing hard locks here
                                 const val = e.target.value === '' ? '' : parseFloat(e.target.value);
                                 setLockedSubjects(prev => ({
                                   ...prev,
@@ -1869,11 +1890,17 @@ export default function PES_Universal_Calculator() {
                                 }));
                               }}
                               onClick={(e) => e.stopPropagation()}
-                              className="w-20 p-1 text-right bg-yellow-500/20 border border-yellow-500/50 rounded text-yellow-200 font-bold focus:outline-none focus:border-yellow-400 focus:bg-yellow-500/30 transition-all"
+                              className={`w-20 p-1 text-right border rounded font-bold focus:outline-none transition-all ${
+                                sub.isHardLocked 
+                                  ? 'bg-white/10 text-slate-300 border-white/10 cursor-not-allowed' // Greyed out style for Hard Lock
+                                  : 'bg-yellow-500/20 border-yellow-500/50 text-yellow-200 focus:border-yellow-400' // Yellow style for Manual Lock
+                              }`}
                             />
                             <span className="text-sm text-yellow-200/50">/{sub.esaMax}</span>
                           </div>
-                          <div className="text-[10px] text-yellow-200/60 mt-1">Manual Override</div>
+                          <div className="text-[10px] text-yellow-200/60 mt-1">
+                            {sub.isHardLocked ? 'Set in Subjects Tab' : 'Manual Override'}
+                          </div>
                         </div>
                       ) : sub.isImpossible ? (
                         /* CASE 2: IMPOSSIBLE */
@@ -1900,28 +1927,41 @@ export default function PES_Universal_Calculator() {
                         </div>
                       )}
                       
-                      {/* Lock toggle */}
+{/* Lock toggle */}
                       <button
                         onClick={() => {
+                          // Prevent action if it's a Hard Lock (set in main tab)
+                          if (sub.isHardLocked) return;
+
                           if (lockedSubjects[sub.id] !== undefined) {
+                            // Unlock (Remove Manual Lock)
                             const newLocked = { ...lockedSubjects };
-                            delete newLocked[sub. id];
+                            delete newLocked[sub.id];
                             setLockedSubjects(newLocked);
                           } else {
+                            // Lock (Add Manual Lock)
                             setLockedSubjects({ 
-                              ... lockedSubjects, 
+                              ...lockedSubjects, 
                               [sub.id]: sub.requiredEsa 
                             });
                           }
                         }}
+                        disabled={sub.isHardLocked} // Disable if set in main tab
                         className={`p-2 rounded-lg transition-colors ${
-                          sub.locked ?  'bg-yellow-500 text-yellow-900' : 'bg-white/20 hover:bg-white/30'
+                          sub.isHardLocked 
+                            ? 'bg-white/5 text-slate-500 cursor-not-allowed' // Greyed out for Hard Lock
+                            : sub.locked 
+                              ? 'bg-yellow-500 text-yellow-900' // Yellow for Manual Lock
+                              : 'bg-white/20 hover:bg-white/30' // Default Unlocked
                         }`}
-                        title={sub.locked ?  "Unlock this subject" : "Lock this ESA score"}
+                        title={
+                          sub.isHardLocked ? "Clear ESA in Subjects tab to unlock" :
+                          sub.locked ? "Unlock this subject" : 
+                          "Lock this ESA score"
+                        }
                       >
                         {sub.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                      </button>
-                    </div>
+                      </button>                    </div>
                   </div>
                 ))}
               </div>
@@ -1949,7 +1989,7 @@ export default function PES_Universal_Calculator() {
                   <div className="text-sm">
                     <strong className="text-yellow-200">Using Momentum Scores</strong>
                     <p className="text-yellow-100/70 text-xs mt-1">
-                      Some internals (like Lab/ISA2/Assignment) are empty. We are projecting these based on your current performance trend so the calculator doesn't panic.
+                      Some internals (like Lab/ISA2/Assignment) are empty. We are projecting these based on your current performance trend so the calculator doesn't panic. And also the max achievable SGPA might be higher than reality (since empty internals are optimistically filled).
                     </p>
                   </div>
                 </div>
