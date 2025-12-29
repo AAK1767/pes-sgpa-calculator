@@ -1517,7 +1517,7 @@ export default function PES_Universal_Calculator() {
                 <div>
                   <span className="font-bold block">Universal Calculator</span>
                   <span className={themeClasses.muted}>
-                    Works for all semesters.  5-credit courses scale from 120% to 100%.
+                    Works for all semesters.  5-credit courses scale from 120% to 100%.<br /> After entering ISA/Lab/Assignment marks, you can check the Analysis tab for predictions and how much to score in ESA to reach your target grade in each subject and Reverse calc tab to know what to score in ESAs to reach your target SGPA.
                   </span>
                 </div>
               </div>
