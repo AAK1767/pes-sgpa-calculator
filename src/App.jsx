@@ -52,25 +52,25 @@ export default function PES_Universal_Calculator() {
     return saved ? saved === 'dark' : false;
   });
 
-const [subjects, setSubjects] = useState(() => {
+  const [subjects, setSubjects] = useState(() => {
     // --- THE RESET LOGIC ---
     const CURRENT_VERSION = '2025_END_2'; // Change this string whenever you want to nuke again
     const savedVersion = localStorage.getItem('pes_version');
 
     if (savedVersion !== CURRENT_VERSION) {
       console.log('New version detected. Wiping old data...');
-      
+
       // Option A: Wipe SPECIFIC data (Safest)
       localStorage.removeItem('pes_subjects');
       localStorage.removeItem('pes_marks');
       localStorage.removeItem('pes_cgpa_details');
-      
+
       // Option B: Wipe EVERYTHING (Themes, other apps on same domain)
       // localStorage.clear(); 
 
       // Save the new version so this doesn't happen on next reload
       localStorage.setItem('pes_version', CURRENT_VERSION);
-      
+
       return ChemistryCycleDefaults;
     }
     // --- END RESET LOGIC ---
@@ -500,7 +500,7 @@ const [subjects, setSubjects] = useState(() => {
     };
   };
 
-// --- Updated Grade Helpers (Supports Custom Cutoffs) ---
+  // --- Updated Grade Helpers (Supports Custom Cutoffs) ---
   const getGradePoint = (totalMarks, subject = null) => {
     // Check if the subject has a custom map, otherwise use default
     const map = (subject && subject.customGradeMap) ? subject.customGradeMap : GradeMap;
@@ -616,8 +616,8 @@ const [subjects, setSubjects] = useState(() => {
 
     subjects.forEach(sub => {
       const { finalScore, currentInternals, totalWeight, momentumScore, esaWeight } = getSubjectMetrics(sub);
-      const currentGP = getGradePoint(finalScore,sub);
-      const momentumGP = getGradePoint(momentumScore,sub);
+      const currentGP = getGradePoint(finalScore, sub);
+      const momentumGP = getGradePoint(momentumScore, sub);
 
       momentumWeightedGP += (momentumGP * sub.credits);
 
@@ -660,8 +660,8 @@ const [subjects, setSubjects] = useState(() => {
   };
 
   // --- Smart Strategy Engine (Fixed) ---
-// --- Smart Strategy Engine (Fixed) ---
-// --- Smart Strategy Engine (Fixed: Absolute Calculation) ---
+  // --- Smart Strategy Engine (Fixed) ---
+  // --- Smart Strategy Engine (Fixed: Absolute Calculation) ---
   const getSmartSuggestions = () => {
     const totalCredits = subjects.reduce((acc, s) => acc + s.credits, 0);
     const targetTotalGP = totalCredits * targetSgpa;
@@ -670,7 +670,7 @@ const [subjects, setSubjects] = useState(() => {
     let subState = subjects.map(s => {
       const m = marks[s.id] || {};
       const { momentumScore, totalWeight, esaWeight } = getSubjectMetrics(s);
-      
+
       // REVERSE ENGINEER INTERNALS:
       // We need to know what internals the 'Momentum Score' is assuming we have.
       // If momentum is 0, this will be 0. If momentum is 90, this will be high.
@@ -687,7 +687,7 @@ const [subjects, setSubjects] = useState(() => {
         currentScore: momentumScore,
         currentGP: getGradePoint(momentumScore, s),
         impliedInternals,
-        currentEsaMarks, 
+        currentEsaMarks,
         totalWeight,
         esaWeight,
         esaMax: m.esaMax || 100,
@@ -719,7 +719,7 @@ const [subjects, setSubjects] = useState(() => {
           // --- THE FIX: ABSOLUTE CALCULATION ---
           // 1. Calculate TOTAL weighted points needed for the next grade
           const requiredWeightedScore = (nextGrade.min * sub.totalWeight) / 100;
-          
+
           // 2. Subtract the internals we already have (or are projected to have)
           const requiredEsaWeight = requiredWeightedScore - sub.impliedInternals;
 
@@ -733,7 +733,7 @@ const [subjects, setSubjects] = useState(() => {
           // 4. Check Feasibility
           if (esaNeeded <= sub.esaMax) {
             const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
-            
+
             // Cost is the ADDITIONAL marks needed on top of what we are already simulating
             const cost = Math.max(0, esaNeeded - sub.currentEsaMarks);
 
@@ -846,7 +846,7 @@ const [subjects, setSubjects] = useState(() => {
         const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
         const esaComponent = (effectiveEsa / esaMax) * esaWeight;
         const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
-        const gradeInfo = getGradeInfo(Math.min(100, totalScore),sub);
+        const gradeInfo = getGradeInfo(Math.min(100, totalScore), sub);
 
         return {
           ...sub,
@@ -865,7 +865,7 @@ const [subjects, setSubjects] = useState(() => {
       // Handle Unlocked
       // Calculate grade with 0 ESA using PROJECTED internals
       const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
-      const startGradeInfo = getGradeInfo(zeroEsaScore,sub);
+      const startGradeInfo = getGradeInfo(zeroEsaScore, sub);
 
       return {
         ...sub,
@@ -947,9 +947,9 @@ const [subjects, setSubjects] = useState(() => {
     return { results, isTargetAchievable, achievableSGPA, avgGPNeeded: 0, usingMomentum };
   };
 
-// --- Randomized Path (The "Biased Teacher" Method) ---
+  // --- Randomized Path (The "Biased Teacher" Method) ---
   const calculateRandomPath = () => {
-    
+
     // 1. Generate Random Bias (The "Vibe Shift")
     // We force the algorithm to prefer some subjects over others arbitrarily
     const subjectBias = {};
@@ -964,7 +964,7 @@ const [subjects, setSubjects] = useState(() => {
       const m = marks[sub.id] || {};
       const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
-      
+
       const projectedEsaScore = (momentumScore / 100) * esaWeight;
       const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
       const isProjecting = projectedInternals > currentInternals + 0.1;
@@ -981,8 +981,8 @@ const [subjects, setSubjects] = useState(() => {
         const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
         const esaComponent = (effectiveEsa / esaMax) * esaWeight;
         const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
-        const gradeInfo = getGradeInfo(totalScore); 
-        
+        const gradeInfo = getGradeInfo(totalScore);
+
         return {
           ...sub,
           locked: true,
@@ -1006,7 +1006,7 @@ const [subjects, setSubjects] = useState(() => {
         currentGP: startGradeInfo.gp,
         requiredEsa: 0,
         esaMax,
-        currentInternals: projectedInternals, 
+        currentInternals: projectedInternals,
         totalWeight, esaWeight
       };
     });
@@ -1027,15 +1027,15 @@ const [subjects, setSubjects] = useState(() => {
 
         // FIX: Use 'GradeMap' which is defined at the top of your file
         const activeMap = sub.customGradeMap || GradeMap;
-        
+
         const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
-        
+
         if (!nextGrade) return;
 
         const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
         const requiredEsaComponent = requiredTotal - sub.currentInternals;
         const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
-        
+
         if (requiredEsa > sub.esaMax) return;
 
         const markCost = requiredEsa - sub.requiredEsa;
@@ -1046,7 +1046,7 @@ const [subjects, setSubjects] = useState(() => {
         // If bias is high (expensive), efficiency drops, and the algorithm ignores this subject.
         const bias = subjectBias[sub.id];
         const biasedCost = (markCost <= 0 ? 0.0001 : markCost) * bias;
-        
+
         const efficiency = gpGain / biasedCost;
 
         if (efficiency > maxEfficiency) {
@@ -1074,8 +1074,8 @@ const [subjects, setSubjects] = useState(() => {
       alreadyAchieved: s.requiredEsa <= 0,
       isHardLocked: lockedSubjects[s.id] === undefined && marks[s.id]?.esa
     })).sort((a, b) => {
-        if (a.locked !== b.locked) return a.locked ? -1 : 1;
-        return a.name.localeCompare(b.name);
+      if (a.locked !== b.locked) return a.locked ? -1 : 1;
+      return a.name.localeCompare(b.name);
     });
   };
 
@@ -1086,7 +1086,7 @@ const [subjects, setSubjects] = useState(() => {
       const m = marks[sub.id] || {};
       const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
-      
+
       const projectedEsaScore = (momentumScore / 100) * esaWeight;
       const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
 
@@ -1095,7 +1095,7 @@ const [subjects, setSubjects] = useState(() => {
       const missingIsa2 = m.isa2 === '' || m.isa2 === undefined;
       const missingAssign = sub.hasAssignment && (m.assignment === '' || m.assignment === undefined);
       const missingLab = sub.hasLab && (m.lab === '' || m.lab === undefined);
-      
+
       const isProjecting = missingIsa1 || missingIsa2 || missingAssign || missingLab;
 
       const isEsaEntered = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
@@ -1110,8 +1110,8 @@ const [subjects, setSubjects] = useState(() => {
         const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
         const esaComponent = (effectiveEsa / esaMax) * esaWeight;
         const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
-        const gradeInfo = getGradeInfo(totalScore); 
-        
+        const gradeInfo = getGradeInfo(totalScore);
+
         return {
           ...sub,
           locked: true,
@@ -1134,7 +1134,7 @@ const [subjects, setSubjects] = useState(() => {
         currentGP: startGradeInfo.gp,
         requiredEsa: 0,
         esaMax,
-        currentInternals: projectedInternals, 
+        currentInternals: projectedInternals,
         totalWeight, esaWeight
       };
     });
@@ -1155,12 +1155,12 @@ const [subjects, setSubjects] = useState(() => {
 
         const activeMap = sub.customGradeMap || GradeMap;
         const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
-        if (!nextGrade) return; 
+        if (!nextGrade) return;
 
         const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
         const requiredEsaComponent = requiredTotal - sub.currentInternals;
         const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
-        
+
         if (requiredEsa > sub.esaMax) return;
 
         const markCost = requiredEsa - sub.requiredEsa;
@@ -1200,8 +1200,8 @@ const [subjects, setSubjects] = useState(() => {
       alreadyAchieved: s.requiredEsa <= 0,
       isHardLocked: lockedSubjects[s.id] === undefined && marks[s.id]?.esa
     })).sort((a, b) => {
-        if (a.locked !== b.locked) return a.locked ? -1 : 1;
-        return a.name.localeCompare(b.name);
+      if (a.locked !== b.locked) return a.locked ? -1 : 1;
+      return a.name.localeCompare(b.name);
     });
   };
 
@@ -1609,7 +1609,7 @@ const [subjects, setSubjects] = useState(() => {
               {subjects.map((subject) => {
                 const m = marks[subject.id] || {};
                 const { finalScore, totalWeight } = getSubjectMetrics(subject);
-                const gp = getGradePoint(finalScore,subject);
+                const gp = getGradePoint(finalScore, subject);
                 const gradeInfo = getGradeInfo(finalScore, subject);
                 const isExpanded = expandedSubject === subject.id;
 
@@ -1880,12 +1880,12 @@ const [subjects, setSubjects] = useState(() => {
                                     <summary className="text-xs font-bold cursor-pointer hover:text-blue-500 flex items-center gap-1 select-none text-slate-500">
                                       <Target className="w-3 h-3" /> Advanced: Adjust Grade Cutoffs (Curve)
                                     </summary>
-                                    
+
                                     <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded border border-yellow-200 dark:border-yellow-800/30">
                                       <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">
                                         If the paper was hard and cutoffs were lowered, adjust them here.
                                       </p>
-                                      
+
                                       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                         {(subject.customGradeMap || GradeMap).filter(g => g.gp > 0).map((g, idx) => (
                                           <div key={g.grade} className="flex flex-col">
@@ -1901,8 +1901,8 @@ const [subjects, setSubjects] = useState(() => {
                                                 if (isNaN(val)) return;
 
                                                 // Create a copy of the current map (or default)
-                                                const currentMap = subject.customGradeMap 
-                                                  ? JSON.parse(JSON.stringify(subject.customGradeMap)) 
+                                                const currentMap = subject.customGradeMap
+                                                  ? JSON.parse(JSON.stringify(subject.customGradeMap))
                                                   : JSON.parse(JSON.stringify(GradeMap));
 
                                                 // Update the specific grade
@@ -1915,7 +1915,7 @@ const [subjects, setSubjects] = useState(() => {
                                           </div>
                                         ))}
                                       </div>
-                                      
+
                                       {subject.customGradeMap && (
                                         <button
                                           onClick={() => handleSubjectChange(subject.id, 'customGradeMap', null)}
@@ -2216,7 +2216,7 @@ const [subjects, setSubjects] = useState(() => {
                   >
                     <Dice5 className={`w-5 h-5 ${shuffledResults ? 'animate-spin' : ''}`} />
                   </button>
-                  
+
                   {/* Balanced Button */}
                   <button
                     onClick={() => setShuffledResults(calculateBalancedPath())}
@@ -2227,7 +2227,7 @@ const [subjects, setSubjects] = useState(() => {
                   </button>
 
                   {shuffledResults && (
-                    <button 
+                    <button
                       onClick={() => setShuffledResults(null)}
                       className="text-xs text-white/70 hover:text-white underline"
                     >
@@ -2237,26 +2237,26 @@ const [subjects, setSubjects] = useState(() => {
                 </div>
                 <div className="bg-blue-900/30 border-l-4 border-blue-400 p-4 rounded-r shadow-md mt-4 mb-4">
                   <div className="flex items-start gap-3">
-                      <HelpCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                      <div className="text-sm text-blue-100">
-                        <p className="font-bold mb-1">Why are some scores so high/low?</p>
-                        <p className="opacity-80">
-                          This calculator finds the <strong>absolute cheapest path</strong>. 
-                          It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
-                        </p>
-                        <p className="mt-2 text-yellow-300 font-bold">
-                          💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon 
-                          to set a limit (e.g., 85 that you are confident that you will score at least that much).
-                          The app will recalculate the rest!
-                        </p>
-                        <p className="mb-3 font-medium text-white/90">
-                          Alternatively you can Click <span className="font-bold text-white">Balanced</span> for a realistic, balanced path.
-                        </p>
-                        <p className="mb-3 font-medium text-white/90">
-                          Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way. There might be others ways and this might or might not be the most efficient way.
-                        </p>
-                      </div>
+                    <HelpCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-100">
+                      <p className="font-bold mb-1">Why are some scores so high/low?</p>
+                      <p className="opacity-80">
+                        This calculator finds the <strong>absolute cheapest path</strong>.
+                        It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
+                      </p>
+                      <p className="mt-2 text-yellow-300 font-bold">
+                        💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon
+                        to set a limit (e.g., 85 that you are confident that you will score at least that much).
+                        The app will recalculate the rest!
+                      </p>
+                      <p className="mb-3 font-medium text-white/90">
+                        Alternatively you can Click <span className="font-bold text-white">Balanced</span> for a realistic, balanced path.
+                      </p>
+                      <p className="mb-3 font-medium text-white/90">
+                        Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way. There might be others ways and this might or might not be the most efficient way.
+                      </p>
                     </div>
+                  </div>
                 </div>
 
                 {!reverseResults.isTargetAchievable && (
