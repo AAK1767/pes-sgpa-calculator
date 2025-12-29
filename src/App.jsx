@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import {
   Trash2, Plus, Settings, ChevronDown, ChevronUp,
-  RotateCcw, GraduationCap, Target, Dice5,
+  RotateCcw, GraduationCap, Target, Dice5, Scale,
   Eraser, TrendingUp, Activity, Calculator,
   Lightbulb, ArrowRight, CheckCircle2, AlertCircle,
   Download, Upload, Lock, Unlock, AlertTriangle,
@@ -1056,6 +1056,132 @@ const [subjects, setSubjects] = useState(() => {
     });
   };
 
+  // --- Balanced Path (The "Spread the Load" Method) ---
+  const calculateBalancedPath = () => {
+    // 1. Reset: Build initial state (Same as others)
+    let state = subjects.map(sub => {
+      const m = marks[sub.id] || {};
+      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
+      const esaMax = m.esaMax || 100;
+      
+      const projectedEsaScore = (momentumScore / 100) * esaWeight;
+      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
+
+      // FIX: Use the specific empty check (same as your recent fix)
+      const missingIsa1 = m.isa1 === '' || m.isa1 === undefined;
+      const missingIsa2 = m.isa2 === '' || m.isa2 === undefined;
+      const missingAssign = sub.hasAssignment && (m.assignment === '' || m.assignment === undefined);
+      const missingLab = sub.hasLab && (m.lab === '' || m.lab === undefined);
+      
+      const isProjecting = missingIsa1 || missingIsa2 || missingAssign || missingLab;
+
+      const isEsaEntered = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
+      const manualLockVal = lockedSubjects[sub.id];
+      const isLocked = manualLockVal !== undefined || isEsaEntered;
+
+      let effectiveEsa = 0;
+      if (manualLockVal !== undefined) effectiveEsa = manualLockVal;
+      else if (isEsaEntered) effectiveEsa = parseFloat(m.esa);
+
+      if (isLocked) {
+        const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
+        const esaComponent = (effectiveEsa / esaMax) * esaWeight;
+        const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
+        const gradeInfo = getGradeInfo(totalScore); 
+        
+        return {
+          ...sub,
+          locked: true,
+          currentGradeInfo: gradeInfo,
+          currentGP: gradeInfo.gp,
+          requiredEsa: effectiveEsa,
+          esaMax,
+          currentInternals: effectiveInternals,
+          totalWeight, esaWeight
+        };
+      }
+
+      const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
+      const startGradeInfo = getGradeInfo(zeroEsaScore);
+
+      return {
+        ...sub,
+        locked: false,
+        currentGradeInfo: startGradeInfo,
+        currentGP: startGradeInfo.gp,
+        requiredEsa: 0,
+        esaMax,
+        currentInternals: projectedInternals, 
+        totalWeight, esaWeight
+      };
+    });
+
+    const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
+    const targetTotalGP = reverseTargetSgpa * totalCredits;
+    let currentTotalGP = state.reduce((sum, s) => sum + (s.currentGP * s.credits), 0);
+
+    // 2. Optimization Loop (Quadratic Cost)
+    let iterations = 0;
+    while (currentTotalGP < targetTotalGP && iterations < 1000) {
+      iterations++;
+      let bestUpgrade = null;
+      let maxEfficiency = -Infinity;
+
+      state.forEach((sub, idx) => {
+        if (sub.locked) return;
+
+        const activeMap = sub.customGradeMap || GradeMap;
+        const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
+        if (!nextGrade) return; 
+
+        const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
+        const requiredEsaComponent = requiredTotal - sub.currentInternals;
+        const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
+        
+        if (requiredEsa > sub.esaMax) return;
+
+        const markCost = requiredEsa - sub.requiredEsa;
+        const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
+
+        // --- THE BALANCING LOGIC ---
+        // We square the total ESA needed. 
+        // This makes high scores EXPONENTIALLY harder to justify.
+        // Going from 40->50 is cheap. Going from 90->100 is very expensive.
+        const currentStrain = Math.pow(Math.max(0, sub.requiredEsa), 2);
+        const nextStrain = Math.pow(requiredEsa, 2);
+        const strainIncrease = nextStrain - currentStrain;
+
+        const efficiency = gpGain / (strainIncrease <= 0 ? 0.0001 : strainIncrease);
+
+        if (efficiency > maxEfficiency) {
+          maxEfficiency = efficiency;
+          bestUpgrade = { idx, nextGrade, requiredEsa, gpGain };
+        }
+      });
+
+      if (!bestUpgrade) break;
+
+      const targetSub = state[bestUpgrade.idx];
+      targetSub.currentGradeInfo = bestUpgrade.nextGrade;
+      targetSub.currentGP = bestUpgrade.nextGrade.gp;
+      targetSub.requiredEsa = Math.max(0, bestUpgrade.requiredEsa);
+      currentTotalGP += bestUpgrade.gpGain;
+    }
+
+    return state.map(s => ({
+      ...s,
+      projectedScore: s.currentGradeInfo.min,
+      projectedGrade: s.currentGradeInfo.grade,
+      gp: s.currentGP,
+      isImpossible: s.requiredEsa > s.esaMax,
+      alreadyAchieved: s.requiredEsa <= 0,
+      isHardLocked: lockedSubjects[s.id] === undefined && marks[s.id]?.esa
+    })).sort((a, b) => {
+        if (a.locked !== b.locked) return a.locked ? -1 : 1;
+        return a.name.localeCompare(b.name);
+    });
+  };
+
   // --- Study Priority Logic ---
   const getStudyPriorities = () => {
     return subjects.map(sub => {
@@ -2013,6 +2139,15 @@ const [subjects, setSubjects] = useState(() => {
                     <Dice5 className={`w-5 h-5 ${shuffledResults ? 'animate-spin' : ''}`} />
                   </button>
                   
+                  {/* Balanced Button */}
+                  <button
+                    onClick={() => setShuffledResults(calculateBalancedPath())}
+                    className="ml-2 bg-teal-600 hover:bg-teal-700 text-white p-2 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center h-10 w-10"
+                    title="Balanced: Keeps scores even across subjects"
+                  >
+                    <Scale className={`w-5 h-5 ${shuffledResults ? 'animate-pulse' : ''}`} />
+                  </button>
+
                   {shuffledResults && (
                     <button 
                       onClick={() => setShuffledResults(null)}
@@ -2035,6 +2170,9 @@ const [subjects, setSubjects] = useState(() => {
                           💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon 
                           to set a limit (e.g., 85 that you are confident that you will score at least that much).
                           The app will recalculate the rest!
+                        </p>
+                        <p className="mb-3 font-medium text-white/90">
+                          Alternatively you can Click <span className="font-bold text-white">Balanced</span> for a realistic, balanced path.
                         </p>
                         <p className="mb-3 font-medium text-white/90">
                           Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way. There might be others ways and this might or might not be the most efficient way.
