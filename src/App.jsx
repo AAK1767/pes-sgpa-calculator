@@ -2021,8 +2021,9 @@ const [subjects, setSubjects] = useState(() => {
                       Reset
                     </button>
                   )}
-                  <div className="bg-blue-900/30 border-l-4 border-blue-400 p-4 rounded-r shadow-md mt-4 mb-4">
-                    <div className="flex items-start gap-3">
+                </div>
+                <div className="bg-blue-900/30 border-l-4 border-blue-400 p-4 rounded-r shadow-md mt-4 mb-4">
+                  <div className="flex items-start gap-3">
                       <HelpCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                       <div className="text-sm text-blue-100">
                         <p className="font-bold mb-1">Why are some scores so high/low?</p>
@@ -2040,7 +2041,6 @@ const [subjects, setSubjects] = useState(() => {
                         </p>
                       </div>
                     </div>
-                  </div>
                 </div>
 
                 {!reverseResults.isTargetAchievable && (
