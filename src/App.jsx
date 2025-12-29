@@ -54,7 +54,7 @@ export default function PES_Universal_Calculator() {
 
 const [subjects, setSubjects] = useState(() => {
     // --- THE RESET LOGIC ---
-    const CURRENT_VERSION = '2025_END'; // Change this string whenever you want to nuke again
+    const CURRENT_VERSION = '2025_END_2'; // Change this string whenever you want to nuke again
     const savedVersion = localStorage.getItem('pes_version');
 
     if (savedVersion !== CURRENT_VERSION) {
@@ -500,15 +500,19 @@ const [subjects, setSubjects] = useState(() => {
     };
   };
 
-  const getGradePoint = (totalMarks) => {
-    for (let g of GradeMap) {
+// --- Updated Grade Helpers (Supports Custom Cutoffs) ---
+  const getGradePoint = (totalMarks, subject = null) => {
+    // Check if the subject has a custom map, otherwise use default
+    const map = (subject && subject.customGradeMap) ? subject.customGradeMap : GradeMap;
+    for (let g of map) {
       if (totalMarks >= g.min) return g.gp;
     }
     return 0;
   };
 
-  const getGradeInfo = (score) => {
-    return GradeMap.find(g => score >= g.min) || GradeMap[GradeMap.length - 1];
+  const getGradeInfo = (score, subject = null) => {
+    const map = (subject && subject.customGradeMap) ? subject.customGradeMap : GradeMap;
+    return map.find(g => score >= g.min) || map[map.length - 1];
   };
 
   // Helper function to calculate required ESA with safety margin
@@ -591,7 +595,7 @@ const [subjects, setSubjects] = useState(() => {
 
     subjects.forEach(sub => {
       const { finalScore } = getSubjectMetrics(sub);
-      const gp = getGradePoint(finalScore);
+      const gp = getGradePoint(finalScore, sub);
       weightedPoints += gp * sub.credits;
       totalCredits += sub.credits;
     });
@@ -612,8 +616,8 @@ const [subjects, setSubjects] = useState(() => {
 
     subjects.forEach(sub => {
       const { finalScore, currentInternals, totalWeight, momentumScore, esaWeight } = getSubjectMetrics(sub);
-      const currentGP = getGradePoint(finalScore);
-      const momentumGP = getGradePoint(momentumScore);
+      const currentGP = getGradePoint(finalScore,sub);
+      const momentumGP = getGradePoint(momentumScore,sub);
 
       momentumWeightedGP += (momentumGP * sub.credits);
 
@@ -656,6 +660,8 @@ const [subjects, setSubjects] = useState(() => {
   };
 
   // --- Smart Strategy Engine (Fixed) ---
+// --- Smart Strategy Engine (Fixed) ---
+// --- Smart Strategy Engine (Fixed: Absolute Calculation) ---
   const getSmartSuggestions = () => {
     const totalCredits = subjects.reduce((acc, s) => acc + s.credits, 0);
     const targetTotalGP = totalCredits * targetSgpa;
@@ -663,18 +669,25 @@ const [subjects, setSubjects] = useState(() => {
     // 1. Build Current State
     let subState = subjects.map(s => {
       const m = marks[s.id] || {};
-      const { momentumScore, currentInternals, totalWeight, esaWeight } = getSubjectMetrics(s);
-      const isFinal = m.esa && m.esa !== '' && !isNaN(parseFloat(m.esa));
+      const { momentumScore, totalWeight, esaWeight } = getSubjectMetrics(s);
+      
+      // REVERSE ENGINEER INTERNALS:
+      // We need to know what internals the 'Momentum Score' is assuming we have.
+      // If momentum is 0, this will be 0. If momentum is 90, this will be high.
+      const projectedEsaPart = (momentumScore / 100) * esaWeight;
+      const impliedInternals = (momentumScore * totalWeight / 100) - projectedEsaPart;
 
-      // Calculate current projected ESA score based on momentum
-      // momentumScore = (ProjectedInternals + ProjectedESA) / TotalWeight * 100
-      // We essentially want to know: "What is the ESA score baked into this momentum?"
-      // But simpler: We just need to know the gap between Momentum and Target.
+      // Current ESA "usage" in the momentum score
+      const currentEsaMarks = (projectedEsaPart / esaWeight) * (m.esaMax || 100);
+
+      const isFinal = m.esa && m.esa !== '' && !isNaN(parseFloat(m.esa));
 
       return {
         ...s,
         currentScore: momentumScore,
-        currentGP: getGradePoint(momentumScore),
+        currentGP: getGradePoint(momentumScore, s),
+        impliedInternals,
+        currentEsaMarks, 
         totalWeight,
         esaWeight,
         esaMax: m.esaMax || 100,
@@ -689,6 +702,7 @@ const [subjects, setSubjects] = useState(() => {
     let impossible = false;
     let iterations = 0;
 
+    // Clone state for simulation
     let simState = JSON.parse(JSON.stringify(subState));
 
     while (deficit > 0.01 && iterations < 50) {
@@ -698,49 +712,37 @@ const [subjects, setSubjects] = useState(() => {
       simState.forEach((sub, idx) => {
         if (sub.isFinal || sub.currentGP >= 10) return;
 
-        const currentG = sub.currentGP;
-        const nextGrade = GradeMap.slice().reverse().find(g => g.gp > currentG);
+        const activeMap = sub.customGradeMap || GradeMap;
+        const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
 
         if (nextGrade) {
-          // LOGIC FIX: Calculate gap from MOMENTUM, not raw internals.
-          // We assume unfilled internals will follow the momentum trend.
-          // We only need to bridge the gap between Current Score (Momentum) and Target.
+          // --- THE FIX: ABSOLUTE CALCULATION ---
+          // 1. Calculate TOTAL weighted points needed for the next grade
+          const requiredWeightedScore = (nextGrade.min * sub.totalWeight) / 100;
+          
+          // 2. Subtract the internals we already have (or are projected to have)
+          const requiredEsaWeight = requiredWeightedScore - sub.impliedInternals;
 
-          const scoreGap = nextGrade.min - sub.currentScore;
+          // 3. Convert to ESA Marks
+          // If requiredEsaWeight is negative (internals already cover it), we need 0.
+          let esaNeeded = 0;
+          if (requiredEsaWeight > 0) {
+            esaNeeded = Math.ceil((requiredEsaWeight / sub.esaWeight) * sub.esaMax);
+          }
 
-          // Convert % gap to weighted points
-          const weightGap = (scoreGap * sub.totalWeight) / 100;
-
-          // Convert weighted points to ESA marks
-          const esaMarksGap = Math.ceil((weightGap / sub.esaWeight) * sub.esaMax);
-
-          // Calculate the specific ESA score needed
-          // We derive the "Current Projected ESA" from the momentum to add the gap to it
-          // This is an estimation, but it aligns the Strategy with the Analysis tab
-          const currentProjectedEsa = ((sub.currentScore * sub.totalWeight / 100) - (sub.currentScore * (sub.totalWeight - sub.esaWeight) / 100)) / sub.esaWeight * sub.esaMax;
-
-          // Actually, simpler: We don't need absolute ESA, we just need cost.
-          // But to check feasibility (<= 100), we need the absolute.
-          // Let's rely on the Analysis tab's logic for the "Base" requirement and add the gap.
-
-          // Safe Fallback: Assume the gap must be covered by ESA.
-          // Current projected ESA mark inside the momentum score:
-          // We can approximate it by assuming the ESA performance ratio matches the overall momentum.
-          const projectedEsaMark = (sub.currentScore / 100) * sub.esaMax;
-          const esaNeeded = Math.ceil(projectedEsaMark + esaMarksGap);
-
+          // 4. Check Feasibility
           if (esaNeeded <= sub.esaMax) {
-            const gpGain = (nextGrade.gp - currentG) * sub.credits;
-
-            // Cost is the EXTRA marks needed on top of current projection
-            const cost = Math.max(0, esaMarksGap);
+            const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
+            
+            // Cost is the ADDITIONAL marks needed on top of what we are already simulating
+            const cost = Math.max(0, esaNeeded - sub.currentEsaMarks);
 
             candidates.push({
               idx,
               name: sub.name,
-              fromGrade: GradeMap.find(g => g.gp === currentG)?.grade || 'F',
+              fromGrade: GradeMap.find(g => g.gp === sub.currentGP)?.grade || 'F',
               toGrade: nextGrade.grade,
-              esaNeeded: Math.max(0, esaNeeded),
+              esaNeeded: esaNeeded, // Store absolute needed
               esaMax: sub.esaMax,
               gpGain,
               cost,
@@ -756,6 +758,7 @@ const [subjects, setSubjects] = useState(() => {
         break;
       }
 
+      // Sort by efficiency (GP per Mark)
       candidates.sort((a, b) => {
         if (b.efficiency !== a.efficiency) {
           if (b.efficiency === Infinity) return 1;
@@ -768,14 +771,32 @@ const [subjects, setSubjects] = useState(() => {
       const best = candidates[0];
       plan.push(best);
 
+      // Update Simulation State
       const newGradeInfo = GradeMap.find(g => g.grade === best.toGrade);
       simState[best.idx].currentGP = newGradeInfo.gp;
       simState[best.idx].currentScore = newGradeInfo.min;
+      simState[best.idx].currentEsaMarks = best.esaNeeded; // Update ESA usage
 
       deficit -= best.gpGain;
     }
 
-    return { plan, impossible, deficit };
+    // --- Consolidate steps for the same subject ---
+    const consolidatedPlan = [];
+    const subjectMap = new Map();
+
+    plan.forEach(step => {
+      if (subjectMap.has(step.idx)) {
+        const existing = subjectMap.get(step.idx);
+        existing.toGrade = step.toGrade;      // Update target grade (e.g. B->A becomes B->S)
+        existing.esaNeeded = step.esaNeeded;  // Update required score (Cumulative)
+        existing.gpGain += step.gpGain;       // Sum GP gain
+      } else {
+        consolidatedPlan.push(step);
+        subjectMap.set(step.idx, step);
+      }
+    });
+
+    return { plan: consolidatedPlan, impossible, deficit };
   };
 
   // --- Advanced Reverse Calculator (Smart Greedy Strategy) ---
@@ -825,7 +846,7 @@ const [subjects, setSubjects] = useState(() => {
         const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
         const esaComponent = (effectiveEsa / esaMax) * esaWeight;
         const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
-        const gradeInfo = getGradeInfo(Math.min(100, totalScore));
+        const gradeInfo = getGradeInfo(Math.min(100, totalScore),sub);
 
         return {
           ...sub,
@@ -844,7 +865,7 @@ const [subjects, setSubjects] = useState(() => {
       // Handle Unlocked
       // Calculate grade with 0 ESA using PROJECTED internals
       const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
-      const startGradeInfo = getGradeInfo(zeroEsaScore);
+      const startGradeInfo = getGradeInfo(zeroEsaScore,sub);
 
       return {
         ...sub,
@@ -872,7 +893,9 @@ const [subjects, setSubjects] = useState(() => {
       state.forEach((sub, idx) => {
         if (sub.locked || sub.isImpossible) return;
 
-        const nextGrade = GradeMap.slice().reverse().find(g => g.gp > sub.currentGP);
+        // FIX: Use custom map if available, otherwise default
+        const activeMap = sub.customGradeMap || GradeMap;
+        const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
         if (!nextGrade) return;
 
         // Calculate Cost
@@ -1187,10 +1210,10 @@ const [subjects, setSubjects] = useState(() => {
     return subjects.map(sub => {
       const { finalScore, currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
       const esaMax = marks[sub.id]?.esaMax || 100;
-      const currentGP = getGradePoint(finalScore);
-      const currentGrade = getGradeInfo(finalScore).grade;
-
-      const nextGrade = GradeMap.slice().reverse().find(g => g.gp > currentGP);
+      const currentGP = getGradePoint(finalScore, sub);
+      const currentGrade = getGradeInfo(finalScore, sub).grade;
+      const activeMap = sub.customGradeMap || GradeMap;
+      const nextGrade = activeMap.slice().reverse().find(g => g.gp > currentGP);
 
       if (!nextGrade) {
         return {
@@ -1330,8 +1353,8 @@ const [subjects, setSubjects] = useState(() => {
       const maxRawScore = totalWeight - rawLoss;
       const maxPercent = Math.ceil((maxRawScore / totalWeight) * 100);
 
-      minWeightedGP += getGradePoint(minPercent) * sub.credits;
-      maxWeightedGP += getGradePoint(maxPercent) * sub.credits;
+      minWeightedGP += getGradePoint(minPercent, sub) * sub.credits;
+      maxWeightedGP += getGradePoint(maxPercent, sub) * sub.credits;
       totalCredits += sub.credits;
     });
 
@@ -1586,8 +1609,8 @@ const [subjects, setSubjects] = useState(() => {
               {subjects.map((subject) => {
                 const m = marks[subject.id] || {};
                 const { finalScore, totalWeight } = getSubjectMetrics(subject);
-                const gp = getGradePoint(finalScore);
-                const gradeInfo = getGradeInfo(finalScore);
+                const gp = getGradePoint(finalScore,subject);
+                const gradeInfo = getGradeInfo(finalScore, subject);
                 const isExpanded = expandedSubject === subject.id;
 
                 return (
@@ -1850,6 +1873,61 @@ const [subjects, setSubjects] = useState(() => {
                                     </div>
                                   )}
                                 </div>
+
+                                {/* --- Grade Cutoff Editor --- */}
+                                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 w-full">
+                                  <details>
+                                    <summary className="text-xs font-bold cursor-pointer hover:text-blue-500 flex items-center gap-1 select-none text-slate-500">
+                                      <Target className="w-3 h-3" /> Advanced: Adjust Grade Cutoffs (Curve)
+                                    </summary>
+                                    
+                                    <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded border border-yellow-200 dark:border-yellow-800/30">
+                                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">
+                                        If the paper was hard and cutoffs were lowered, adjust them here.
+                                      </p>
+                                      
+                                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                                        {(subject.customGradeMap || GradeMap).filter(g => g.gp > 0).map((g, idx) => (
+                                          <div key={g.grade} className="flex flex-col">
+                                            <label className={`text-[10px] font-bold text-center mb-1 ${g.color || 'text-slate-500'}`}>
+                                              {g.grade} (&ge;)
+                                            </label>
+                                            <input
+                                              type="number"
+                                              value={g.min}
+                                              className={`w-full text-center text-xs p-1 border rounded ${themeClasses.input}`}
+                                              onChange={(e) => {
+                                                const val = parseFloat(e.target.value);
+                                                if (isNaN(val)) return;
+
+                                                // Create a copy of the current map (or default)
+                                                const currentMap = subject.customGradeMap 
+                                                  ? JSON.parse(JSON.stringify(subject.customGradeMap)) 
+                                                  : JSON.parse(JSON.stringify(GradeMap));
+
+                                                // Update the specific grade
+                                                currentMap[idx].min = val;
+
+                                                // Save to subject
+                                                handleSubjectChange(subject.id, 'customGradeMap', currentMap);
+                                              }}
+                                            />
+                                          </div>
+                                        ))}
+                                      </div>
+                                      
+                                      {subject.customGradeMap && (
+                                        <button
+                                          onClick={() => handleSubjectChange(subject.id, 'customGradeMap', null)}
+                                          className="mt-2 text-[10px] text-red-500 hover:underline flex items-center gap-1"
+                                        >
+                                          <RotateCcw className="w-3 h-3" /> Reset to Standards
+                                        </button>
+                                      )}
+                                    </div>
+                                  </details>
+                                </div>
+
                                 <button
                                   onClick={() => removeSubject(subject.id)}
                                   className="w-full text-red-600 text-xs border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover: bg-red-900/50 p-2 rounded flex items-center justify-center gap-2 mt-2"
