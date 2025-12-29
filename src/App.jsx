@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import {
   Trash2, Plus, Settings, ChevronDown, ChevronUp,
-  RotateCcw, GraduationCap, Target,
+  RotateCcw, GraduationCap, Target, Dice5,
   Eraser, TrendingUp, Activity, Calculator,
   Lightbulb, ArrowRight, CheckCircle2, AlertCircle,
   Download, Upload, Lock, Unlock, AlertTriangle,
@@ -97,6 +97,14 @@ const [subjects, setSubjects] = useState(() => {
   const [reverseTargetSgpa, setReverseTargetSgpa] = useState(8.5);
   const [lockedSubjects, setLockedSubjects] = useState({});
   const [showHelp, setShowHelp] = useState(false);
+
+  // --- Shuffle State ---
+  const [shuffledResults, setShuffledResults] = useState(null);
+
+  // Reset shuffle if user changes target or locks
+  useEffect(() => {
+    setShuffledResults(null);
+  }, [reverseTargetSgpa, lockedSubjects, marks]);
 
   // --- Undo/Redo State ---
   const [undoStack, setUndoStack] = useState([]);
@@ -788,9 +796,14 @@ const [subjects, setSubjects] = useState(() => {
       const projectedEsaScore = (momentumScore / 100) * esaWeight;
       const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
 
-      // Check if we are relying on projection (Momentum > Actual)
-      // We use a small epsilon (0.1) to handle floating point errors
-      const isProjecting = projectedInternals > currentInternals + 0.1;
+      // Check if we are relying on projection (Empty fields)
+      // FIX: Explicitly check for empty fields instead of math estimation to avoid rounding errors
+      const missingIsa1 = m.isa1 === '' || m.isa1 === undefined;
+      const missingIsa2 = m.isa2 === '' || m.isa2 === undefined;
+      const missingAssign = sub.hasAssignment && (m.assignment === '' || m.assignment === undefined);
+      const missingLab = sub.hasLab && (m.lab === '' || m.lab === undefined);
+
+      const isProjecting = missingIsa1 || missingIsa2 || missingAssign || missingLab;
       if (isProjecting) usingMomentum = true;
 
       // LOGIC FIX 2: Check if subject is effectively "Locked"
@@ -909,6 +922,138 @@ const [subjects, setSubjects] = useState(() => {
     const isTargetAchievable = parseFloat(achievableSGPA) >= reverseTargetSgpa;
 
     return { results, isTargetAchievable, achievableSGPA, avgGPNeeded: 0, usingMomentum };
+  };
+
+// --- Randomized Path (The "Biased Teacher" Method) ---
+  const calculateRandomPath = () => {
+    
+    // 1. Generate Random Bias (The "Vibe Shift")
+    // We force the algorithm to prefer some subjects over others arbitrarily
+    const subjectBias = {};
+    subjects.forEach(s => {
+      // Assign a multiplier between 0.2 (Super Cheap) and 3.0 (Super Expensive)
+      // This drastically changes the "cost" landscape for the algorithm
+      subjectBias[s.id] = 0.2 + (Math.random() * 2.8);
+    });
+
+    // 2. Reset: Build initial state with 0 ESA
+    let state = subjects.map(sub => {
+      const m = marks[sub.id] || {};
+      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
+      const esaMax = m.esaMax || 100;
+      
+      const projectedEsaScore = (momentumScore / 100) * esaWeight;
+      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
+      const isProjecting = projectedInternals > currentInternals + 0.1;
+
+      const isEsaEntered = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
+      const manualLockVal = lockedSubjects[sub.id];
+      const isLocked = manualLockVal !== undefined || isEsaEntered;
+
+      let effectiveEsa = 0;
+      if (manualLockVal !== undefined) effectiveEsa = manualLockVal;
+      else if (isEsaEntered) effectiveEsa = parseFloat(m.esa);
+
+      if (isLocked) {
+        const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
+        const esaComponent = (effectiveEsa / esaMax) * esaWeight;
+        const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
+        const gradeInfo = getGradeInfo(totalScore); 
+        
+        return {
+          ...sub,
+          locked: true,
+          currentGradeInfo: gradeInfo,
+          currentGP: gradeInfo.gp,
+          requiredEsa: effectiveEsa,
+          esaMax,
+          currentInternals: effectiveInternals,
+          totalWeight, esaWeight
+        };
+      }
+
+      // Unlocked starts at 0 ESA
+      const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
+      const startGradeInfo = getGradeInfo(zeroEsaScore);
+
+      return {
+        ...sub,
+        locked: false,
+        currentGradeInfo: startGradeInfo,
+        currentGP: startGradeInfo.gp,
+        requiredEsa: 0,
+        esaMax,
+        currentInternals: projectedInternals, 
+        totalWeight, esaWeight
+      };
+    });
+
+    const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
+    const targetTotalGP = reverseTargetSgpa * totalCredits;
+    let currentTotalGP = state.reduce((sum, s) => sum + (s.currentGP * s.credits), 0);
+
+    // 3. Optimization Loop (Hill Climbing with Bias)
+    let iterations = 0;
+    while (currentTotalGP < targetTotalGP && iterations < 1000) {
+      iterations++;
+      let bestUpgrade = null;
+      let maxEfficiency = -Infinity; // Start very low
+
+      state.forEach((sub, idx) => {
+        if (sub.locked) return;
+
+        // FIX: Use 'GradeMap' which is defined at the top of your file
+        const activeMap = sub.customGradeMap || GradeMap;
+        
+        const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
+        
+        if (!nextGrade) return;
+
+        const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
+        const requiredEsaComponent = requiredTotal - sub.currentInternals;
+        const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
+        
+        if (requiredEsa > sub.esaMax) return;
+
+        const markCost = requiredEsa - sub.requiredEsa;
+        const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
+
+        // --- THE MAGIC IS HERE ---
+        // We divide efficiency by our random bias.
+        // If bias is high (expensive), efficiency drops, and the algorithm ignores this subject.
+        const bias = subjectBias[sub.id];
+        const biasedCost = (markCost <= 0 ? 0.0001 : markCost) * bias;
+        
+        const efficiency = gpGain / biasedCost;
+
+        if (efficiency > maxEfficiency) {
+          maxEfficiency = efficiency;
+          bestUpgrade = { idx, nextGrade, requiredEsa, gpGain };
+        }
+      });
+
+      if (!bestUpgrade) break;
+
+      const targetSub = state[bestUpgrade.idx];
+      targetSub.currentGradeInfo = bestUpgrade.nextGrade;
+      targetSub.currentGP = bestUpgrade.nextGrade.gp;
+      targetSub.requiredEsa = Math.max(0, bestUpgrade.requiredEsa);
+      currentTotalGP += bestUpgrade.gpGain;
+    }
+
+    // 4. Return results (Standard Format)
+    return state.map(s => ({
+      ...s,
+      projectedScore: s.currentGradeInfo.min,
+      projectedGrade: s.currentGradeInfo.grade,
+      gp: s.currentGP,
+      isImpossible: s.requiredEsa > s.esaMax,
+      alreadyAchieved: s.requiredEsa <= 0,
+      isHardLocked: lockedSubjects[s.id] === undefined && marks[s.id]?.esa
+    })).sort((a, b) => {
+        if (a.locked !== b.locked) return a.locked ? -1 : 1;
+        return a.name.localeCompare(b.name);
+    });
   };
 
   // --- Study Priority Logic ---
@@ -1859,6 +2004,43 @@ const [subjects, setSubjects] = useState(() => {
                     onChange={(e) => setReverseTargetSgpa(parseFloat(e.target.value) || 0)}
                     className="w-20 bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white font-bold text-center text-xl focus:outline-none focus:border-white"
                   />
+                  {/* Shuffle Button */}
+                  <button
+                    onClick={() => setShuffledResults(calculateRandomPath())}
+                    className="ml-2 bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center h-10 w-10"
+                    title="Shuffle: Find a different combination of grades"
+                  >
+                    <Dice5 className={`w-5 h-5 ${shuffledResults ? 'animate-spin' : ''}`} />
+                  </button>
+                  
+                  {shuffledResults && (
+                    <button 
+                      onClick={() => setShuffledResults(null)}
+                      className="text-xs text-white/70 hover:text-white underline"
+                    >
+                      Reset
+                    </button>
+                  )}
+                  <div className="bg-blue-900/30 border-l-4 border-blue-400 p-4 rounded-r shadow-md mt-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <HelpCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm text-blue-100">
+                        <p className="font-bold mb-1">Why are some scores so high/low?</p>
+                        <p className="opacity-80">
+                          This calculator finds the <strong>absolute cheapest path</strong>. 
+                          It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
+                        </p>
+                        <p className="mt-2 text-yellow-300 font-bold">
+                          💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon 
+                          to set a limit (e.g., 85 that you are confident that you will score at least that much).
+                          The app will recalculate the rest!
+                        </p>
+                        <p className="mb-3 font-medium text-white/90">
+                          Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way. There might be others ways and this might or might not be the most efficient way.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {!reverseResults.isTargetAchievable && (
@@ -1870,7 +2052,7 @@ const [subjects, setSubjects] = useState(() => {
               </div>
 
               <div className="space-y-2">
-                {reverseResults.results.map((sub, i) => (
+                {(shuffledResults || reverseResults.results).map((sub, i) => (
                   <div
                     key={i}
                     className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-lg gap-3 ${sub.isImpossible ? 'bg-red-500/30' :
