@@ -2052,8 +2052,10 @@ export default function PES_Universal_Calculator() {
                 <div className="bg-indigo-900/40 rounded-lg p-4 border border-indigo-500/30 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-10 h-10" /></div>
                   <div className="text-2xl font-bold text-indigo-300">{metrics.momentumSGPA}</div>
-                  <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">Momentum SGPA</div>
-                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form</p>
+                  <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">
+                    Momentum SGPA <span className="text-indigo-400 font-bold text-lg leading-none">*</span>
+                  </div>
+                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form(i.e ISA performance = ESA)</p>
                 </div>
               </div>
 
@@ -2126,6 +2128,13 @@ export default function PES_Universal_Calculator() {
                     The "min" value (when shown) is the absolute minimum that <em>might</em> work due to rounding up, but scoring the safe value is recommended.
                   </div>
                 </div>
+              </div>
+              {/* Momentum Disclaimer Note */}
+              <div className="mb-6 mx-1 p-3 bg-indigo-900/20 rounded-lg border border-indigo-500/20 flex items-start gap-3">
+                 <div className="text-lg flex-shrink-0 mt-0.5">*️⃣</div>
+                 <div className="text-xs text-indigo-200/80 leading-relaxed">
+                   <strong className="text-indigo-200">Momentum Disclaimer:</strong> The momentum score purely assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong>
+                 </div>
               </div>
             </div>
 
