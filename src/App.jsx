@@ -1705,7 +1705,7 @@ export default function PES_Universal_Calculator() {
                                 type="number"
                                 value={m.isa1Max}
                                 onChange={(e) => handleMarkChange(subject.id, 'isa1Max', e.target.value)}
-                                className={`w-14 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                className={`w-10 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                               />
                             </div>
                           </div>
@@ -1728,7 +1728,7 @@ export default function PES_Universal_Calculator() {
                                 type="number"
                                 value={m.isa2Max}
                                 onChange={(e) => handleMarkChange(subject.id, 'isa2Max', e.target.value)}
-                                className={`w-14 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                className={`w-10 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                               />
                             </div>
                           </div>
@@ -1753,7 +1753,7 @@ export default function PES_Universal_Calculator() {
                                     type="number"
                                     value={m.assignmentMax}
                                     onChange={(e) => handleMarkChange(subject.id, 'assignmentMax', e.target.value)}
-                                    className={`w-12 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                    className={`w-10 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                   />
                                 </div>
                               </div>
@@ -1776,7 +1776,7 @@ export default function PES_Universal_Calculator() {
                                     type="number"
                                     value={m.labMax}
                                     onChange={(e) => handleMarkChange(subject.id, 'labMax', e.target.value)}
-                                    className={`w-12 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                    className={`w-10 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                   />
                                 </div>
                               </div>
@@ -1806,7 +1806,7 @@ export default function PES_Universal_Calculator() {
                                 type="number"
                                 value={m.esaMax}
                                 onChange={(e) => handleMarkChange(subject.id, 'esaMax', e.target.value)}
-                                className={`w-14 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                className={`w-10 p-2 text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                               />
                             </div>
                           </div>
@@ -2104,11 +2104,11 @@ export default function PES_Universal_Calculator() {
               {/* Subject-wise Analysis List */}
               <div className="space-y-3 md:space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
                 
-                {/* Table Header (Desktop Only - Adjusted Columns) */}
+                {/* Table Header (Desktop Only) */}
                 <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase font-bold pb-2 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
-                  <div className="col-span-3">Subject</div> {/* Reduced width to fit Pass */}
+                  <div className="col-span-3">Subject</div>
                   <div className="col-span-2 text-center">Momentum</div>
-                  <div className="col-span-2 text-center text-white/90">Pass (40)</div> {/* New Column */}
+                  <div className="col-span-2 text-center text-white/90">Pass (40)</div>
                   <div className="col-span-2 text-center">For A (80)</div>
                   <div className="col-span-2 text-center">For S (90)</div>
                   <div className="col-span-1 text-center">GP</div>
@@ -2151,7 +2151,7 @@ export default function PES_Universal_Calculator() {
                           </span>
                         </div>
 
-                        {/* 2. Pass Requirement (NEW) */}
+                        {/* 2. Pass Requirement (Fixed Logic) */}
                         <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
                           <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">To Pass</span>
                           {reqPass.safe === null ? (
@@ -2162,9 +2162,18 @@ export default function PES_Universal_Calculator() {
                               <span className="text-green-500 text-xs font-bold md:hidden">Passed</span>
                             </div>
                           ) : (
-                            <span className="font-mono font-bold text-slate-200 text-base md:text-sm">
-                              {reqPass.safe}
-                            </span>
+                            <div className="flex flex-col items-center">
+                              <span className={`font-mono font-bold text-base md:text-sm ${reqPass.requiresRounding ? 'text-orange-300' : 'text-slate-200'}`}>
+                                {reqPass.safe}
+                              </span>
+                              {/* Show Min Value if it differs */}
+                              {reqPass.minimum !== null && reqPass.minimum < reqPass.safe && (
+                                <div className="text-[9px] text-slate-500 leading-none">min: {reqPass.minimum}</div>
+                              )}
+                              {reqPass.requiresRounding && (
+                                <div className="text-[9px] text-orange-400 leading-none">*rounding</div>
+                              )}
+                            </div>
                           )}
                         </div>
 
@@ -2538,10 +2547,15 @@ export default function PES_Universal_Calculator() {
                   <tbody>
                     {minimumPassingTable.map(sub => (
                       <tr key={sub.id} className={`border-b ${themeClasses.border} hover:${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
-                        <td className="py-3 px-2 font-medium">
-                          <div className="whitespace-nowrap">{sub.name}</div>
+                        
+                        {/* CHANGED: Increased max-w to 150px for better readability on mobile */}
+                        <td className="py-3 px-2 font-medium max-w-[150px] sm:max-w-none">
+                          <div className="truncate font-bold text-slate-700 dark:text-slate-200" title={sub.name}>
+                            {sub.name}
+                          </div>
                           <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max: {sub.esaMax}</div>
                         </td>
+                        
                         {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
                           const req = sub.gradeRequirements.find(g => g.grade === grade);
                           return (
