@@ -3158,7 +3158,8 @@ export default function PES_Universal_Calculator() {
 
       {/* Added 'pb-5 pt-2' to account for mobile gesture bars */}
       {/* Mobile Bottom Navigation */}
-      <div className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'} border-t md:hidden z-20 pb-5 pt-2`}>
+      {/* Added /90 opacity and backdrop-blur-md */}
+      <div className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'} backdrop-blur-md border-t md:hidden z-20 pb-5 pt-2`}>
         <div className="flex justify-around items-end">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
