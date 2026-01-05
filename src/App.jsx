@@ -1450,8 +1450,19 @@ export default function PES_Universal_Calculator() {
 
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24`}>
+      {/* Hides the up/down arrows in number inputs */}
+      <style>{`
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+      `}</style>
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-4 md:p-6 shadow-lg sticky top-0 z-20">
+      <div className="bg-gradient-to-r from-blue-800 to-indigo-900 text-white py-3 px-4 md:p-6 shadow-lg sticky top-0 z-20">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
             <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
@@ -1481,12 +1492,15 @@ export default function PES_Universal_Calculator() {
       </div>
 
       {/* Navigation Tabs */}
-      <div className={`sticky top-[72px] md:top-[88px] z-10 ${themeClasses.bg} border-b ${themeClasses.border}`}>
+      {/* Added 'hidden md:block' to hide this top bar on mobile screens */}
+      {/* Navigation Tabs (With Highlights for Core Features) */}
+      <div className={`hidden md:block sticky top-[72px] md:top-[88px] z-10 ${themeClasses.bg} border-b ${themeClasses.border}`}>
         <div className="max-w-4xl mx-auto flex overflow-x-auto">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', icon: Activity },
-            { id: 'reverse', label: 'Reverse Calc', icon: Target },
+            // Added 'highlight: true' and specific colors for the core tabs
+            { id: 'analysis', label: 'Analysis', icon: Activity, highlight: true, color: 'text-blue-600 dark:text-blue-400' },
+            { id: 'reverse', label: 'Reverse Calc', icon: Target, highlight: true, color: 'text-teal-600 dark:text-teal-400' },
             { id: 'priority', label: 'Priority', icon: TrendingUp },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
@@ -1494,13 +1508,22 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === tab.id
-                ? 'border-blue-500 text-blue-600'
-                : `border-transparent ${themeClasses.muted} hover:text-blue-500`
-                }`}
+              className={`relative flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : `border-transparent hover:text-blue-500 ${tab.highlight ? tab.color : themeClasses.muted}`
+              }`}
             >
-              <tab.icon className="w-4 h-4" />
+              <tab.icon className={`w-4 h-4 ${tab.highlight && activeTab !== tab.id ? 'opacity-80' : ''}`} />
               {tab.label}
+
+              {/* The Pulsing Dot for Highlighted Tabs */}
+              {tab.highlight && activeTab !== tab.id && (
+                <span className="absolute top-2 right-1 flex h-1.5 w-1.5">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${tab.id === 'analysis' ? 'bg-blue-400' : 'bg-teal-400'}`}></span>
+                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${tab.id === 'analysis' ? 'bg-blue-500' : 'bg-teal-500'}`}></span>
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -1511,70 +1534,76 @@ export default function PES_Universal_Calculator() {
         {/* ==================== SUBJECTS TAB ==================== */}
         {activeTab === 'subjects' && (
           <>
-            {/* Helper Banner */}
-            <div className={`${themeClasses.card} border rounded-xl p-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 text-sm`}>
-              <div className="flex items-start gap-3">
-                <Settings className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0" />
-                <div>
-                  <span className="font-bold block">Universal Calculator</span>
-                  <span className={themeClasses.muted}>
-                    Works for all semesters.  5-credit courses scale from 120% to 100%.<br /> After entering ISA/Lab/Assignment marks, you can check the Analysis tab for predictions and how much to score in ESA to reach your target grade in each subject and Reverse calc tab to know what to score in ESAs to reach your target SGPA.
-                  </span>
+            {/* Helper Banner (Optimized for both Mobile & Desktop) */}
+            <div className={`${themeClasses.card} border rounded-xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+              
+              {/* LEFT SIDE: Text Content */}
+              <div className="flex-1">
+                
+                {/* Mobile View: Collapsible Accordion (Hidden on Desktop) */}
+                <details className="group md:hidden">
+                  <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-600">
+                    <Settings className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-bold text-slate-700 dark:text-slate-200">Universal Calculator</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full text-blue-700 dark:text-blue-300 flex items-center">
+                      Info <ChevronDown className="w-3 h-3 ml-1 group-open:rotate-180 transition-transform"/>
+                    </span>
+                  </summary>
+                  <div className={`mt-3 text-xs ${themeClasses.muted} leading-relaxed pl-7 border-t border-slate-100 dark:border-slate-800 pt-2`}>
+                    Works for all semesters.  5-credit courses scale from 120% to 100%.
+                    <br /> After entering ISA/Lab/Assignment marks, you can check the <strong>Analysis</strong> tab for predictions and how much to score in ESA to reach your target grade in each subject and <strong>Reverse Calc</strong> tab to know what to score in ESAs to reach your target SGPA.
+                  </div>
+                </details>
+
+                {/* Desktop View: Static Text (Hidden on Mobile) */}
+                <div className="hidden md:flex items-start gap-3">
+                  <Settings className="w-5 h-5 mt-0.5 text-blue-600 flex-shrink-0" />
+                  <div>
+                    <span className="font-bold block">Universal Calculator</span>
+                    <span className={themeClasses.muted}>
+                      Works for all semesters.  5-credit courses scale from 120% to 100%.
+                    <br /> After entering ISA/Lab/Assignment marks, you can check the <strong>Analysis</strong> tab for predictions and how much to score in ESA to reach your target grade in each subject and <strong>Reverse Calc</strong> tab to know what to score in ESAs to reach your target SGPA.
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2 flex-shrink-0">
-                {/* Preset Dropdown */}
+
+              {/* RIGHT SIDE: Buttons (Always Visible) */}
+              <div className="flex flex-wrap gap-2 items-center justify-end border-t border-slate-100 dark:border-slate-800 pt-3 md:border-none md:pt-0">
                 <select
                   onChange={(e) => loadPreset(e.target.value)}
-                  className={`${themeClasses.input} px-3 py-2 rounded-lg text-xs border`}
+                  className={`${themeClasses.input} px-3 py-2 rounded-lg text-xs border max-w-[130px] md:max-w-none`}
                   defaultValue=""
                 >
-                  <option value="">Load Preset... </option>
+                  <option value="">Load Preset...</option>
                   {Object.keys(SemesterPresets).map(key => (
                     <option key={key} value={key}>{key}</option>
                   ))}
                 </select>
 
-                {/* Undo/Redo */}
                 <div className="flex gap-1">
-                  <button
-                    onClick={undo}
-                    disabled={undoStack.length === 0}
-                    className={`p-2 rounded-lg border ${themeClasses.border} ${undoStack.length === 0 ? 'opacity-30' : 'hover: bg-blue-50 dark:hover:bg-slate-700'}`}
-                    title="Undo (Ctrl+Z)"
-                  >
+                  <button onClick={undo} disabled={undoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${undoStack.length === 0 ? 'opacity-30' : 'hover:bg-blue-50 dark:hover:bg-slate-700'}`}>
                     <Undo2 className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={redo}
-                    disabled={redoStack.length === 0}
-                    className={`p-2 rounded-lg border ${themeClasses.border} ${redoStack.length === 0 ? 'opacity-30' : 'hover: bg-blue-50 dark:hover: bg-slate-700'}`}
-                    title="Redo (Ctrl+Y)"
-                  >
+                  <button onClick={redo} disabled={redoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${redoStack.length === 0 ? 'opacity-30' : 'hover:bg-blue-50 dark:hover:bg-slate-700'}`}>
                     <Redo2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Export/Import */}
-                <button
-                  onClick={exportData}
-                  className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs hover:bg-blue-50 dark: hover:bg-slate-700`}
-                  title="Export (Ctrl+S)"
-                >
-                  <Download className="w-3 h-3" /> Export
+                <button onClick={exportData} className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs hover:bg-blue-50 dark:hover:bg-slate-700`}>
+                  <Download className="w-3 h-3" /> <span className="hidden sm:inline">Export</span>
                 </button>
+                
                 <label className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700`}>
-                  <Upload className="w-3 h-3" /> Import
+                  <Upload className="w-3 h-3" /> <span className="hidden sm:inline">Import</span>
                   <input type="file" accept=".json" onChange={importData} className="hidden" />
                 </label>
 
-                <button
-                  onClick={clearAll}
-                  className="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover: bg-red-900/50 text-red-600 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800 transition-colors text-xs"
-                >
-                  <Eraser className="w-3 h-3" /> Clear
+                <button onClick={clearAll} className="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800 transition-colors text-xs">
+                  <Eraser className="w-3 h-3" />
                 </button>
               </div>
+
             </div>
 
             {/* Grade Distribution Bar */}
@@ -1655,7 +1684,8 @@ export default function PES_Universal_Calculator() {
                     {/* Expanded Content */}
                     {isExpanded && (
                       <div className={`p-4 border-t ${themeClasses.border} ${darkMode ? 'bg-slate-800/50' : 'bg-slate-50/50'} rounded-b-xl`}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        {/* Changed grid-cols-1 to grid-cols-2 for mobile to save vertical space */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
 
                           {/* ISA 1 */}
                           <div className={`${themeClasses.card} p-3 rounded-lg border shadow-sm`}>
@@ -1955,6 +1985,32 @@ export default function PES_Universal_Calculator() {
               <Plus className="w-4 h-4" /> Add Custom Subject
             </button>
 
+            {/* Subtle "Next Steps" Footer */}
+            <div className="mt-8 mb-2 flex justify-center">
+              <div className={`inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 p-1 sm:p-2 sm:px-4 rounded-xl border ${darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'} transition-all`}>
+                
+                <span className={`text-xs font-semibold ${themeClasses.muted} hidden sm:block`}>
+                  Done updating?
+                </span>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => setActiveTab('analysis')}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-blue-600 bg-blue-100/50 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40 rounded-lg transition-colors"
+                  >
+                    <Activity className="w-3.5 h-3.5" /> Check Analysis
+                  </button>
+                  
+                  <button
+                    onClick={() => setActiveTab('reverse')}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-teal-600 bg-teal-100/50 hover:bg-teal-100 dark:bg-teal-900/20 dark:text-teal-300 dark:hover:bg-teal-900/40 rounded-lg transition-colors"
+                  >
+                    <Target className="w-3.5 h-3.5" /> Plan Targets
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Alerts Banner - Inside subjects tab */}
             {alerts.length > 0 && (
               <div className="space-y-2">
@@ -1984,7 +2040,7 @@ export default function PES_Universal_Calculator() {
         {/* ==================== ANALYSIS TAB ==================== */}
         {activeTab === 'analysis' && (
           <div className="space-y-6">
-            {/* Target Analyzer */}
+            {/* Target Analyzer (Top Cards) */}
             <div className={`${darkMode ? 'bg-slate-800' : 'bg-slate-900'} rounded-xl shadow-lg p-6 text-white border ${darkMode ? 'border-slate-700' : 'border-slate-800'}`}>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-lg font-bold flex items-center gap-2 text-yellow-400">
@@ -2004,10 +2060,9 @@ export default function PES_Universal_Calculator() {
                 </div>
               </div>
 
-              {/* Updated Grid with Range */}
+              {/* Grid with Range */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-
-                {/* 1. Range Card (Replaces Credits & Current SGPA) */}
+                {/* Range Card */}
                 <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 col-span-2 relative overflow-hidden group">
                   <div className="flex justify-between items-end mb-2">
                     <div>
@@ -2018,20 +2073,9 @@ export default function PES_Universal_Calculator() {
                     </div>
                     <Activity className="w-8 h-8 text-slate-600 group-hover:text-blue-500/50 transition-colors" />
                   </div>
-                  {/* Visual Range Bar */}
                   <div className="w-full bg-slate-800 h-2 rounded-full mt-2 overflow-hidden relative">
-                    <div
-                      className="absolute h-full bg-blue-500/30"
-                      style={{
-                        left: `${(sgpaRange.min / 10) * 100}%`,
-                        right: `${100 - (sgpaRange.max / 10) * 100}%`
-                      }}
-                    />
-                    <div
-                      className="absolute h-full w-1 bg-yellow-400 top-0 z-10"
-                      style={{ left: `${(Math.min(Math.max(sgpa, sgpaRange.min), sgpaRange.max) / 10) * 100}%` }}
-                      title={`Current Prediction: ${sgpa}`}
-                    />
+                    <div className="absolute h-full bg-blue-500/30" style={{ left: `${(sgpaRange.min / 10) * 100}%`, right: `${100 - (sgpaRange.max / 10) * 100}%` }} />
+                    <div className="absolute h-full w-1 bg-yellow-400 top-0 z-10" style={{ left: `${(Math.min(Math.max(sgpa, sgpaRange.min), sgpaRange.max) / 10) * 100}%` }} />
                   </div>
                   <div className="flex justify-between text-[9px] text-slate-500 mt-1 font-mono">
                     <span>{sgpaRange.min}</span>
@@ -2040,7 +2084,7 @@ export default function PES_Universal_Calculator() {
                   </div>
                 </div>
 
-                {/* 2. Target Gap */}
+                {/* Target Gap */}
                 <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-2 opacity-10"><Target className="w-10 h-10" /></div>
                   <div className="text-2xl font-bold">{metrics.allowableLoss.toFixed(1)}</div>
@@ -2048,78 +2092,125 @@ export default function PES_Universal_Calculator() {
                   <p className="text-[10px] text-slate-500 mt-1">Points you can lose to hit {targetSgpa}</p>
                 </div>
 
-                {/* 3. Momentum */}
+                {/* Momentum */}
                 <div className="bg-indigo-900/40 rounded-lg p-4 border border-indigo-500/30 relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-10 h-10" /></div>
                   <div className="text-2xl font-bold text-indigo-300">{metrics.momentumSGPA}</div>
-                  <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">
-                    Momentum SGPA <span className="text-indigo-400 font-bold text-lg leading-none">*</span>
-                  </div>
-                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form(i.e ISA performance = ESA)</p>
+                  <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">Momentum SGPA *</div>
+                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form</p>
                 </div>
               </div>
 
-              {/* Subject-wise Analysis */}
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
-                <div className="grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase font-bold pb-2 border-b border-slate-700 sticky top-0 bg-slate-800">
-                  <div className="col-span-5">Subject</div>
+              {/* Subject-wise Analysis List */}
+              <div className="space-y-3 md:space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
+                
+                {/* Table Header (Desktop Only - Adjusted Columns) */}
+                <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase font-bold pb-2 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
+                  <div className="col-span-3">Subject</div> {/* Reduced width to fit Pass */}
                   <div className="col-span-2 text-center">Momentum</div>
+                  <div className="col-span-2 text-center text-white/90">Pass (40)</div> {/* New Column */}
                   <div className="col-span-2 text-center">For A (80)</div>
                   <div className="col-span-2 text-center">For S (90)</div>
                   <div className="col-span-1 text-center">GP</div>
                 </div>
-                {metrics.analysisData.map((d, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-center text-sm py-2 border-b border-slate-700/50 hover:bg-slate-700/30 rounded transition-colors">
-                    <div className="col-span-5 truncate text-slate-300 font-medium">{d.name}</div>
-                    <div className="col-span-2 text-center">
-                      <span className={`font-bold ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-slate-300' : 'text-red-400'}`}>
-                        {d.momentumScore}
-                      </span>
-                    </div>
-                    <div className="col-span-2 text-center">
-                      {d.reqA === null ? (
-                        <span className="text-red-500 text-xs">Impossible</span>
-                      ) : d.reqA === 0 ? (
-                        <span className="text-green-500 text-xs">✓ Done</span>
-                      ) : (
-                        <div>
-                          <span className={`font-mono font-bold ${d.reqARequiresRounding ? 'text-orange-300' : 'text-blue-300'}`}>{d.reqA}</span>
-                          {d.reqAMin !== null && d.reqAMin < d.reqA && (
-                            <div className="text-[9px] text-slate-500">min: {d.reqAMin}</div>
-                          )}
-                          {d.reqARequiresRounding && (
-                            <div className="text-[9px] text-orange-400">*rounding</div>
+
+                {metrics.analysisData.map((d, i) => {
+                  // Calculate Passing Requirement on the fly
+                  const sub = subjects.find(s => s.id === d.id);
+                  const reqPass = getRequiredESAForGrade(sub, 40, true);
+                  
+                  return (
+                    <div 
+                      key={i} 
+                      className={`
+                        flex flex-col gap-3 p-3 rounded-xl border border-slate-700/50 bg-slate-800/40
+                        md:grid md:grid-cols-12 md:gap-2 md:items-center md:py-2 md:border-b md:border-t-0 md:border-x-0 md:border-slate-700/50 md:bg-transparent md:rounded-none md:hover:bg-slate-700/30
+                      `}
+                    >
+                      {/* Header: Name & GP */}
+                      <div className="flex items-center justify-between md:contents">
+                        <div className="md:col-span-3 truncate text-slate-200 font-bold md:font-medium text-sm">
+                          {d.name}
+                        </div>
+                        <div className="md:hidden flex items-center gap-2">
+                          <span className="text-[10px] uppercase text-slate-500 font-bold">Curr GP</span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
+                              {d.currentGP}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Stats Grid (2x2 on Mobile, Flat on Desktop) */}
+                      <div className="grid grid-cols-2 gap-2 md:contents">
+                        
+                        {/* 1. Momentum */}
+                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">Momentum</span>
+                          <span className={`font-bold text-lg md:text-sm ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-slate-300' : 'text-red-400'}`}>
+                            {d.momentumScore}
+                          </span>
+                        </div>
+
+                        {/* 2. Pass Requirement (NEW) */}
+                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">To Pass</span>
+                          {reqPass.safe === null ? (
+                            <span className="text-red-500 text-xs font-bold">Impossible</span>
+                          ) : reqPass.safe === 0 ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <CheckCircle2 className="w-4 h-4 text-green-500" />
+                              <span className="text-green-500 text-xs font-bold md:hidden">Passed</span>
+                            </div>
+                          ) : (
+                            <span className="font-mono font-bold text-slate-200 text-base md:text-sm">
+                              {reqPass.safe}
+                            </span>
                           )}
                         </div>
-                      )}
-                    </div>
-                    <div className="col-span-2 text-center">
-                      {d.reqS === null ? (
-                        <span className="text-red-500 text-xs">Impossible</span>
-                      ) : d.reqS === 0 ? (
-                        <span className="text-green-500 text-xs">✓ Done</span>
-                      ) : (
-                        <div>
-                          <span className={`font-mono font-bold ${d.reqSRequiresRounding ? 'text-orange-300' : 'text-yellow-300'}`}>{d.reqS}</span>
-                          {d.reqSMin !== null && d.reqSMin < d.reqS && (
-                            <div className="text-[9px] text-slate-500">min: {d.reqSMin}</div>
-                          )}
-                          {d.reqSRequiresRounding && (
-                            <div className="text-[9px] text-orange-400">*rounding</div>
+
+                        {/* 3. Target A */}
+                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">For A (80)</span>
+                          {d.reqA === null ? (
+                            <span className="text-red-500 text-xs font-bold">Impossible</span>
+                          ) : d.reqA === 0 ? (
+                            <span className="text-green-500 text-xs font-bold">✓ Done</span>
+                          ) : (
+                            <div className="flex flex-col items-center">
+                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqARequiresRounding ? 'text-orange-300' : 'text-blue-300'}`}>{d.reqA}</span>
+                              {d.reqAMin !== null && d.reqAMin < d.reqA && <div className="text-[9px] text-slate-500 leading-none">min: {d.reqAMin}</div>}
+                            </div>
                           )}
                         </div>
-                      )}
+
+                        {/* 4. Target S */}
+                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">For S (90)</span>
+                          {d.reqS === null ? (
+                            <span className="text-red-500 text-xs font-bold">Impossible</span>
+                          ) : d.reqS === 0 ? (
+                            <span className="text-green-500 text-xs font-bold">✓ Done</span>
+                          ) : (
+                            <div className="flex flex-col items-center">
+                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqSRequiresRounding ? 'text-orange-300' : 'text-yellow-300'}`}>{d.reqS}</span>
+                              {d.reqSMin !== null && d.reqSMin < d.reqS && <div className="text-[9px] text-slate-500 leading-none">min: {d.reqSMin}</div>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Desktop GP (Hidden on Mobile) */}
+                      <div className="hidden md:block col-span-1 text-center">
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
+                          {d.currentGP}
+                        </span>
+                      </div>
                     </div>
-                    <div className="col-span-1 text-center">
-                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
-                        {d.currentGP}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
-              {/* Add notice about minimum scores */}
+              {/* Footer Notes */}
               <div className="mt-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
                 <div className="flex items-start gap-2 text-xs text-slate-400">
                   <Lightbulb className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
@@ -2129,65 +2220,65 @@ export default function PES_Universal_Calculator() {
                   </div>
                 </div>
               </div>
-              {/* Momentum Disclaimer Note */}
-              <div className="mb-6 mx-1 p-3 bg-indigo-900/20 rounded-lg border border-indigo-500/20 flex items-start gap-3">
-                 <div className="text-lg flex-shrink-0 mt-0.5">*️⃣</div>
-                 <div className="text-xs text-indigo-200/80 leading-relaxed">
-                   <strong className="text-indigo-200">Momentum Disclaimer:</strong> The momentum score purely assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong>
-                 </div>
+              
+              {/* Momentum Disclaimer (Collapsible) */}
+              <div className="mt-3 mx-1 bg-indigo-900/20 rounded-lg border border-indigo-500/20">
+                <details className="group p-3">
+                  <summary className="flex items-center gap-2 cursor-pointer list-none text-xs text-indigo-200 font-bold select-none">
+                    <span className="text-lg leading-none">*️⃣</span>
+                    <span>Momentum Disclaimer</span>
+                    <ChevronDown className="w-3 h-3 ml-auto opacity-50 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="mt-2 text-xs text-indigo-200/70 leading-relaxed pl-7 border-t border-indigo-500/10 pt-2">
+                    The momentum score purely assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong>
+                  </div>
+                </details>
               </div>
             </div>
 
-            {/* Smart Strategy Panel */}
-            <div className={`${darkMode ? 'bg-slate-800' : 'bg-slate-800'} rounded-xl shadow-lg p-6 text-white border ${darkMode ? 'border-slate-700' : 'border-slate-700'}`}>
+            {/* Smart Strategy Panel (Collapsible on Mobile to save space) */}
+            <div className={`${darkMode ? 'bg-slate-800' : 'bg-slate-800'} rounded-xl shadow-lg p-4 md:p-6 text-white border ${darkMode ? 'border-slate-700' : 'border-slate-700'}`}>
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-green-400">
                 <Lightbulb className="w-5 h-5" /> Path to Target ({targetSgpa} SGPA)
               </h2>
-
+              
               {strategy.plan.length === 0 && !strategy.impossible && parseFloat(metrics.momentumSGPA) >= targetSgpa ? (
                 <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 flex items-center gap-3">
                   <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
                   <div>
                     <div className="font-bold text-green-300">You're on track!</div>
-                    <div className="text-xs text-green-200/60">Your current momentum ({metrics.momentumSGPA}) meets or exceeds your target SGPA.</div>                  </div>
+                    <div className="text-xs text-green-200/60">Your current momentum meets your target.</div>
+                  </div>
                 </div>
               ) : strategy.impossible ? (
                 <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 flex items-center gap-3">
                   <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0" />
                   <div>
                     <div className="font-bold text-red-300">Target Unreachable</div>
-                    <div className="text-xs text-red-200/60">Even with perfect ESA scores, this SGPA is mathematically impossible given your internals.</div>
+                    <div className="text-xs text-red-200/60">Mathematically impossible given your internals.</div>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-slate-400 mb-2">Most efficient path to reach your target:</p>
+                  <p className="text-xs text-slate-400 mb-2">Most efficient upgrades:</p>
                   {strategy.plan.map((step, idx) => (
-                    <div key={idx} className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 flex items-start gap-3 hover:bg-slate-700 transition-colors">
+                    <div key={idx} className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 flex items-start gap-3">
                       <div className="bg-slate-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-slate-400 flex-shrink-0 mt-0.5">
                         {idx + 1}
                       </div>
                       <div className="flex-1">
                         <div className="text-sm font-bold text-slate-200 flex justify-between items-center">
                           <span>{step.name}</span>
-                          <span className="text-[10px] bg-indigo-900 text-indigo-200 px-1. 5 py-0.5 rounded flex items-center">+{step.gpGain.toFixed(1)} GP</span>
+                          <span className="text-[10px] bg-indigo-900 text-indigo-200 px-1.5 py-0.5 rounded">+{step.gpGain.toFixed(1)} GP</span>
                         </div>
                         <div className="text-xs text-slate-400 mt-1 flex items-center gap-1 flex-wrap">
-                          <span>Score</span>
                           <span className="text-white font-bold bg-slate-600 px-1.5 rounded">{step.esaNeeded}/{step.esaMax}</span>
-                          <span>in ESA to upgrade</span>
-                          <span className={`font-bold ${step.fromGrade === 'S' ? 'text-green-400' : step.fromGrade === 'A' ? 'text-blue-400' : 'text-slate-300'}`}>{step.fromGrade}</span>
-                          <ArrowRight className="w-3 h-3" />
-                          <span className={`font-bold ${step.toGrade === 'S' ? 'text-green-400' : step.toGrade === 'A' ? 'text-blue-400' : 'text-slate-300'}`}>{step.toGrade}</span>
+                          <span>ESA for</span>
+                          <span className={`font-bold ${step.toGrade === 'S' ? 'text-green-400' : 'text-blue-400'}`}>{step.toGrade}</span>
                         </div>
                       </div>
                     </div>
                   ))}
-                  {strategy.deficit > 0.01 && (
-                    <div className="text-center text-xs text-yellow-400 mt-2 p-2 bg-yellow-900/20 rounded-lg border border-yellow-800">
-                      ⚠️ This plan covers most of the gap but {strategy.deficit.toFixed(1)} GP still needed.  Consider lowering your target or checking if higher grades are achievable.
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -2196,233 +2287,234 @@ export default function PES_Universal_Calculator() {
 
         {/* ==================== REVERSE CALCULATOR TAB ==================== */}
         {activeTab === 'reverse' && (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl shadow-lg p-6 text-white">
+          <div className="space-y-4">
+            <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl shadow-lg p-4 text-white">
               <h2 className="text-lg font-bold flex items-center gap-2 mb-2">
                 <Target className="w-5 h-5" /> Reverse Calculator
               </h2>
-              <p className="text-emerald-100 text-sm mb-6">
-                Set your desired SGPA and see exactly what you need to score in each ESA.  Lock subjects where you're confident about your score.
+              
+              {/* ORIGINAL TEXT: Description */}
+              <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
+                Set your desired SGPA and see exactly what you need to score in each ESA. Lock subjects where you're confident about your score.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-                <div className="flex items-center gap-3 bg-white/20 px-4 py-3 rounded-lg">
-                  <label className="text-sm font-semibold">I want SGPA: </label>
+              {/* Controls: Input & Buttons (Compacted layout) */}
+              <div className="flex flex-col gap-3 mb-4">
+                <div className="flex items-center gap-3 bg-white/20 px-3 py-2 rounded-lg w-full sm:w-auto">
+                  <label className="text-sm font-semibold whitespace-nowrap">I want SGPA: </label>
                   <input
                     type="number"
                     step="0.1"
-
                     min="5"
                     max="10"
                     value={reverseTargetSgpa}
                     onChange={(e) => setReverseTargetSgpa(parseFloat(e.target.value) || 0)}
-                    className="w-20 bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white font-bold text-center text-xl focus:outline-none focus:border-white"
+                    className="w-full bg-white/20 border border-white/30 rounded-lg px-2 py-1 text-white font-bold text-center text-lg focus:outline-none focus:border-white"
                   />
-                  {/* Shuffle Button */}
+                </div>
+
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setShuffledResults(calculateRandomPath())}
-                    className="ml-2 bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center h-10 w-10"
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
                     title="Shuffle: Find a different combination of grades"
                   >
-                    <Dice5 className={`w-5 h-5 ${shuffledResults ? 'animate-spin' : ''}`} />
+                    <Dice5 className={`w-4 h-4 ${shuffledResults ? 'animate-spin' : ''}`} /> Shuffle
                   </button>
 
-                  {/* Balanced Button */}
                   <button
                     onClick={() => setShuffledResults(calculateBalancedPath())}
-                    className="ml-2 bg-teal-600 hover:bg-teal-700 text-white p-2 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center h-10 w-10"
+                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
                     title="Balanced: Keeps scores even across subjects"
                   >
-                    <Scale className={`w-5 h-5 ${shuffledResults ? 'animate-pulse' : ''}`} />
+                    <Scale className={`w-4 h-4 ${shuffledResults ? 'animate-pulse' : ''}`} /> Balanced
                   </button>
 
                   {shuffledResults && (
                     <button
                       onClick={() => setShuffledResults(null)}
-                      className="text-xs text-white/70 hover:text-white underline"
+                      className="px-3 text-xs text-white/70 hover:text-white underline"
                     >
                       Reset
                     </button>
                   )}
                 </div>
-                <div className="bg-blue-900/30 border-l-4 border-blue-400 p-4 rounded-r shadow-md mt-4 mb-4">
-                  <div className="flex items-start gap-3">
-                    <HelpCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm text-blue-100">
-                      <p className="font-bold mb-1">Why are some scores so high/low?</p>
-                      <p className="opacity-80">
-                        This calculator finds the <strong>absolute cheapest path</strong>.
-                        It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
-                      </p>
-                      <p className="mt-2 text-yellow-300 font-bold">
-                        💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon
-                        to set a limit (e.g., 85 that you are confident that you will score at least that much).
-                        The app will recalculate the rest!
-                      </p>
-                      <p className="mb-3 font-medium text-white/90">
-                        Alternatively you can Click <span className="font-bold text-white">Balanced</span> for a realistic, balanced path.
-                      </p>
-                      <p className="mb-3 font-medium text-white/90">
-                        Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way. There might be others ways and this might or might not be the most efficient way.
-                      </p>
+              </div>
+
+              {/* ORIGINAL TEXT: Blue Help Box (Accordion for mobile) */}
+              <div className="bg-blue-900/30 border-l-4 border-blue-400 rounded-r shadow-md">
+                <details className="group p-3">
+                    <summary className="flex items-center gap-2 cursor-pointer list-none text-sm font-bold text-blue-100 select-none">
+                      <HelpCircle className="w-5 h-5 text-blue-400" />
+                      <span>Why are some scores high/low?(and fix)</span>
+                      <ChevronDown className="w-4 h-4 ml-auto opacity-70 transition-transform group-open:rotate-180"/>
+                    </summary>
+                    <div className="mt-3 text-sm text-blue-100 space-y-2 border-t border-blue-400/30 pt-2">
+                        <p className="opacity-80">
+                          This calculator finds the <strong>absolute cheapest path</strong>.
+                          It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
+                        </p>
+                        <p className="text-yellow-300 font-bold text-xs">
+                          💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon
+                          to set a limit (e.g., 85 that you are confident that you will score at least that much).
+                          The app will recalculate the rest!
+                        </p>
+                        <p className="font-medium text-white/90 text-xs">
+                          Alternatively you can Click <span className="font-bold text-white">Balanced</span> for a realistic, balanced path.
+                        </p>
+                        <p className="font-medium text-white/90 text-xs">
+                          Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way.
+                        </p>
                     </div>
-                  </div>
-                </div>
-
-                {!reverseResults.isTargetAchievable && (
-                  <div className="flex items-center gap-2 bg-red-500/30 px-3 py-2 rounded-lg text-sm">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Max achievable:  <strong>{reverseResults.achievableSGPA}</strong></span>
-                  </div>
-                )}
+                </details>
               </div>
 
-              <div className="space-y-2">
-                {(shuffledResults || reverseResults.results).map((sub, i) => (
-                  <div
-                    key={i}
-                    className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-lg gap-3 ${sub.isImpossible ? 'bg-red-500/30' :
-                      sub.alreadyAchieved ? 'bg-green-500/30' :
-                        sub.locked ? 'bg-yellow-500/20' : 'bg-white/10'
-                      }`}
-                  >
-                    <div className="flex-1">
-                      <div className="font-medium flex items-center gap-2">
-                        {sub.locked && <Lock className="w-3 h-3 text-yellow-400" />}
-                        {sub.name}
-                      </div>
-                      <div className="text-xs text-emerald-200/70">
-                        {sub.credits} credits • Target Grade: <strong>{sub.projectedGrade}</strong>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      {sub.locked ? (
-                        /* CASE 1: LOCKED (Hard Lock vs Manual Lock) */
-                        <div className="flex flex-col items-end">
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              min="0"
-                              max={sub.esaMax}
-                              /* FIX: If Hard Locked (entered in main tab), show that value. Else show manual override. */
-                              value={sub.isHardLocked ? (marks[sub.id]?.esa || 0) : lockedSubjects[sub.id]}
-                              disabled={sub.isHardLocked} // Disable input if it comes from the main tab
-                              onChange={(e) => {
-                                if (sub.isHardLocked) return; // Prevent editing hard locks here
-                                const val = e.target.value === '' ? '' : parseFloat(e.target.value);
-                                setLockedSubjects(prev => ({
-                                  ...prev,
-                                  [sub.id]: val
-                                }));
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className={`w-20 p-1 text-right border rounded font-bold focus:outline-none transition-all ${sub.isHardLocked
-                                ? 'bg-white/10 text-slate-300 border-white/10 cursor-not-allowed' // Greyed out style for Hard Lock
-                                : 'bg-yellow-500/20 border-yellow-500/50 text-yellow-200 focus:border-yellow-400' // Yellow style for Manual Lock
-                                }`}
-                            />
-                            <span className="text-sm text-yellow-200/50">/{sub.esaMax}</span>
-                          </div>
-                          <div className="text-[10px] text-yellow-200/60 mt-1">
-                            {sub.isHardLocked ? 'Set in Subjects Tab' : 'Manual Override'}
-                          </div>
-                        </div>
-                      ) : sub.isImpossible ? (
-                        /* CASE 2: IMPOSSIBLE */
-                        <div>
-                          <div className="text-red-300 font-bold">Not Possible</div>
-                          <div className="text-[10px] text-red-200/60">Internals too low</div>
-                        </div>
-                      ) : sub.alreadyAchieved ? (
-                        /* CASE 3: ALREADY DONE */
-                        <div>
-                          <div className="text-green-300 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-4 h-4" /> Already there
-                          </div>
-                          <div className="text-[10px] text-green-200/60">No ESA needed</div>
-                        </div>
-                      ) : (
-                        /* CASE 4: STANDARD CALCULATION */
-                        <div>
-                          <div className="text-2xl font-bold">
-                            {sub.requiredEsa}
-                            <span className="text-sm text-emerald-200/70">/{sub.esaMax}</span>
-                          </div>
-                          <div className="text-[10px] text-emerald-200/60">ESA marks needed</div>
-                        </div>
-                      )}
-
-                      {/* Lock toggle */}
-                      <button
-                        onClick={() => {
-                          // Prevent action if it's a Hard Lock (set in main tab)
-                          if (sub.isHardLocked) return;
-
-                          if (lockedSubjects[sub.id] !== undefined) {
-                            // Unlock (Remove Manual Lock)
-                            const newLocked = { ...lockedSubjects };
-                            delete newLocked[sub.id];
-                            setLockedSubjects(newLocked);
-                          } else {
-                            // Lock (Add Manual Lock)
-                            setLockedSubjects({
-                              ...lockedSubjects,
-                              [sub.id]: sub.requiredEsa
-                            });
-                          }
-                        }}
-                        disabled={sub.isHardLocked} // Disable if set in main tab
-                        className={`p-2 rounded-lg transition-colors ${sub.isHardLocked
-                          ? 'bg-white/5 text-slate-500 cursor-not-allowed' // Greyed out for Hard Lock
-                          : sub.locked
-                            ? 'bg-yellow-500 text-yellow-900' // Yellow for Manual Lock
-                            : 'bg-white/20 hover:bg-white/30' // Default Unlocked
-                          }`}
-                        title={
-                          sub.isHardLocked ? "Clear ESA in Subjects tab to unlock" :
-                            sub.locked ? "Unlock this subject" :
-                              "Lock this ESA score"
-                        }
-                      >
-                        {sub.locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                      </button>                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 p-4 bg-white/10 rounded-lg">
-                <div className="flex items-start gap-2 text-sm">
-                  <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-2">
-                    <p>
-                      <strong>How to use:</strong> Lock subjects where you're confident about your ESA score.
-                      The calculator will then adjust the requirements for other subjects to compensate.
-                    </p>
-                    <p className="text-emerald-200/60 text-xs italic border-t border-white/10 pt-2">
-                      <strong>Note:</strong> There are many combinations of grades that can achieve your target.
-                      This result is just the most efficient path (requiring the least amount of total marks).
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* MOMENTUM WARNING BANNER (Bottom Placement) */}
-              {reverseResults.usingMomentum && (
-                <div className="mt-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
-                  <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm">
-                    <strong className="text-yellow-200">Using Momentum Scores</strong>
-                    <p className="text-yellow-100/70 text-xs mt-1">
-                      Some internals (like Lab/ISA2/Assignment) are empty. We are projecting these based on your current performance trend so the calculator doesn't panic. And also the max achievable SGPA might be higher than reality (since empty internals are optimistically filled).
-                    </p>
-                  </div>
+              {!reverseResults.isTargetAchievable && (
+                <div className="flex items-center gap-2 bg-red-500/30 px-3 py-2 rounded-lg text-sm mt-3 border border-red-500/30">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Max achievable: <strong>{reverseResults.achievableSGPA}</strong></span>
                 </div>
               )}
             </div>
 
-            {/* Minimum Passing Table */}
-            <div className={`${themeClasses.card} rounded-xl shadow-lg p-6 border`}>
+            {/* Subject List - COMPACT ROW LAYOUT */}
+            <div className="space-y-2">
+              {(shuffledResults || reverseResults.results).map((sub, i) => (
+                <div
+                  key={i}
+                  className={`relative flex items-center justify-between p-3 rounded-lg border transition-all gap-2 ${
+                    sub.isImpossible ? 'bg-red-500/10 border-red-500/30' :
+                    sub.alreadyAchieved ? 'bg-green-500/10 border-green-500/30' :
+                    sub.locked ? 'bg-yellow-500/10 border-yellow-500/30' :
+                    `${themeClasses.card} shadow-sm`
+                  }`}
+                >
+                  {/* Left Side: Name & Info */}
+                  <div className="flex-1 min-w-0 pr-2">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      {sub.locked && <Lock className="w-3 h-3 text-yellow-500 flex-shrink-0" />}
+                      <span className="text-sm font-bold truncate block">
+                        {sub.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] opacity-70">
+                      <span className={`px-1.5 rounded ${darkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>{sub.credits} Cr</span>
+                      {sub.isImpossible ? (
+                          <span className="text-red-500 font-bold">Impossible</span>
+                      ) : (
+                          <span>Target: <strong className="opacity-100">{sub.projectedGrade}</strong></span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right Side: Score & Actions */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="text-right">
+                        {sub.locked ? (
+                          /* Locked Input */
+                          <div className="flex flex-col items-end">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={sub.esaMax}
+                                  disabled={sub.isHardLocked}
+                                  value={sub.isHardLocked ? (marks[sub.id]?.esa || 0) : lockedSubjects[sub.id]}
+                                  onChange={(e) => {
+                                    if (sub.isHardLocked) return;
+                                    const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                                    setLockedSubjects(prev => ({...prev, [sub.id]: val}));
+                                  }}
+                                  className={`w-12 p-1 text-center text-sm font-bold border rounded focus:outline-none ${
+                                    sub.isHardLocked 
+                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed border-transparent'
+                                    : 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 text-yellow-700 dark:text-yellow-300'
+                                  }`}
+                                />
+                                <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
+                              </div>
+                              <span className="text-[9px] text-yellow-500 mt-0.5">
+                                {sub.isHardLocked ? 'Main Tab' : 'Manual'}
+                              </span>
+                          </div>
+                        ) : sub.alreadyAchieved ? (
+                          /* Done State */
+                          <div className="flex flex-col items-end">
+                              <span className="text-lg font-bold text-green-500">0</span>
+                              <span className="text-[9px] text-green-500/70">Safe</span>
+                          </div>
+                        ) : sub.isImpossible ? (
+                          <span className="text-xs font-bold text-red-500">---</span>
+                        ) : (
+                          /* Score Needed */
+                          <div className="flex flex-col items-end">
+                              <span className="text-lg font-bold">
+                                {sub.requiredEsa}<span className="text-xs font-normal opacity-50">/{sub.esaMax}</span>
+                              </span>
+                              <span className="text-[9px] opacity-50">Needed</span>
+                          </div>
+                        )}
+                    </div>
+
+                    {/* Lock Button */}
+                    <button
+                      onClick={() => {
+                        if (sub.isHardLocked) return;
+                        if (lockedSubjects[sub.id] !== undefined) {
+                          const newLocked = { ...lockedSubjects };
+                          delete newLocked[sub.id];
+                          setLockedSubjects(newLocked);
+                        } else {
+                          setLockedSubjects({ ...lockedSubjects, [sub.id]: sub.requiredEsa });
+                        }
+                      }}
+                      disabled={sub.isHardLocked}
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${
+                        sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
+                        sub.locked 
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400' 
+                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-blue-500 hover:border-blue-300'
+                      }`}
+                    >
+                        {sub.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ORIGINAL TEXT: Bottom Info */}
+            <div className="mt-6 p-4 bg-white/10 dark:bg-slate-800/50 rounded-lg border dark:border-slate-700">
+              <div className="flex items-start gap-2 text-sm">
+                <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-2">
+                  <p>
+                    <strong>How to use:</strong> Lock subjects where you're confident about your ESA score.
+                    The calculator will then adjust the requirements for other subjects to compensate.
+                  </p>
+                  <p className="opacity-60 text-xs italic border-t border-slate-200 dark:border-slate-700 pt-2">
+                    <strong>Note:</strong> There are many combinations of grades that can achieve your target.
+                    This result is just the most efficient path (requiring the least amount of total marks).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ORIGINAL TEXT: Momentum Warning */}
+            {reverseResults.usingMomentum && (
+              <div className="mt-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
+                <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <strong className="text-yellow-600 dark:text-yellow-200">Using Momentum Scores</strong>
+                  <p className="text-yellow-700 dark:text-yellow-100/70 text-xs mt-1 leading-relaxed">
+                    Some internals (like Lab/ISA2/Assignment) are empty. We are projecting these based on your current performance trend so the calculator doesn't panic. And also the max achievable SGPA might be higher than reality (since empty internals are optimistically filled).
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Minimum Passing Table (Restored & Scrollable for Mobile) */}
+            <div className={`${themeClasses.card} rounded-xl shadow-lg p-6 border mt-8`}>
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
                 <Calculator className="w-5 h-5 text-blue-500" /> Minimum ESA Scores Needed
               </h2>
@@ -2434,7 +2526,7 @@ export default function PES_Universal_Calculator() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className={`border-b ${themeClasses.border}`}>
-                      <th className="text-left py-3 px-2 font-bold">Subject</th>
+                      <th className="text-left py-3 px-2 font-bold whitespace-nowrap">Subject</th>
                       <th className="text-center py-3 px-2 font-bold text-red-400">E (40)</th>
                       <th className="text-center py-3 px-2 font-bold text-orange-400">D (50)</th>
                       <th className="text-center py-3 px-2 font-bold text-yellow-500">C (60)</th>
@@ -2447,7 +2539,7 @@ export default function PES_Universal_Calculator() {
                     {minimumPassingTable.map(sub => (
                       <tr key={sub.id} className={`border-b ${themeClasses.border} hover:${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
                         <td className="py-3 px-2 font-medium">
-                          <div>{sub.name}</div>
+                          <div className="whitespace-nowrap">{sub.name}</div>
                           <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max: {sub.esaMax}</div>
                         </td>
                         {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
@@ -2702,7 +2794,8 @@ export default function PES_Universal_Calculator() {
                 <p className={`${themeClasses.muted} text-sm mb-4`}>
                   How different SGPA outcomes this semester would affect your CGPA:
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {/* CGPA Projection Scenarios (Horizontal Swipe on Mobile) */}
+                <div className="flex overflow-x-auto pb-4 gap-3 snap-x md:grid md:grid-cols-6 md:overflow-visible md:pb-0 scrollbar-thin">
                   {[10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6].map(scenarioSgpa => {
                     const prevSgpa = parseFloat(prevCgpaDetails.sgpa);
                     const prevCreds = parseFloat(prevCgpaDetails.credits);
@@ -2716,7 +2809,8 @@ export default function PES_Universal_Calculator() {
                     return (
                       <div
                         key={scenarioSgpa}
-                        className={`p-3 rounded-lg text-center border ${isCurrentScenario
+                        /* CHANGE IS HERE: Added 'min-w-[120px]' and 'snap-center' */
+                        className={`p-3 rounded-lg text-center border min-w-[120px] snap-center flex-shrink-0 ${isCurrentScenario
                           ? 'bg-blue-100 dark:bg-blue-900/50 border-blue-500'
                           : `${themeClasses.card} ${themeClasses.border}`
                           }`}
@@ -3048,13 +3142,14 @@ export default function PES_Universal_Calculator() {
 
       </div>
 
+      {/* Added 'pb-5 pt-2' to account for mobile gesture bars */}
       {/* Mobile Bottom Navigation */}
-      <div className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'} border-t md:hidden z-20`}>
-        <div className="flex justify-around">
+      <div className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'} border-t md:hidden z-20 pb-5 pt-2`}>
+        <div className="flex justify-around items-end">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', icon: Activity },
-            { id: 'reverse', label: 'Reverse', icon: Target },
+            { id: 'analysis', label: 'Analysis', icon: Activity, highlight: true }, // Added highlight
+            { id: 'reverse', label: 'Reverse', icon: Target, highlight: true },     // Added highlight
             { id: 'priority', label: 'Priority', icon: TrendingUp },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
@@ -3062,13 +3157,21 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-col items-center py-2 px-3 ${activeTab === tab.id
-                ? 'text-blue-600'
-                : themeClasses.muted
-                }`}
+              className={`relative flex flex-col items-center py-2 px-3 transition-colors ${
+                activeTab === tab.id
+                  ? 'text-blue-600'
+                  : tab.highlight 
+                    ? (tab.id === 'analysis' ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-teal-600/70 dark:text-teal-400/70')
+                    : themeClasses.muted
+              }`}
             >
               <tab.icon className="w-5 h-5" />
-              <span className="text-[10px] mt-1">{tab.label}</span>
+              <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
+              
+              {/* Mobile Dot */}
+              {tab.highlight && activeTab !== tab.id && (
+                <span className={`absolute top-2 right-3 h-1.5 w-1.5 rounded-full ${tab.id === 'analysis' ? 'bg-blue-500' : 'bg-teal-500'}`}></span>
+              )}
             </button>
           ))}
         </div>
