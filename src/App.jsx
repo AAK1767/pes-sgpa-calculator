@@ -100,7 +100,7 @@ export default function PES_Universal_Calculator() {
 
   const [subjects, setSubjects] = useState(() => {
     // --- THE RESET LOGIC ---
-    const CURRENT_VERSION = '2025_END_2'; // Change this string whenever you want to nuke again
+    const CURRENT_VERSION = '2026_START_V3'; // Change this string whenever you want to nuke again
     const savedVersion = localStorage.getItem('pes_version');
 
     if (savedVersion !== CURRENT_VERSION) {
