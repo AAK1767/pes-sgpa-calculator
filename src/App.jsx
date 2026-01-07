@@ -660,8 +660,6 @@ export default function PES_Universal_Calculator() {
   };
 
   // --- Smart Strategy Engine (Fixed) ---
-  // --- Smart Strategy Engine (Fixed) ---
-  // --- Smart Strategy Engine (Fixed: Absolute Calculation) ---
   const getSmartSuggestions = () => {
     const totalCredits = subjects.reduce((acc, s) => acc + s.credits, 0);
     const targetTotalGP = totalCredits * targetSgpa;
@@ -716,7 +714,6 @@ export default function PES_Universal_Calculator() {
         const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
 
         if (nextGrade) {
-          // --- THE FIX: ABSOLUTE CALCULATION ---
           // 1. Calculate TOTAL weighted points needed for the next grade
           const requiredWeightedScore = (nextGrade.min * sub.totalWeight) / 100;
 
@@ -1492,7 +1489,6 @@ export default function PES_Universal_Calculator() {
       </div>
 
       {/* Navigation Tabs */}
-      {/* Added 'hidden md:block' to hide this top bar on mobile screens */}
       {/* Navigation Tabs (With Highlights for Core Features) */}
       <div className={`hidden md:block sticky top-[72px] md:top-[88px] z-10 ${themeClasses.bg} border-b ${themeClasses.border}`}>
         <div className="max-w-4xl mx-auto flex overflow-x-auto">
