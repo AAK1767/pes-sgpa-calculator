@@ -1504,11 +1504,10 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
-                activeTab === tab.id
+              className={`relative flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
                   : `border-transparent hover:text-blue-500 ${tab.highlight ? tab.color : themeClasses.muted}`
-              }`}
+                }`}
             >
               <tab.icon className={`w-4 h-4 ${tab.highlight && activeTab !== tab.id ? 'opacity-80' : ''}`} />
               {tab.label}
@@ -1532,17 +1531,17 @@ export default function PES_Universal_Calculator() {
           <>
             {/* Helper Banner (Optimized for both Mobile & Desktop) */}
             <div className={`${themeClasses.card} border rounded-xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
-              
+
               {/* LEFT SIDE: Text Content */}
               <div className="flex-1">
-                
+
                 {/* Mobile View: Collapsible Accordion (Hidden on Desktop) */}
                 <details className="group md:hidden">
                   <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-600">
                     <Settings className="w-5 h-5 flex-shrink-0" />
                     <span className="font-bold text-slate-700 dark:text-slate-200">Universal Calculator</span>
                     <span className="text-[10px] bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full text-blue-700 dark:text-blue-300 flex items-center">
-                      Info <ChevronDown className="w-3 h-3 ml-1 group-open:rotate-180 transition-transform"/>
+                      Info <ChevronDown className="w-3 h-3 ml-1 group-open:rotate-180 transition-transform" />
                     </span>
                   </summary>
                   <div className={`mt-3 text-xs ${themeClasses.muted} leading-relaxed pl-7 border-t border-slate-100 dark:border-slate-800 pt-2`}>
@@ -1558,7 +1557,7 @@ export default function PES_Universal_Calculator() {
                     <span className="font-bold block">Universal Calculator</span>
                     <span className={themeClasses.muted}>
                       Works for all semesters.  5-credit courses scale from 120% to 100%.
-                    <br /> After entering ISA/Lab/Assignment marks, you can check the <strong>Analysis</strong> tab for predictions and how much to score in ESA to reach your target grade in each subject and <strong>Reverse Calc</strong> tab to know what to score in ESAs to reach your target SGPA.
+                      <br /> After entering ISA/Lab/Assignment marks, you can check the <strong>Analysis</strong> tab for predictions and how much to score in ESA to reach your target grade in each subject and <strong>Reverse Calc</strong> tab to know what to score in ESAs to reach your target SGPA.
                     </span>
                   </div>
                 </div>
@@ -1589,7 +1588,7 @@ export default function PES_Universal_Calculator() {
                 <button onClick={exportData} className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs hover:bg-blue-50 dark:hover:bg-slate-700`}>
                   <Download className="w-3 h-3" /> <span className="hidden sm:inline">Export</span>
                 </button>
-                
+
                 <label className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700`}>
                   <Upload className="w-3 h-3" /> <span className="hidden sm:inline">Import</span>
                   <input type="file" accept=".json" onChange={importData} className="hidden" />
@@ -1984,7 +1983,7 @@ export default function PES_Universal_Calculator() {
             {/* Subtle "Next Steps" Footer */}
             <div className="mt-8 mb-2 flex justify-center">
               <div className={`inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 p-1 sm:p-2 sm:px-4 rounded-xl border ${darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'} transition-all`}>
-                
+
                 <span className={`text-xs font-semibold ${themeClasses.muted} hidden sm:block`}>
                   Done updating?
                 </span>
@@ -1996,7 +1995,7 @@ export default function PES_Universal_Calculator() {
                   >
                     <Activity className="w-3.5 h-3.5" /> Check Analysis
                   </button>
-                  
+
                   <button
                     onClick={() => setActiveTab('reverse')}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-teal-600 bg-teal-100/50 hover:bg-teal-100 dark:bg-teal-900/20 dark:text-teal-300 dark:hover:bg-teal-900/40 rounded-lg transition-colors"
@@ -2099,7 +2098,7 @@ export default function PES_Universal_Calculator() {
 
               {/* Subject-wise Analysis List */}
               <div className="space-y-3 md:space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
-                
+
                 {/* Table Header (Desktop Only) */}
                 <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase font-bold pb-2 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
                   <div className="col-span-3">Subject</div>
@@ -2114,10 +2113,10 @@ export default function PES_Universal_Calculator() {
                   // Calculate Passing Requirement on the fly
                   const sub = subjects.find(s => s.id === d.id);
                   const reqPass = getRequiredESAForGrade(sub, 40, true);
-                  
+
                   return (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={`
                         flex flex-col gap-3 p-3 rounded-xl border border-slate-700/50 bg-slate-800/40
                         md:grid md:grid-cols-12 md:gap-2 md:items-center md:py-2 md:border-b md:border-t-0 md:border-x-0 md:border-slate-700/50 md:bg-transparent md:rounded-none md:hover:bg-slate-700/30
@@ -2131,14 +2130,14 @@ export default function PES_Universal_Calculator() {
                         <div className="md:hidden flex items-center gap-2">
                           <span className="text-[10px] uppercase text-slate-500 font-bold">Curr GP</span>
                           <span className={`text-xs font-bold px-2 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
-                              {d.currentGP}
+                            {d.currentGP}
                           </span>
                         </div>
                       </div>
 
                       {/* Stats Grid (2x2 on Mobile, Flat on Desktop) */}
                       <div className="grid grid-cols-2 gap-2 md:contents">
-                        
+
                         {/* 1. Momentum */}
                         <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
                           <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">Momentum</span>
@@ -2225,7 +2224,7 @@ export default function PES_Universal_Calculator() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Momentum Disclaimer (Collapsible) */}
               <div className="mt-3 mx-1 bg-indigo-900/20 rounded-lg border border-indigo-500/20">
                 <details className="group p-3">
@@ -2246,7 +2245,7 @@ export default function PES_Universal_Calculator() {
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-green-400">
                 <Lightbulb className="w-5 h-5" /> Path to Target ({targetSgpa} SGPA)
               </h2>
-              
+
               {strategy.plan.length === 0 && !strategy.impossible && parseFloat(metrics.momentumSGPA) >= targetSgpa ? (
                 <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 flex items-center gap-3">
                   <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
@@ -2297,7 +2296,7 @@ export default function PES_Universal_Calculator() {
               <h2 className="text-lg font-bold flex items-center gap-2 mb-2">
                 <Target className="w-5 h-5" /> Reverse Calculator
               </h2>
-              
+
               {/* ORIGINAL TEXT: Description */}
               <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
                 Set your desired SGPA and see exactly what you need to score in each ESA. Lock subjects where you're confident about your score.
@@ -2349,28 +2348,28 @@ export default function PES_Universal_Calculator() {
               {/* ORIGINAL TEXT: Blue Help Box (Accordion for mobile) */}
               <div className="bg-blue-900/30 border-l-4 border-blue-400 rounded-r shadow-md">
                 <details className="group p-3">
-                    <summary className="flex items-center gap-2 cursor-pointer list-none text-sm font-bold text-blue-100 select-none">
-                      <HelpCircle className="w-5 h-5 text-blue-400" />
-                      <span>Why are some scores high/low?(and fix)</span>
-                      <ChevronDown className="w-4 h-4 ml-auto opacity-70 transition-transform group-open:rotate-180"/>
-                    </summary>
-                    <div className="mt-3 text-sm text-blue-100 space-y-2 border-t border-blue-400/30 pt-2">
-                        <p className="opacity-80">
-                          This calculator finds the <strong>absolute cheapest path</strong>.
-                          It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
-                        </p>
-                        <p className="text-yellow-300 font-bold text-xs">
-                          💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon
-                          to set a limit (e.g., 85 that you are confident that you will score at least that much).
-                          The app will recalculate the rest!
-                        </p>
-                        <p className="font-medium text-white/90 text-xs">
-                          Alternatively you can Click <span className="font-bold text-white">Balanced</span> for a realistic, balanced path.
-                        </p>
-                        <p className="font-medium text-white/90 text-xs">
-                          Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way.
-                        </p>
-                    </div>
+                  <summary className="flex items-center gap-2 cursor-pointer list-none text-sm font-bold text-blue-100 select-none">
+                    <HelpCircle className="w-5 h-5 text-blue-400" />
+                    <span>Why are some scores high/low?(and fix)</span>
+                    <ChevronDown className="w-4 h-4 ml-auto opacity-70 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="mt-3 text-sm text-blue-100 space-y-2 border-t border-blue-400/30 pt-2">
+                    <p className="opacity-80">
+                      This calculator finds the <strong>absolute cheapest path</strong>.
+                      It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
+                    </p>
+                    <p className="text-yellow-300 font-bold text-xs">
+                      💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon
+                      to set a limit (e.g., 85 that you are confident that you will score at least that much).
+                      The app will recalculate the rest!
+                    </p>
+                    <p className="font-medium text-white/90 text-xs">
+                      Alternatively you can Click <span className="font-bold text-white">Balanced</span> for a realistic, balanced path.
+                    </p>
+                    <p className="font-medium text-white/90 text-xs">
+                      Scores look unrealistic? Click <span className="font-bold text-white">Shuffle</span> for a different path. Click <span className="font-bold text-white">Reset</span> to go back to the most efficient way.
+                    </p>
+                  </div>
                 </details>
               </div>
 
@@ -2387,12 +2386,11 @@ export default function PES_Universal_Calculator() {
               {(shuffledResults || reverseResults.results).map((sub, i) => (
                 <div
                   key={i}
-                  className={`relative flex items-center justify-between p-3 rounded-lg border transition-all gap-2 ${
-                    sub.isImpossible ? 'bg-red-500/10 border-red-500/30' :
-                    sub.alreadyAchieved ? 'bg-green-500/10 border-green-500/30' :
-                    sub.locked ? 'bg-yellow-500/10 border-yellow-500/30' :
-                    `${themeClasses.card} shadow-sm`
-                  }`}
+                  className={`relative flex items-center justify-between p-3 rounded-lg border transition-all gap-2 ${sub.isImpossible ? 'bg-red-500/10 border-red-500/30' :
+                      sub.alreadyAchieved ? 'bg-green-500/10 border-green-500/30' :
+                        sub.locked ? 'bg-yellow-500/10 border-yellow-500/30' :
+                          `${themeClasses.card} shadow-sm`
+                    }`}
                 >
                   {/* Left Side: Name & Info */}
                   <div className="flex-1 min-w-0 pr-2">
@@ -2405,9 +2403,9 @@ export default function PES_Universal_Calculator() {
                     <div className="flex items-center gap-2 text-[10px] opacity-70">
                       <span className={`px-1.5 rounded ${darkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>{sub.credits} Cr</span>
                       {sub.isImpossible ? (
-                          <span className="text-red-500 font-bold">Impossible</span>
+                        <span className="text-red-500 font-bold">Impossible</span>
                       ) : (
-                          <span>Target: <strong className="opacity-100">{sub.projectedGrade}</strong></span>
+                        <span>Target: <strong className="opacity-100">{sub.projectedGrade}</strong></span>
                       )}
                     </div>
                   </div>
@@ -2415,50 +2413,49 @@ export default function PES_Universal_Calculator() {
                   {/* Right Side: Score & Actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="text-right">
-                        {sub.locked ? (
-                          /* Locked Input */
-                          <div className="flex flex-col items-end">
-                              <div className="flex items-center gap-1">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max={sub.esaMax}
-                                  disabled={sub.isHardLocked}
-                                  value={sub.isHardLocked ? (marks[sub.id]?.esa || 0) : lockedSubjects[sub.id]}
-                                  onChange={(e) => {
-                                    if (sub.isHardLocked) return;
-                                    const val = e.target.value === '' ? '' : parseFloat(e.target.value);
-                                    setLockedSubjects(prev => ({...prev, [sub.id]: val}));
-                                  }}
-                                  className={`w-12 p-1 text-center text-sm font-bold border rounded focus:outline-none ${
-                                    sub.isHardLocked 
-                                    ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed border-transparent'
-                                    : 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 text-yellow-700 dark:text-yellow-300'
-                                  }`}
-                                />
-                                <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
-                              </div>
-                              <span className="text-[9px] text-yellow-500 mt-0.5">
-                                {sub.isHardLocked ? 'Main Tab' : 'Manual'}
-                              </span>
+                      {sub.locked ? (
+                        /* Locked Input */
+                        <div className="flex flex-col items-end">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              max={sub.esaMax}
+                              disabled={sub.isHardLocked}
+                              value={sub.isHardLocked ? (marks[sub.id]?.esa || 0) : lockedSubjects[sub.id]}
+                              onChange={(e) => {
+                                if (sub.isHardLocked) return;
+                                const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                                setLockedSubjects(prev => ({ ...prev, [sub.id]: val }));
+                              }}
+                              className={`w-12 p-1 text-center text-sm font-bold border rounded focus:outline-none ${sub.isHardLocked
+                                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed border-transparent'
+                                  : 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 text-yellow-700 dark:text-yellow-300'
+                                }`}
+                            />
+                            <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
                           </div>
-                        ) : sub.alreadyAchieved ? (
-                          /* Done State */
-                          <div className="flex flex-col items-end">
-                              <span className="text-lg font-bold text-green-500">0</span>
-                              <span className="text-[9px] text-green-500/70">Safe</span>
-                          </div>
-                        ) : sub.isImpossible ? (
-                          <span className="text-xs font-bold text-red-500">---</span>
-                        ) : (
-                          /* Score Needed */
-                          <div className="flex flex-col items-end">
-                              <span className="text-lg font-bold">
-                                {sub.requiredEsa}<span className="text-xs font-normal opacity-50">/{sub.esaMax}</span>
-                              </span>
-                              <span className="text-[9px] opacity-50">Needed</span>
-                          </div>
-                        )}
+                          <span className="text-[9px] text-yellow-500 mt-0.5">
+                            {sub.isHardLocked ? 'Main Tab' : 'Manual'}
+                          </span>
+                        </div>
+                      ) : sub.alreadyAchieved ? (
+                        /* Done State */
+                        <div className="flex flex-col items-end">
+                          <span className="text-lg font-bold text-green-500">0</span>
+                          <span className="text-[9px] text-green-500/70">Safe</span>
+                        </div>
+                      ) : sub.isImpossible ? (
+                        <span className="text-xs font-bold text-red-500">---</span>
+                      ) : (
+                        /* Score Needed */
+                        <div className="flex flex-col items-end">
+                          <span className="text-lg font-bold">
+                            {sub.requiredEsa}<span className="text-xs font-normal opacity-50">/{sub.esaMax}</span>
+                          </span>
+                          <span className="text-[9px] opacity-50">Needed</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Lock Button */}
@@ -2474,14 +2471,13 @@ export default function PES_Universal_Calculator() {
                         }
                       }}
                       disabled={sub.isHardLocked}
-                      className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${
-                        sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
-                        sub.locked 
-                          ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400' 
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-blue-500 hover:border-blue-300'
-                      }`}
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
+                          sub.locked
+                            ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400'
+                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-blue-500 hover:border-blue-300'
+                        }`}
                     >
-                        {sub.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                      {sub.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
@@ -2543,7 +2539,7 @@ export default function PES_Universal_Calculator() {
                   <tbody>
                     {minimumPassingTable.map(sub => (
                       <tr key={sub.id} className={`border-b ${themeClasses.border} hover:${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
-                        
+
                         {/* CHANGED: Increased max-w to 150px for better readability on mobile */}
                         <td className="py-3 px-2 font-medium max-w-[150px] sm:max-w-none">
                           <div className="truncate font-bold text-slate-700 dark:text-slate-200" title={sub.name}>
@@ -2551,7 +2547,7 @@ export default function PES_Universal_Calculator() {
                           </div>
                           <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max: {sub.esaMax}</div>
                         </td>
-                        
+
                         {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
                           const req = sub.gradeRequirements.find(g => g.grade === grade);
                           return (
@@ -3168,17 +3164,16 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex flex-col items-center py-2 px-3 transition-colors ${
-                activeTab === tab.id
+              className={`relative flex flex-col items-center py-2 px-3 transition-colors ${activeTab === tab.id
                   ? 'text-blue-600'
-                  : tab.highlight 
+                  : tab.highlight
                     ? (tab.id === 'analysis' ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-teal-600/70 dark:text-teal-400/70')
                     : themeClasses.muted
-              }`}
+                }`}
             >
               <tab.icon className="w-5 h-5" />
               <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
-              
+
               {/* Mobile Dot */}
               {tab.highlight && activeTab !== tab.id && (
                 <span className={`absolute top-2 right-3 h-1.5 w-1.5 rounded-full ${tab.id === 'analysis' ? 'bg-blue-500' : 'bg-teal-500'}`}></span>
