@@ -259,7 +259,6 @@ Contributions are welcome! Here's how:
 
 ## 🐛 Known Issues
 
-- [ ] Custom grading schemes don't persist after page refresh (fix in progress)
 - [ ] Momentum calculation can be slightly off for edge cases with 0 marks
 
 ---
