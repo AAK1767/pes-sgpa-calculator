@@ -97,6 +97,37 @@ export default function PES_Universal_Calculator() {
   const [reverseTargetSgpa, setReverseTargetSgpa] = useState(8.5);
   const [lockedSubjects, setLockedSubjects] = useState({});
   const [showHelp, setShowHelp] = useState(false);
+  // --- Attendance Calculator State (No persistence) ---
+  const [attendanceData, setAttendanceData] = useState({ total: '', attended: '' });
+
+  const calculateAttendance = () => {
+    const total = parseInt(attendanceData.total);
+    const attended = parseInt(attendanceData.attended);
+
+    if (isNaN(total) || isNaN(attended) || total <= 0) {
+      return null;
+    }
+
+    const currentPercentage = (attended / total) * 100;
+    const requiredPercentage = 75;
+
+    // Calculate how many more can be missed while staying >= 75%
+    const canMiss = Math.floor((attended - requiredPercentage / 100 * total) / (requiredPercentage / 100));
+
+    // Calculate how many consecutive classes needed to reach 75%
+    const needToAttend = Math.ceil((requiredPercentage / 100 * total - attended) / (1 - requiredPercentage / 100));
+
+    return {
+      currentPercentage: currentPercentage.toFixed(1),
+      isAbove75: currentPercentage >= 75,
+      canMiss: Math.max(0, canMiss),
+      needToAttend: Math.max(0, needToAttend),
+      attended,
+      total
+    };
+  };
+
+  const attendanceResult = calculateAttendance();
 
   // --- Shuffle State ---
   const [shuffledResults, setShuffledResults] = useState(null);
@@ -2029,6 +2060,118 @@ export default function PES_Universal_Calculator() {
                 ))}
               </div>
             )}
+
+            {/* ==================== ATTENDANCE CALCULATOR ==================== */}
+            <div className={`${themeClasses.card} border rounded-xl p-4 mt-6`}>
+              <h3 className="font-bold text-sm flex items-center gap-2 mb-3">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                Quick Attendance Check
+                <span className={`text-[10px] ${themeClasses.muted} font-normal ml-auto`}>Not saved</span>
+              </h3>
+
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Total Classes</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 40"
+                    value={attendanceData.total}
+                    onChange={(e) => setAttendanceData(prev => ({ ...prev, total: e.target.value }))}
+                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Classes Attended</label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 35"
+                    value={attendanceData.attended}
+                    onChange={(e) => setAttendanceData(prev => ({ ...prev, attended: e.target.value }))}
+                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              {/* Results */}
+              {attendanceResult && (
+                <div className="space-y-3">
+                  {/* Current Percentage Bar */}
+                  <div className={`p-3 rounded-lg ${attendanceResult.isAbove75 ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`text-xs font-bold ${attendanceResult.isAbove75 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                        Current Attendance
+                      </span>
+                      <span className={`text-lg font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                        {attendanceResult.currentPercentage}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${attendanceResult.isAbove75 ? 'bg-green-500' : 'bg-red-500'}`}
+                        style={{ width: `${Math.min(100, parseFloat(attendanceResult.currentPercentage))}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] mt-1">
+                      <span className={themeClasses.muted}>0%</span>
+                      <span className={`font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>75% Required</span>
+                      <span className={themeClasses.muted}>100%</span>
+                    </div>
+                  </div>
+
+                  {/* Action Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {attendanceResult.isAbove75 ? (
+                      <div className="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                          <span className="text-xs font-bold text-green-700 dark:text-green-300">You're Safe!</span>
+                        </div>
+                        <p className="text-sm text-green-800 dark:text-green-200">
+                          You can miss up to <strong className="text-lg">{attendanceResult.canMiss}</strong> more class{attendanceResult.canMiss !== 1 ? 'es' : ''} and still stay above 75%.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                          <span className="text-xs font-bold text-red-700 dark:text-red-300">Below 75%!</span>
+                        </div>
+                        <p className="text-sm text-red-800 dark:text-red-200">
+                          Attend the next <strong className="text-lg">{attendanceResult.needToAttend}</strong> class{attendanceResult.needToAttend !== 1 ? 'es' : ''} continuously to reach 75%.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Stats Card */}
+                    <div className={`${darkMode ? 'bg-slate-700/50' : 'bg-slate-100'} rounded-lg p-3`}>
+                      <div className="text-xs font-bold mb-2 opacity-70">Quick Stats</div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className={themeClasses.muted}>Attended:</span>
+                          <span className="ml-1 font-bold">{attendanceResult.attended}/{attendanceResult.total}</span>
+                        </div>
+                        <div>
+                          <span className={themeClasses.muted}>Missed:</span>
+                          <span className="ml-1 font-bold">{attendanceResult.total - attendanceResult.attended}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className={themeClasses.muted}>Classes for 75%:</span>
+                          <span className="ml-1 font-bold">{Math.ceil(attendanceResult.total * 0.75)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {!attendanceResult && (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  Enter total classes and attended classes to check your attendance status.(for a subject)
+                </div>
+              )}
+            </div>
+
           </>
         )}
 
