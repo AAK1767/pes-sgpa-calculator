@@ -44,31 +44,6 @@
 
 ---
 
-## 📸 Screenshots
-
-<div align="center">
-<table>
-<tr>
-<td align="center"><strong>Subjects Tab</strong></td>
-<td align="center"><strong>Analysis Tab</strong></td>
-</tr>
-<tr>
-<td><img src="docs/screenshots/subjects.png" alt="Subjects" width="400"/></td>
-<td><img src="docs/screenshots/analysis.png" alt="Analysis" width="400"/></td>
-</tr>
-<tr>
-<td align="center"><strong>Reverse Calculator</strong></td>
-<td align="center"><strong>Dark Mode</strong></td>
-</tr>
-<tr>
-<td><img src="docs/screenshots/reverse.png" alt="Reverse" width="400"/></td>
-<td><img src="docs/screenshots/dark-mode.png" alt="Dark Mode" width="400"/></td>
-</tr>
-</table>
-</div>
-
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
