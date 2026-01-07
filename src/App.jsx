@@ -230,11 +230,11 @@ export default function PES_Universal_Calculator() {
 
     // 1. Identify ESA (Final Exam) - Assumed to be the heaviest component
     const sortedByWeight = [...enabledComponents].sort((a, b) => b.weight - a.weight);
-    const finalComp = sortedByWeight[0]; 
+    const finalComp = sortedByWeight[0];
 
     // 2. Identify Internals (The remaining components)
     const internalComps = enabledComponents.filter(c => c !== finalComp);
-    
+
     // Map first 3 internals to distinct slots
     const slot1 = internalComps[0] || null;
     const slot2 = internalComps[1] || null;
@@ -243,15 +243,15 @@ export default function PES_Universal_Calculator() {
     // Slot 4: CATCH-ALL for the rest (Merges Component 4, 5, 6...)
     const remainingComps = internalComps.slice(3);
     const slot4 = remainingComps.length > 0 ? {
-        // FIX 1: Join names with " + " so you can see what's included
-        name: remainingComps.map(c => c.name).join(' + '),
-        
-        // Sum the weights (was already doing this)
-        weight: remainingComps.reduce((sum, c) => sum + c.weight, 0),
-        
-        // FIX 2: Sum the MAX MARKS (Critical fix!)
-        // e.g., Lab (20) + Comp6 (50) = Input out of 70
-        maxMarks: remainingComps.reduce((sum, c) => sum + c.maxMarks, 0)
+      // FIX 1: Join names with " + " so you can see what's included
+      name: remainingComps.map(c => c.name).join(' + '),
+
+      // Sum the weights (was already doing this)
+      weight: remainingComps.reduce((sum, c) => sum + c.weight, 0),
+
+      // FIX 2: Sum the MAX MARKS (Critical fix!)
+      // e.g., Lab (20) + Comp6 (50) = Input out of 70
+      maxMarks: remainingComps.reduce((sum, c) => sum + c.maxMarks, 0)
     } : null;
 
     // 3. Create Custom Labels & Weights Map
@@ -288,7 +288,7 @@ export default function PES_Universal_Calculator() {
       id: Date.now(),
       name: customTemplate.name,
       credits: customTemplate.credits,
-      
+
       // Control Visibility
       hasIsa1: !!slot1,
       hasIsa2: !!slot2,
@@ -296,7 +296,7 @@ export default function PES_Universal_Calculator() {
       hasLab: !!slot4,
 
       // COMPATIBILITY: Map to engine weights
-      isaWeight: (slot1?.weight || 0) + (slot2?.weight || 0), 
+      isaWeight: (slot1?.weight || 0) + (slot2?.weight || 0),
       assignmentWeight: slot3?.weight || 0,
       labWeight: slot4?.weight || 0,
       esaWeight: finalComp?.weight || 0,
@@ -1913,159 +1913,159 @@ export default function PES_Universal_Calculator() {
                     {/* Expanded Content */}
                     {isExpanded && (
                       <div className={`p-4 border-t ${themeClasses.border} ${darkMode ? 'bg-slate-800/50' : 'bg-slate-50/50'} rounded-b-xl`}>
-                        {/* DYNAMIC INPUTS GRID (Fixed for Weights & Custom Names) */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
-                      
-                      {/* SLOT 1 */}
-                      {(subject.hasIsa1 !== false) && (
-                        <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
-                              {subject.customConfig?.labels.isa1 || "ISA 1"}
-                            </span>
-                            <span className={`text-[10px] ${themeClasses.muted}`}>
-                              {/* Use Custom Weight if available, otherwise calculate fallback */}
-                              {subject.customConfig ? subject.customConfig.weights.isa1 : (subject.isaWeight / (subject.hasIsa2 ? 2 : 1))}%
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              value={marks[subject.id]?.isa1 || ''}
-                              onChange={(e) => handleMarkChange(subject.id, 'isa1', e.target.value)}
-                              className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                              placeholder="-"
-                            />
-                            <span className={themeClasses.muted}>/</span>
-                            <input
-                              type="number"
-                              value={subject.isa1Max || 40}
-                              onChange={(e) => handleMarkChange(subject.id, 'isa1Max', e.target.value)}
-                              className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                            />
-                          </div>
-                        </div>
-                      )}
+                        {/* DYNAMIC INPUTS GRID (Fixed: Allows 0 marks) */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
 
-                      {/* SLOT 2 */}
-                      {(subject.hasIsa2 !== false) && (
-                        <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
-                              {subject.customConfig?.labels.isa2 || "ISA 2"}
-                            </span>
-                            <span className={`text-[10px] ${themeClasses.muted}`}>
-                              {subject.customConfig ? subject.customConfig.weights.isa2 : (subject.isaWeight / 2)}%
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              value={marks[subject.id]?.isa2 || ''}
-                              onChange={(e) => handleMarkChange(subject.id, 'isa2', e.target.value)}
-                              className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                              placeholder="-"
-                            />
-                            <span className={themeClasses.muted}>/</span>
-                            <input
-                              type="number"
-                              value={subject.isa2Max || 40}
-                              onChange={(e) => handleMarkChange(subject.id, 'isa2Max', e.target.value)}
-                              className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                            />
-                          </div>
-                        </div>
-                      )}
+                          {/* SLOT 1 */}
+                          {(subject.hasIsa1 !== false) && (
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
+                                  {subject.customConfig?.labels.isa1 || "ISA 1"}
+                                </span>
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.isa1 : (subject.isaWeight / (subject.hasIsa2 ? 2 : 1))}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  /* FIXED: Used ?? so 0 is treated as a real number */
+                                  value={marks[subject.id]?.isa1 ?? ''}
+                                  onChange={(e) => handleMarkChange(subject.id, 'isa1', e.target.value)}
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
+                                  placeholder="-"
+                                />
+                                <span className={themeClasses.muted}>/</span>
+                                <input
+                                  type="number"
+                                  value={subject.isa1Max ?? 40}
+                                  onChange={(e) => handleMarkChange(subject.id, 'isa1Max', e.target.value)}
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                />
+                              </div>
+                            </div>
+                          )}
 
-                      {/* SLOT 3 */}
-                      {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
-                        <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.assignment || "Assignment"}>
-                              {subject.customConfig?.labels.assignment || "Assignment"}
-                            </span>
-                            <span className={`text-[10px] ${themeClasses.muted}`}>
-                              {subject.customConfig ? subject.customConfig.weights.assignment : subject.assignmentWeight}%
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              value={marks[subject.id]?.assignment || ''}
-                              onChange={(e) => handleMarkChange(subject.id, 'assignment', e.target.value)}
-                              className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                              placeholder="-"
-                            />
-                            <span className={themeClasses.muted}>/</span>
-                            <input
-                              type="number"
-                              value={subject.assignmentMax || 10}
-                              onChange={(e) => handleMarkChange(subject.id, 'assignmentMax', e.target.value)}
-                              className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                            />
-                          </div>
-                        </div>
-                      )}
+                          {/* SLOT 2 */}
+                          {(subject.hasIsa2 !== false) && (
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
+                                  {subject.customConfig?.labels.isa2 || "ISA 2"}
+                                </span>
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.isa2 : (subject.isaWeight / 2)}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={marks[subject.id]?.isa2 ?? ''}
+                                  onChange={(e) => handleMarkChange(subject.id, 'isa2', e.target.value)}
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
+                                  placeholder="-"
+                                />
+                                <span className={themeClasses.muted}>/</span>
+                                <input
+                                  type="number"
+                                  value={subject.isa2Max ?? 40}
+                                  onChange={(e) => handleMarkChange(subject.id, 'isa2Max', e.target.value)}
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                />
+                              </div>
+                            </div>
+                          )}
 
-                      {/* SLOT 4 */}
-                      {(subject.hasLab || (subject.customConfig?.weights.lab > 0)) && (
-                        <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.lab || "Lab"}>
-                              {subject.customConfig?.labels.lab || "Lab"}
-                            </span>
-                            <span className={`text-[10px] ${themeClasses.muted}`}>
-                              {subject.customConfig ? subject.customConfig.weights.lab : subject.labWeight}%
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              value={marks[subject.id]?.lab || ''}
-                              onChange={(e) => handleMarkChange(subject.id, 'lab', e.target.value)}
-                              className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                              placeholder="-"
-                            />
-                            <span className={themeClasses.muted}>/</span>
-                            <input
-                              type="number"
-                              value={subject.labMax || 20}
-                              onChange={(e) => handleMarkChange(subject.id, 'labMax', e.target.value)}
-                              className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                            />
-                          </div>
-                        </div>
-                      )}
+                          {/* SLOT 3 */}
+                          {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.assignment || "Assignment"}>
+                                  {subject.customConfig?.labels.assignment || "Assignment"}
+                                </span>
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.assignment : subject.assignmentWeight}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={marks[subject.id]?.assignment ?? ''}
+                                  onChange={(e) => handleMarkChange(subject.id, 'assignment', e.target.value)}
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
+                                  placeholder="-"
+                                />
+                                <span className={themeClasses.muted}>/</span>
+                                <input
+                                  type="number"
+                                  value={subject.assignmentMax ?? 10}
+                                  onChange={(e) => handleMarkChange(subject.id, 'assignmentMax', e.target.value)}
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                />
+                              </div>
+                            </div>
+                          )}
 
-                      {/* SLOT 5: ESA */}
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-200 dark:border-blue-900/30`}>
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-bold text-xs text-blue-600 dark:text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
-                             {subject.customConfig?.labels.esa || "ESA"}
-                          </span>
-                          <span className={`text-[10px] ${themeClasses.muted}`}>
-                            {subject.customConfig ? subject.customConfig.weights.esa : subject.esaWeight}%
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            value={marks[subject.id]?.esa || ''}
-                            onChange={(e) => handleMarkChange(subject.id, 'esa', e.target.value)}
-                            className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                            placeholder="-"
-                          />
-                          <span className={themeClasses.muted}>/</span>
-                          <input
-                            type="number"
-                            value={subject.esaMax || 100}
-                            onChange={(e) => handleMarkChange(subject.id, 'esaMax', e.target.value)}
-                            className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                          />
-                        </div>
-                      </div>
+                          {/* SLOT 4 */}
+                          {(subject.hasLab || (subject.customConfig?.weights.lab > 0)) && (
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.lab || "Lab"}>
+                                  {subject.customConfig?.labels.lab || "Lab"}
+                                </span>
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.lab : subject.labWeight}%
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={marks[subject.id]?.lab ?? ''}
+                                  onChange={(e) => handleMarkChange(subject.id, 'lab', e.target.value)}
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
+                                  placeholder="-"
+                                />
+                                <span className={themeClasses.muted}>/</span>
+                                <input
+                                  type="number"
+                                  value={subject.labMax ?? 20}
+                                  onChange={(e) => handleMarkChange(subject.id, 'labMax', e.target.value)}
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                                />
+                              </div>
+                            </div>
+                          )}
 
-                    </div>
+                          {/* SLOT 5: ESA */}
+                          <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-200 dark:border-blue-900/30`}>
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-bold text-xs text-blue-600 dark:text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
+                                {subject.customConfig?.labels.esa || "ESA"}
+                              </span>
+                              <span className={`text-[10px] ${themeClasses.muted}`}>
+                                {subject.customConfig ? subject.customConfig.weights.esa : subject.esaWeight}%
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={marks[subject.id]?.esa ?? ''}
+                                onChange={(e) => handleMarkChange(subject.id, 'esa', e.target.value)}
+                                className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
+                                placeholder="-"
+                              />
+                              <span className={themeClasses.muted}>/</span>
+                              <input
+                                type="number"
+                                value={subject.esaMax ?? 100}
+                                onChange={(e) => handleMarkChange(subject.id, 'esaMax', e.target.value)}
+                                className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
+                              />
+                            </div>
+                          </div>
+
+                        </div>
 
                         {/* Quick Config */}
                         <div className={`mt-4 pt-4 border-t ${themeClasses.border}`}>
@@ -2472,8 +2472,8 @@ export default function PES_Universal_Calculator() {
                           key={idx}
                           /* CHANGED: 'flex-wrap' allows items to drop to next line on tiny screens */
                           className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2 rounded-lg border transition-all ${comp.enabled
-                              ? `${themeClasses.card} ${themeClasses.border}`
-                              : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-50'
+                            ? `${themeClasses.card} ${themeClasses.border}`
+                            : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-50'
                             }`}
                         >
                           <div className="flex items-center gap-2 flex-grow min-w-[120px]">
