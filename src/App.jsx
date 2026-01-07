@@ -231,7 +231,7 @@ export default function PES_Universal_Calculator() {
     // Heuristics to map custom components to internal slots
     const hasLab = enabledComponents.some(c => c.name.toLowerCase().includes('lab') || c.name.toLowerCase().includes('practical'));
     const hasAssignment = enabledComponents.some(c => c.name.toLowerCase().includes('assign') || c.name.toLowerCase().includes('quiz') || c.name.toLowerCase().includes('homework'));
-    
+
     // Find weights (Default to 0 if not found, to allow fully custom structures)
     const midtermComp = enabledComponents.find(c => c.name.toLowerCase().includes('midterm') || c.name.toLowerCase().includes('isa') || c.name.toLowerCase().includes('test'));
     const labComp = enabledComponents.find(c => c.name.toLowerCase().includes('lab') || c.name.toLowerCase().includes('practical'));
@@ -279,7 +279,7 @@ export default function PES_Universal_Calculator() {
   const applyGradingSchemeToAll = () => {
     if (!window.confirm("Apply this grading scheme to ALL subjects?")) return;
     saveStateForUndo();
-    
+
     // Colors logic repeated for safety
     const gradeColors = ['text-green-500', 'text-blue-500', 'text-indigo-500', 'text-yellow-500', 'text-orange-500', 'text-red-400', 'text-red-600'];
     const gradeBgs = ['bg-green-500', 'bg-blue-500', 'bg-indigo-500', 'bg-yellow-500', 'bg-orange-500', 'bg-red-400', 'bg-red-600'];
@@ -1702,8 +1702,8 @@ export default function PES_Universal_Calculator() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : `border-transparent hover:text-blue-500 ${tab.highlight ? tab.color : themeClasses.muted}`
+                ? 'border-blue-500 text-blue-600'
+                : `border-transparent hover:text-blue-500 ${tab.highlight ? tab.color : themeClasses.muted}`
                 }`}
             >
               <tab.icon className={`w-4 h-4 ${tab.highlight && activeTab !== tab.id ? 'opacity-80' : ''}`} />
@@ -1739,7 +1739,7 @@ export default function PES_Universal_Calculator() {
                       Info <ChevronDown className="w-3 h-3 ml-1 transition-transform group-open:rotate-180" />
                     </span>
                   </summary>
-                  
+
                   <div className={`mt-3 text-sm ${themeClasses.muted} leading-relaxed pl-7 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2`}>
                     <p>
                       Works for all semesters. 5-credit courses scale from 120% to 100%.
@@ -2352,7 +2352,7 @@ export default function PES_Universal_Calculator() {
 
               {showTemplateBuilder && (
                 <div className={`p-4 border-t ${themeClasses.border} space-y-6 animate-in slide-in-from-top-2`}>
-                  
+
                   {/* Intro Text */}
                   <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800/30">
                     <p className="text-sm text-purple-800 dark:text-purple-200">
@@ -2397,17 +2397,16 @@ export default function PES_Universal_Calculator() {
                       <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">2</span>
                       Assessment Pattern
                     </h4>
-                    
+
                     <div className="space-y-2">
                       {customTemplate.components.map((comp, idx) => (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           /* CHANGED: 'flex-wrap' allows items to drop to next line on tiny screens */
-                          className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2 rounded-lg border transition-all ${
-                            comp.enabled 
-                              ? `${themeClasses.card} ${themeClasses.border}` 
+                          className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2 rounded-lg border transition-all ${comp.enabled
+                              ? `${themeClasses.card} ${themeClasses.border}`
                               : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-50'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2 flex-grow min-w-[120px]">
                             <input
@@ -2416,7 +2415,7 @@ export default function PES_Universal_Calculator() {
                               onChange={(e) => updateTemplateComponent(idx, 'enabled', e.target.checked)}
                               className="rounded"
                             />
-                            
+
                             <input
                               type="text"
                               value={comp.name}
@@ -2426,7 +2425,7 @@ export default function PES_Universal_Calculator() {
                               className={`flex-1 p-1 text-xs border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 bg-transparent focus:outline-none ${!comp.enabled && 'opacity-50'}`}
                             />
                           </div>
-                          
+
                           {/* Right Side Controls - Now grouped to stay together */}
                           <div className="flex items-center gap-2 ml-auto">
                             <div className="flex items-center gap-1">
@@ -2440,7 +2439,7 @@ export default function PES_Universal_Calculator() {
                               />
                               <span className={`text-[10px] ${themeClasses.muted}`}>%</span>
                             </div>
-                            
+
                             <div className="flex items-center gap-1">
                               <span className={`text-[10px] ${themeClasses.muted}`}>Max:</span>
                               <input
@@ -2452,7 +2451,7 @@ export default function PES_Universal_Calculator() {
                                 className={`w-10 p-1 text-xs text-center border rounded ${themeClasses.input}`}
                               />
                             </div>
-                            
+
                             <button
                               onClick={() => removeComponentFromTemplate(idx)}
                               className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
@@ -2463,7 +2462,7 @@ export default function PES_Universal_Calculator() {
                         </div>
                       ))}
                     </div>
-                    
+
                     <button
                       onClick={addComponentToTemplate}
                       className={`w-full py-2 border-2 border-dashed ${themeClasses.border} rounded-lg ${themeClasses.muted} hover:text-purple-600 hover:border-purple-400 transition-all flex items-center justify-center gap-2 text-xs font-bold`}
@@ -2487,7 +2486,7 @@ export default function PES_Universal_Calculator() {
                       <span className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">3</span>
                       Grading Scheme
                     </h4>
-                    
+
                     <div>
                       <label className={`text-xs ${themeClasses.muted} block mb-1`}>Preset:</label>
                       <select
@@ -2497,8 +2496,8 @@ export default function PES_Universal_Calculator() {
                           setCustomTemplate(prev => ({
                             ...prev,
                             gradingScheme: scheme,
-                            customGrades: scheme === "Custom" 
-                              ? prev.customGrades 
+                            customGrades: scheme === "Custom"
+                              ? prev.customGrades
                               : JSON.parse(JSON.stringify(GradingSchemes[scheme]))
                           }));
                         }}
@@ -2518,7 +2517,7 @@ export default function PES_Universal_Calculator() {
                           <div className="col-span-4">Points</div>
                           <div className="col-span-1"></div>
                         </div>
-                        
+
                         {customTemplate.customGrades.sort((a, b) => b.min - a.min).map((g, idx) => (
                           <div key={idx} className="grid grid-cols-12 gap-2 items-center">
                             <input
@@ -2554,10 +2553,10 @@ export default function PES_Universal_Calculator() {
                     </div>
 
                     <button
-                        onClick={applyGradingSchemeToAll}
-                        className="w-full py-2 text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Zap className="w-3 h-3" /> Apply Scheme to ALL Subjects
+                      onClick={applyGradingSchemeToAll}
+                      className="w-full py-2 text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Zap className="w-3 h-3" /> Apply Scheme to ALL Subjects
                     </button>
                   </div>
 
@@ -2932,9 +2931,9 @@ export default function PES_Universal_Calculator() {
                 <div
                   key={i}
                   className={`relative flex items-center justify-between p-3 rounded-lg border transition-all gap-2 ${sub.isImpossible ? 'bg-red-500/10 border-red-500/30' :
-                      sub.alreadyAchieved ? 'bg-green-500/10 border-green-500/30' :
-                        sub.locked ? 'bg-yellow-500/10 border-yellow-500/30' :
-                          `${themeClasses.card} shadow-sm`
+                    sub.alreadyAchieved ? 'bg-green-500/10 border-green-500/30' :
+                      sub.locked ? 'bg-yellow-500/10 border-yellow-500/30' :
+                        `${themeClasses.card} shadow-sm`
                     }`}
                 >
                   {/* Left Side: Name & Info */}
@@ -2974,8 +2973,8 @@ export default function PES_Universal_Calculator() {
                                 setLockedSubjects(prev => ({ ...prev, [sub.id]: val }));
                               }}
                               className={`w-12 p-1 text-center text-sm font-bold border rounded focus:outline-none ${sub.isHardLocked
-                                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed border-transparent'
-                                  : 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 text-yellow-700 dark:text-yellow-300'
+                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed border-transparent'
+                                : 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 text-yellow-700 dark:text-yellow-300'
                                 }`}
                             />
                             <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
@@ -3017,9 +3016,9 @@ export default function PES_Universal_Calculator() {
                       }}
                       disabled={sub.isHardLocked}
                       className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
-                          sub.locked
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400'
-                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-blue-500 hover:border-blue-300'
+                        sub.locked
+                          ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400'
+                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-blue-500 hover:border-blue-300'
                         }`}
                     >
                       {sub.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -3676,57 +3675,57 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* ADDITION: Attendance Guide */}
-        <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-          <details className="group">
-            <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-              <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
-                <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
-                <span>How does the Attendance Calculator work?</span>
-              </div>
-              <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className={`px-4 pb-4 pt-0 text-sm ${themeClasses.muted} border-t ${themeClasses.border} pt-3 leading-relaxed`}>
-              <p>
-                The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
-              </p>
-              <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li><strong>Safe Zone:</strong> If your attendance is above 75%, it calculates exactly how many future classes you can "bunk" (skip) while staying safe.</li>
-                <li><strong>Danger Zone:</strong> If you drop below 75%, it tells you how many classes you must attend <em>consecutively</em> to get back on track.</li>
-              </ul>
-              <p className="mt-2 text-xs italic opacity-70">
-                Note: Attendance data is for quick checking and is not saved when you refresh.
-              </p>
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
+              <details className="group">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
+                    <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
+                    <span>How does the Attendance Calculator work?</span>
+                  </div>
+                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className={`px-4 pb-4 pt-0 text-sm ${themeClasses.muted} border-t ${themeClasses.border} pt-3 leading-relaxed`}>
+                  <p>
+                    The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
+                  </p>
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li><strong>Safe Zone:</strong> If your attendance is above 75%, it calculates exactly how many future classes you can "bunk" (skip) while staying safe.</li>
+                    <li><strong>Danger Zone:</strong> If you drop below 75%, it tells you how many classes you must attend <em>consecutively</em> to get back on track.</li>
+                  </ul>
+                  <p className="mt-2 text-xs italic opacity-70">
+                    Note: Attendance data is for quick checking and is not saved when you refresh.
+                  </p>
+                </div>
+              </details>
             </div>
-          </details>
-        </div>
 
-        {/* ADDITION: Universal Mode Guide */}
-        <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-          <details className="group">
-            <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-              <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
-                <span className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
-                <span>I'm not from PES / Custom Curriculum</span>
-              </div>
-              <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
-            </summary>
-            <div className={`px-4 pb-4 pt-0 text-sm ${themeClasses.muted} border-t ${themeClasses.border} pt-3 leading-relaxed`}>
-              <p>
-                You can use this calculator for <strong>VTU, IIT, Manipal, or any other college</strong>.
-              </p>
-              <ol className="list-decimal pl-5 mt-2 space-y-1">
-                <li>Go to the <strong>Subjects Tab</strong>.</li>
-                <li>Click the button <strong>"Not from PES? 🎓"</strong>.</li>
-                <li><strong>Define Components:</strong> Add your own exams (e.g., "Midterm 1", "Quiz", "Finals") and set their weights.</li>
-                <li><strong>Set Grading:</strong> Choose a preset (like VTU 10-point, US 4.0 GPA) or define your own grade cutoffs (e.g., A = 85+).</li>
-                <li>Click <strong>Create Subject</strong>.</li>
-              </ol>
-              <p className="mt-2">
-                Your custom grading scheme will be saved for that subject and used in all calculations (SGPA, Reverse, Analysis).
-              </p>
+            {/* ADDITION: Universal Mode Guide */}
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
+              <details className="group">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
+                    <span className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
+                    <span>I'm not from PES / Custom Curriculum</span>
+                  </div>
+                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
+                </summary>
+                <div className={`px-4 pb-4 pt-0 text-sm ${themeClasses.muted} border-t ${themeClasses.border} pt-3 leading-relaxed`}>
+                  <p>
+                    You can use this calculator for <strong>VTU, IIT, Manipal, or any other college</strong>.
+                  </p>
+                  <ol className="list-decimal pl-5 mt-2 space-y-1">
+                    <li>Go to the <strong>Subjects Tab</strong>.</li>
+                    <li>Click the button <strong>"Not from PES? 🎓"</strong>.</li>
+                    <li><strong>Define Components:</strong> Add your own exams (e.g., "Midterm 1", "Quiz", "Finals") and set their weights.</li>
+                    <li><strong>Set Grading:</strong> Choose a preset (like VTU 10-point, US 4.0 GPA) or define your own grade cutoffs (e.g., A = 85+).</li>
+                    <li>Click <strong>Create Subject</strong>.</li>
+                  </ol>
+                  <p className="mt-2">
+                    Your custom grading scheme will be saved for that subject and used in all calculations (SGPA, Reverse, Analysis).
+                  </p>
+                </div>
+              </details>
             </div>
-          </details>
-        </div>
 
             {/* Footer Note */}
             <div className="text-center text-xs opacity-50 py-4">
@@ -3746,9 +3745,7 @@ export default function PES_Universal_Calculator() {
 
       </div>
 
-      {/* Added 'pb-5 pt-2' to account for mobile gesture bars */}
       {/* Mobile Bottom Navigation */}
-      {/* Added /90 opacity and backdrop-blur-md */}
       <div className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'} backdrop-blur-md border-t md:hidden z-20 pb-5 pt-2`}>
         <div className="flex justify-around items-end">
           {[
@@ -3763,10 +3760,10 @@ export default function PES_Universal_Calculator() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`relative flex flex-col items-center py-2 px-3 transition-colors ${activeTab === tab.id
-                  ? 'text-blue-600'
-                  : tab.highlight
-                    ? (tab.id === 'analysis' ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-teal-600/70 dark:text-teal-400/70')
-                    : themeClasses.muted
+                ? 'text-blue-600'
+                : tab.highlight
+                  ? (tab.id === 'analysis' ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-teal-600/70 dark:text-teal-400/70')
+                  : themeClasses.muted
                 }`}
             >
               <tab.icon className="w-5 h-5" />
