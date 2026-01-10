@@ -26,7 +26,6 @@
 
 ### 🔧 Advanced Tools
 - **Grade Curve Adjustments** - Customize cutoffs per subject when exams are hard
-- **Study Priority Advisor** - ROI-based ranking of subjects to focus on
 - **Attendance Calculator** - Track and plan your 75% attendance requirement
 - **Multiple Strategy Paths** - Efficient, Balanced, or Randomized grade combinations
 
@@ -91,7 +90,6 @@ npm run preview  # Preview the build locally
 | **Subjects** | Enter marks, configure subjects, load presets |
 | **Analysis** | View predictions, grade requirements, smart strategy |
 | **Reverse Calc** | Set target SGPA → get required ESA scores |
-| **Priority** | ROI-based study recommendations |
 | **CGPA** | Calculate cumulative GPA across semesters |
 | **Guide** | In-app help and documentation |
 

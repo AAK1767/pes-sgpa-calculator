@@ -1461,78 +1461,6 @@ export default function PES_Universal_Calculator() {
     });
   };
 
-  // --- Study Priority Logic ---
-  const getStudyPriorities = () => {
-    return subjects.map(sub => {
-      const { finalScore, currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
-      const esaMax = marks[sub.id]?.esaMax || 100;
-      const currentGP = getGradePoint(finalScore, sub);
-      const currentGrade = getGradeInfo(finalScore, sub).grade;
-      const activeMap = sub.customGradeMap || GradeMap;
-      const nextGrade = activeMap.slice().reverse().find(g => g.gp > currentGP);
-
-      if (!nextGrade) {
-        return {
-          ...sub,
-          currentGrade,
-          currentScore: finalScore,
-          status: 'maxed',
-          message: 'Already at S grade! ',
-          priority: 0
-        };
-      }
-
-      const requiredTotal = (nextGrade.min * totalWeight) / 100;
-      const requiredEsaComponent = requiredTotal - currentInternals;
-      const requiredEsa = Math.ceil((requiredEsaComponent / esaWeight) * esaMax);
-
-      if (requiredEsa > esaMax) {
-        return {
-          ...sub,
-          currentGrade,
-          currentScore: finalScore,
-          nextGrade: nextGrade.grade,
-          status: 'impossible',
-          message: `Cannot reach ${nextGrade.grade} even with ${esaMax} in ESA`,
-          priority: 0
-        };
-      }
-
-      const gpGain = (nextGrade.gp - currentGP) * sub.credits;
-
-      if (requiredEsa <= 40) {
-        return {
-          ...sub,
-          currentGrade,
-          currentScore: finalScore,
-          nextGrade: nextGrade.grade,
-          requiredEsa,
-          esaMax,
-          status: 'easy',
-          message: `Easy upgrade!  Just ${requiredEsa}/${esaMax} in ESA for ${nextGrade.grade}`,
-          priority: 100,
-          gpGain
-        };
-      }
-
-      const effort = requiredEsa;
-      const priorityScore = (gpGain / effort) * 100;
-
-      return {
-        ...sub,
-        currentGrade,
-        currentScore: finalScore,
-        nextGrade: nextGrade.grade,
-        requiredEsa,
-        esaMax,
-        status: requiredEsa <= 70 ? 'achievable' : 'hard',
-        message: `Score ${requiredEsa}/${esaMax} in ESA to jump to ${nextGrade.grade}`,
-        priority: priorityScore,
-        gpGain
-      };
-    }).sort((a, b) => b.priority - a.priority);
-  };
-
   // --- Minimum Passing Table Logic ---
   const getMinimumPassingTable = () => {
     return subjects.map(sub => {
@@ -1623,7 +1551,6 @@ export default function PES_Universal_Calculator() {
   const metrics = calculateAnalysis();
   const strategy = getSmartSuggestions();
   const reverseResults = calculateReverseRequirements();
-  const studyPriorities = getStudyPriorities();
   const minimumPassingTable = getMinimumPassingTable();
 
   // Grade Distribution Calculation
@@ -1756,7 +1683,6 @@ export default function PES_Universal_Calculator() {
             // Added 'highlight: true' and specific colors for the core tabs
             { id: 'analysis', label: 'Analysis', icon: Activity, highlight: true, color: 'text-blue-600 dark:text-blue-400' },
             { id: 'reverse', label: 'Reverse Calc', icon: Target, highlight: true, color: 'text-teal-600 dark:text-teal-400' },
-            { id: 'priority', label: 'Priority', icon: TrendingUp },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
@@ -3315,129 +3241,6 @@ export default function PES_Universal_Calculator() {
           </div>
         )}
 
-        {/* ==================== PRIORITY TAB ==================== */}
-        {activeTab === 'priority' && (
-          <div className="space-y-6">
-            <div className={`${darkMode ? 'bg-slate-800' : 'bg-slate-800'} rounded-xl shadow-lg p-6 text-white border border-slate-700`}>
-              <h2 className="text-lg font-bold flex items-center gap-2 mb-2">
-                <TrendingUp className="w-5 h-5 text-orange-400" /> Study Priority Advisor
-              </h2>
-              <p className="text-slate-400 text-sm mb-6">
-                Subjects ranked by ROI (Grade Point gain per effort). Focus on top priorities for maximum SGPA improvement.
-              </p>
-
-              <div className="space-y-3">
-                {studyPriorities.map((sub, idx) => (
-                  <div
-                    key={sub.id}
-                    className={`p-4 rounded-lg border transition-colors ${sub.status === 'easy' ? 'bg-green-900/30 border-green-500/50' :
-                      sub.status === 'achievable' ? 'bg-blue-900/30 border-blue-500/50' :
-                        sub.status === 'hard' ? 'bg-orange-900/30 border-orange-500/50' :
-                          sub.status === 'impossible' ? 'bg-red-900/30 border-red-500/50' :
-                            'bg-slate-700/50 border-slate-600'
-                      }`}
-                  >
-                    <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${sub.status === 'easy' ? 'bg-green-500 text-white' :
-                          sub.status === 'achievable' ? 'bg-blue-500 text-white' :
-                            sub.status === 'hard' ? 'bg-orange-500 text-white' :
-                              sub.status === 'impossible' ? 'bg-red-500 text-white' :
-                                'bg-slate-600 text-slate-300'
-                          }`}>
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {sub.status === 'easy' && <span className="text-lg">🎯</span>}
-                            {sub.status === 'achievable' && <span className="text-lg">📈</span>}
-                            {sub.status === 'hard' && <span className="text-lg">💪</span>}
-                            {sub.status === 'impossible' && <span className="text-lg">⚠️</span>}
-                            {sub.status === 'maxed' && <span className="text-lg">🏆</span>}
-                            <span className="font-bold">{sub.name}</span>
-                            <span className="text-xs bg-slate-700 px-2 py-0.5 rounded">
-                              {sub.credits} Cr
-                            </span>
-                          </div>
-                          <p className="text-sm text-slate-300 mt-1">{sub.message}</p>
-                        </div>
-                      </div>
-
-                      <div className="text-right flex-shrink-0">
-                        <div className="flex items-center gap-2 text-sm justify-end">
-                          <span className={`font-bold text-lg ${sub.currentGrade === 'S' ? 'text-green-400' :
-                            sub.currentGrade === 'A' ? 'text-blue-400' :
-                              sub.currentGrade === 'F' ? 'text-red-400' :
-                                'text-slate-300'
-                            }`}>{sub.currentGrade}</span>
-                          {sub.nextGrade && (
-                            <>
-                              <ArrowRight className="w-4 h-4 text-slate-500" />
-                              <span className={`font-bold text-lg ${sub.nextGrade === 'S' ? 'text-green-400' :
-                                sub.nextGrade === 'A' ? 'text-blue-400' :
-                                  'text-slate-300'
-                                }`}>{sub.nextGrade}</span>
-                            </>
-                          )}
-                        </div>
-                        {sub.gpGain && (
-                          <div className="text-xs text-emerald-400 mt-1">
-                            +{sub.gpGain.toFixed(1)} Grade Points
-                          </div>
-                        )}
-                        {sub.currentScore !== undefined && (
-                          <div className="text-[10px] text-slate-500 mt-1">
-                            Current: {sub.currentScore}/100
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 p-4 bg-slate-700/50 rounded-lg">
-                <div className="text-xs text-slate-400 mb-2 font-bold">Priority Legend:</div>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
-                  <span className="flex items-center gap-1">🎯 <span className="text-green-400">Easy win</span> - ESA ≤40</span>
-                  <span className="flex items-center gap-1">📈 <span className="text-blue-400">Achievable</span> - ESA 41-70</span>
-                  <span className="flex items-center gap-1">💪 <span className="text-orange-400">Hard</span> - ESA 71-100</span>
-                  <span className="flex items-center gap-1">⚠️ <span className="text-red-400">Impossible</span> - Can't reach</span>
-                  <span className="flex items-center gap-1">🏆 <span className="text-slate-300">Maxed</span> - Already S grade</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className={`${themeClasses.card} border rounded-xl p-4 text-center`}>
-                <div className="text-3xl font-bold text-green-500">
-                  {studyPriorities.filter(s => s.status === 'easy').length}
-                </div>
-                <div className={`text-xs ${themeClasses.muted} uppercase font-bold`}>Easy Wins</div>
-              </div>
-              <div className={`${themeClasses.card} border rounded-xl p-4 text-center`}>
-                <div className="text-3xl font-bold text-blue-500">
-                  {studyPriorities.filter(s => s.status === 'achievable').length}
-                </div>
-                <div className={`text-xs ${themeClasses.muted} uppercase font-bold`}>Achievable</div>
-              </div>
-              <div className={`${themeClasses.card} border rounded-xl p-4 text-center`}>
-                <div className="text-3xl font-bold text-orange-500">
-                  {studyPriorities.filter(s => s.status === 'hard').length}
-                </div>
-                <div className={`text-xs ${themeClasses.muted} uppercase font-bold`}>Hard</div>
-              </div>
-              <div className={`${themeClasses.card} border rounded-xl p-4 text-center`}>
-                <div className="text-3xl font-bold text-emerald-500">
-                  {studyPriorities.filter(s => s.status === 'maxed').length}
-                </div>
-                <div className={`text-xs ${themeClasses.muted} uppercase font-bold`}>Already S</div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ==================== CGPA TAB ==================== */}
         {activeTab === 'cgpa' && (
           <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
@@ -3766,98 +3569,88 @@ export default function PES_Universal_Calculator() {
               </div>
             </div>
 
-            {/* 6. STRATEGY & FUTURE: Priority & CGPA (Detailed) */}
+            {/* 6. STRATEGY & FUTURE: CGPA (Detailed) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Priority Tab */}
-              <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-                <div className="p-4 border-b bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                  <h3 className="font-bold text-sm">Priority Tab: ROI</h3>
-                </div>
-                <div className="p-4">
-                  <p className={`text-xs ${themeClasses.muted} mb-3`}>
-                    Calculates <strong>Return on Investment</strong>. It highlights "Easy Wins" - subjects where a tiny effort yields a full grade jump.
-                  </p>
-                  <div className="space-y-2 text-[10px]">
-                    <div className="flex items-center gap-2"><span className="text-lg">🎯</span> <strong>Easy Win:</strong> ESA ≤ 40 marks needed.</div>
-                    <div className="flex items-center gap-2"><span className="text-lg">📈</span> <strong>Achievable:</strong> ESA 41-70 marks needed.</div>
-                    <div className="flex items-center gap-2"><span className="text-lg">💪</span> <strong>Hard:</strong> ESA 70+ marks needed.</div>
-                  </div>
-                </div>
-              </div>
 
-              {/* CGPA Tab */}
-              <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-                <div className="p-4 border-b bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700 flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-indigo-500" />
-                  <h3 className="font-bold text-sm">CGPA Tab: The Future</h3>
+              {/* Quick SGPA Estimator (Static) */}
+              <div className={`${themeClasses.card} border rounded-xl p-4`}>
+                <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
+                  <span className="bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">✨</span>
+                  <span>Quick SGPA Estimator</span>
                 </div>
-                <div className="p-4">
-                  <p className={`text-xs ${themeClasses.muted} mb-3`}>
-                    Predicts your cumulative GPA. Enter your history:
-                  </p>
-                  <ul className={`list-disc pl-4 text-xs ${themeClasses.muted} space-y-1`}>
-                    <li><strong>Prev SGPA:</strong> Your average until last sem.</li>
-                    <li><strong>Prev Credits:</strong> Total credits completed.</li>
-                  </ul>
-                  <p className="mt-3 text-xs bg-indigo-50 dark:bg-indigo-900/30 p-2 rounded text-indigo-700 dark:text-indigo-300">
-                    <strong>Scenario Grid:</strong> Shows "If I get 9.0 this sem, my CGPA becomes X".
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ADDITION: Attendance Guide */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
-                    <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
-                    <span>How does the Attendance Calculator work?</span>
-                  </div>
-                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
-                </summary>
-                <div className={`px-4 pb-4 pt-0 text-sm ${themeClasses.muted} border-t ${themeClasses.border} pt-3 leading-relaxed`}>
+                <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
                   <p>
-                    The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
+                    Want to check your SGPA without entering specific marks?
                   </p>
                   <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li><strong>Safe Zone:</strong> If your attendance is above 75%, it calculates exactly how many future classes you can "bunk" (skip) while staying safe.</li>
-                    <li><strong>Danger Zone:</strong> If you drop below 75%, it tells you how many classes you must attend <em>consecutively</em> to get back on track.</li>
+                    <li>Located at the bottom of the <strong>Subjects Tab</strong>.</li>
+                    <li>Select hypothetical grades (S, A, B...) for each subject directly.</li>
+                    <li>Instantly see what your SGPA would be if you scored those grades.</li>
+                    <li>This is a "sandbox" mode—it does not affect your actual mark data.</li>
                   </ul>
-                  <p className="mt-2 text-xs italic opacity-70">
-                    Note: Attendance data is for quick checking and is not saved when you refresh.
-                  </p>
                 </div>
-              </details>
+              </div>
+
+              {/* UPDATED: CGPA Guide (Static) */}
+              <div className={`${themeClasses.card} border rounded-xl p-4`}>
+                <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
+                  <span className="bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
+                  <span>Cumulative GPA (CGPA)</span>
+                </div>
+                <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
+                  <p>
+                    Track your performance across your entire degree.
+                  </p>
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <li>Enter the <strong>SGPA</strong> and <strong>Total Credits</strong> for every semester you have completed.</li>
+                    <li>The calculator uses the weighted average formula (Σ SGPA×Credits / Σ Credits) for 100% accuracy.</li>
+                    <li>You can clear the history at any time using the "Clear History" button.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
-            {/* ADDITION: Universal Mode Guide */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
-                    <span className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
-                    <span>I'm not from PES / Custom Curriculum</span>
-                  </div>
-                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
-                </summary>
-                <div className={`px-4 pb-4 pt-0 text-sm ${themeClasses.muted} border-t ${themeClasses.border} pt-3 leading-relaxed`}>
-                  <p>
-                    You can use this calculator for <strong>VTU, IIT, Manipal, or any other college</strong>.
-                  </p>
-                  <ol className="list-decimal pl-5 mt-2 space-y-1">
-                    <li>Go to the <strong>Subjects Tab</strong>.</li>
-                    <li>Click the button <strong>"Not from PES? 🎓"</strong>.</li>
-                    <li><strong>Define Components:</strong> Add your own exams (e.g., "Midterm 1", "Quiz", "Finals") and set their weights.</li>
-                    <li><strong>Set Grading:</strong> Choose a preset (like VTU 10-point, US 4.0 GPA) or define your own grade cutoffs (e.g., A = 85+).</li>
-                    <li>Click <strong>Create Subject</strong>.</li>
-                  </ol>
-                  <p className="mt-2">
-                    Your custom grading scheme will be saved for that subject and used in all calculations (SGPA, Reverse, Analysis).
-                  </p>
-                </div>
-              </details>
+            {/* UPDATED: Attendance Guide (Static) */}
+            <div className={`${themeClasses.card} border rounded-xl p-4`}>
+              <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
+                <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
+                <span>How does the Attendance Calculator work?</span>
+              </div>
+              <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
+                <p>
+                  The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
+                </p>
+                <ul className="list-disc pl-5 mt-2 space-y-1">
+                  <li><strong>Safe Zone:</strong> If your attendance is above 75%, it calculates exactly how many future classes you can "bunk" (skip) while staying safe.</li>
+                  <li><strong>Danger Zone:</strong> If you drop below 75%, it tells you how many classes you must attend <em>consecutively</em> to get back on track.</li>
+                </ul>
+                <p className="mt-2 text-xs italic opacity-70">
+                  Note: Attendance data is for quick checking and is not saved when you refresh.
+                </p>
+              </div>
+            </div>
+
+            {/* UPDATED: Universal Mode Guide (Static) */}
+            <div className={`${themeClasses.card} border rounded-xl p-4`}>
+              <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
+                <span className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
+                <span>I'm not from PES / Custom Curriculum</span>
+              </div>
+              <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
+                <p>
+                  You can use this calculator for <strong>VTU, IIT, Manipal, or any other college</strong>.
+                </p>
+                <ol className="list-decimal pl-5 mt-2 space-y-1">
+                  <li>Go to the <strong>Subjects Tab</strong>.</li>
+                  <li>Click the button <strong>"Not from PES? 🎓"</strong>.</li>
+                  <li><strong>Define Components:</strong> Add your own exams (e.g., "Midterm 1", "Quiz", "Finals") and set their weights.</li>
+                  <li><strong>Set Grading:</strong> Choose a preset (like VTU 10-point, US 4.0 GPA) or define your own grade cutoffs (e.g., A = 85+).</li>
+                  <li>Click <strong>Create Subject</strong>.</li>
+                </ol>
+                <p className="mt-2">
+                  Your custom grading scheme will be saved for that subject and used in all calculations (SGPA, Reverse, Analysis).
+                </p>
+              </div>
             </div>
 
             {/* Footer Note */}
@@ -3885,7 +3678,6 @@ export default function PES_Universal_Calculator() {
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, highlight: true }, // Added highlight
             { id: 'reverse', label: 'Reverse', icon: Target, highlight: true },     // Added highlight
-            { id: 'priority', label: 'Priority', icon: TrendingUp },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
