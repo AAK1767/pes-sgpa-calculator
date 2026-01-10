@@ -2299,7 +2299,7 @@ export default function PES_Universal_Calculator() {
 
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Total Classes</label>
+                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Total Classes Completed</label>
                   <input
                     type="number"
                     placeholder="e.g. 40"
@@ -2395,7 +2395,7 @@ export default function PES_Universal_Calculator() {
               {/* Empty State */}
               {!attendanceResult && (
                 <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                  Enter total classes and attended classes to check your attendance status.(for a subject)
+                  Enter total classes completed as of now and attended classes to check your attendance status.(for a subject)
                 </div>
               )}
             </div>
