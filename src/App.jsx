@@ -8,7 +8,7 @@ import {
   Lightbulb, ArrowRight, CheckCircle2, AlertCircle,
   Download, Upload, Lock, Unlock, AlertTriangle,
   BookOpen, Award, Zap, BarChart3, Moon, Sun,
-  Undo2, Redo2, HelpCircle
+  Undo2, Redo2, HelpCircle, Info
 } from 'lucide-react';
 
 // --- Default Data for Reset ---
@@ -135,6 +135,24 @@ export default function PES_Universal_Calculator() {
     return saved ? JSON.parse(saved) : { sgpa: '', credits: '' };
   });
 
+  // --- CGPA Tab State ---
+  // We initialize 8 semesters with empty values
+  const [semesterData, setSemesterData] = useState(
+    Array(8).fill(null).map((_, i) => ({ id: i + 1, sgpa: '', credits: '' }))
+  );
+
+  const updateSemester = (id, field, value) => {
+    setSemesterData(prev => prev.map(sem =>
+      sem.id === id ? { ...sem, [field]: value } : sem
+    ));
+  };
+
+  const resetCGPA = () => {
+    if (window.confirm("Clear all semester data?")) {
+      setSemesterData(Array(8).fill(null).map((_, i) => ({ id: i + 1, sgpa: '', credits: '' })));
+    }
+  };
+
   // --- UI State ---
   const [sgpa, setSgpa] = useState(0);
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -177,6 +195,7 @@ export default function PES_Universal_Calculator() {
 
   // --- Custom Template Builder State ---
   const [showTemplateBuilder, setShowTemplateBuilder] = useState(false);
+  const [manualGrades, setManualGrades] = useState({});
   const [customTemplate, setCustomTemplate] = useState({
     name: "My Subject",
     credits: 3,
@@ -2400,6 +2419,95 @@ export default function PES_Universal_Calculator() {
               )}
             </div>
 
+            {/* ==================== QUICK SGPA ESTIMATOR (FROM GRADES) ==================== */}
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
+              <details className="group">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-md">
+                      <span className="text-white text-lg font-bold">✨</span>
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">Quick SGPA Estimator</h3>
+                      <p className={`text-xs ${themeClasses.muted}`}>Calculate SGPA by directly selecting grades</p>
+                    </div>
+                  </div>
+                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
+                </summary>
+
+                <div className={`p-4 border-t ${themeClasses.border} bg-slate-50/50 dark:bg-slate-900/20`}>
+
+                  {/* Results Header */}
+                  <div className="flex items-center justify-between mb-4 bg-white dark:bg-slate-800 p-3 rounded-lg border shadow-sm">
+                    <span className="text-xs font-bold uppercase opacity-50">Hypothetical SGPA</span>
+                    <span className="text-2xl font-black text-teal-600 dark:text-teal-400">
+                      {(() => {
+                        let totalPoints = 0;
+                        let totalCredits = 0;
+                        subjects.forEach(sub => {
+                          const gradeLetter = manualGrades[sub.id];
+                          if (gradeLetter) {
+                            // Find GP for this specific subject (supports custom schemes!)
+                            const scheme = sub.customGradeMap || GradeMap;
+                            const gradeObj = scheme.find(g => g.grade === gradeLetter);
+                            if (gradeObj) {
+                              totalPoints += gradeObj.gp * sub.credits;
+                              totalCredits += sub.credits;
+                            }
+                          }
+                        });
+                        return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+                      })()}
+                    </span>
+                  </div>
+
+                  {/* Subject List with Dropdowns */}
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                    {subjects.length === 0 ? (
+                      <div className="text-center py-4 text-xs opacity-50">No subjects added yet.</div>
+                    ) : (
+                      subjects.map(sub => {
+                        // Determine which grading scheme to show in dropdown
+                        const scheme = sub.customGradeMap || GradeMap;
+
+                        return (
+                          <div key={sub.id} className="flex items-center justify-between gap-3 p-2 bg-white dark:bg-slate-800 rounded border dark:border-slate-700">
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-bold truncate" title={sub.name}>{sub.name}</div>
+                              <div className="text-[10px] opacity-50">{sub.credits} Credits</div>
+                            </div>
+
+                            <select
+                              value={manualGrades[sub.id] || ""}
+                              onChange={(e) => setManualGrades(prev => ({ ...prev, [sub.id]: e.target.value }))}
+                              className={`w-24 p-1.5 text-xs font-bold border rounded focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
+                            >
+                              <option value="">- Select -</option>
+                              {scheme.map(g => (
+                                <option key={g.grade} value={g.grade}>
+                                  {g.grade} ({g.gp})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={() => setManualGrades({})}
+                      className="text-xs text-red-500 hover:text-red-600 font-medium underline decoration-red-200 hover:decoration-red-500 underline-offset-2 transition-all"
+                    >
+                      Reset All
+                    </button>
+                  </div>
+
+                </div>
+              </details>
+            </div>
+
             {/* ==================== NOT FROM PES? CUSTOM TEMPLATE BUILDER ==================== */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-8`}>
               <button
@@ -3332,144 +3440,101 @@ export default function PES_Universal_Calculator() {
 
         {/* ==================== CGPA TAB ==================== */}
         {activeTab === 'cgpa' && (
-          <div className="space-y-6">
-            {/* CGPA Calculator */}
-            <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
-              <GraduationCap className="absolute top-[-20px] right-[-20px] w-40 h-40 text-white opacity-10" />
+          <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
 
-              <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
-                <Calculator className="w-5 h-5" /> Cumulative GPA (CGPA)
-              </h2>
+            {/* Header & Result Card */}
+            <div className={`${themeClasses.card} p-6 rounded-2xl shadow-lg border ${themeClasses.border} text-center relative overflow-hidden`}>
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500"></div>
 
-              <p className="text-indigo-100 text-sm mb-6 relative z-10 leading-relaxed opacity-90">
-                Enter details from your previous semesters to calculate your overall CGPA including this semester's projected SGPA.
+              <h2 className={`text-sm font-bold uppercase tracking-wider ${themeClasses.muted} mb-2`}>Cumulative GPA</h2>
+
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-5xl md:text-6xl font-black text-teal-600 dark:text-teal-400">
+                  {(() => {
+                    const filledSems = semesterData.filter(s => s.sgpa && s.credits);
+                    if (filledSems.length === 0) return "0.00";
+
+                    const totalPoints = filledSems.reduce((sum, s) => sum + (parseFloat(s.sgpa) * parseFloat(s.credits)), 0);
+                    const totalCredits = filledSems.reduce((sum, s) => sum + parseFloat(s.credits), 0);
+
+                    return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+                  })()}
+                </span>
+              </div>
+
+              <p className={`text-xs ${themeClasses.muted} mt-2`}>
+                Based on {semesterData.filter(s => s.sgpa && s.credits).length} semesters of data
               </p>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 relative z-10">
-                <div>
-                  <label className="text-xs text-indigo-200 block mb-2 font-semibold">Previous SGPA/CGPA</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="e.g.  8.5"
-                    value={prevCgpaDetails.sgpa}
-                    onChange={(e) => setPrevCgpaDetails({ ...prevCgpaDetails, sgpa: e.target.value })}
-                    className="w-full bg-indigo-800/40 border border-indigo-400/30 rounded-lg p-3 text-white placeholder-indigo-300 focus:outline-none focus:border-white focus:bg-indigo-800/60 transition-all font-bold text-lg"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-indigo-200 block mb-2 font-semibold">Previous Credits Completed</label>
-                  <input
-                    type="number"
-                    placeholder="e.g.  22"
-                    value={prevCgpaDetails.credits}
-                    onChange={(e) => setPrevCgpaDetails({ ...prevCgpaDetails, credits: e.target.value })}
-                    className="w-full bg-indigo-800/40 border border-indigo-400/30 rounded-lg p-3 text-white placeholder-indigo-300 focus:outline-none focus:border-white focus:bg-indigo-800/60 transition-all font-bold text-lg"
-                  />
-                </div>
-              </div>
+            {/* Helper Info */}
+            <div className="flex items-center gap-2 text-xs opacity-70 px-2">
+              <Info className="w-4 h-4" />
+              <span>Enter SGPA and Credits for completed semesters. Leave future ones blank.</span>
+            </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
-                <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/10">
-                  <div className="text-xs text-indigo-200 uppercase font-bold mb-1">This Semester</div>
-                  <div className="text-2xl font-bold">{sgpa} SGPA</div>
-                  <div className="text-xs text-indigo-200/70">{metrics.totalCredits} credits</div>
-                </div>
-                <div className="bg-white/10 rounded-xl p-4 backdrop-blur-sm border border-white/10">
-                  <div className="text-xs text-indigo-200 uppercase font-bold mb-1">Previous</div>
-                  <div className="text-2xl font-bold">{prevCgpaDetails.sgpa || '--'} SGPA</div>
-                  <div className="text-xs text-indigo-200/70">{prevCgpaDetails.credits || '--'} credits</div>
-                </div>
-              </div>
-
-              <div className="bg-white/20 rounded-xl p-6 relative z-10 backdrop-blur-sm border border-white/20 shadow-inner">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div>
-                    <span className="text-sm font-bold text-indigo-100 uppercase tracking-wide block">Projected CGPA</span>
-                    {finalCgpa && (
-                      <span className="text-xs text-indigo-200/70">
-                        Based on {parseFloat(prevCgpaDetails.credits) + metrics.totalCredits} total credits
-                      </span>
-                    )}
+            {/* Semesters Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {semesterData.map((sem) => (
+                <div
+                  key={sem.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${(sem.sgpa && sem.credits)
+                      ? `${themeClasses.card} border-teal-500/30 shadow-sm`
+                      : 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-75 hover:opacity-100'
+                    }`}
+                >
+                  {/* Semester Label */}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${(sem.sgpa && sem.credits)
+                      ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                      : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                    }`}>
+                    S{sem.id}
                   </div>
-                  <span className="text-5xl font-extrabold tracking-tight">{finalCgpa || '--'}</span>
-                </div>
-              </div>
 
-              {!finalCgpa && (
-                <div className="mt-4 text-center text-indigo-200/70 text-sm relative z-10">
-                  Enter your previous SGPA/CGPA and credits to calculate cumulative GPA
+                  {/* Inputs */}
+                  <div className="flex-1 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold opacity-50 mb-1 ml-1">SGPA</label>
+                      <input
+                        type="number"
+                        value={sem.sgpa}
+                        onChange={(e) => updateSemester(sem.id, 'sgpa', e.target.value)}
+                        placeholder="-"
+                        className={`w-full p-2 text-sm font-bold text-center border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
+                        min="0" max="10" step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold opacity-50 mb-1 ml-1">Credits</label>
+                      <input
+                        type="number"
+                        value={sem.credits}
+                        onChange={(e) => updateSemester(sem.id, 'credits', e.target.value)}
+                        placeholder="-"
+                        className={`w-full p-2 text-sm text-center border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
+                        min="0" max="30"
+                      />
+                    </div>
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
 
-            {/* CGPA Projection Table */}
-            {finalCgpa && (
-              <div className={`${themeClasses.card} border rounded-xl p-6`}>
-                <h3 className="font-bold mb-4 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-yellow-500" /> CGPA Scenarios
-                </h3>
-                <p className={`${themeClasses.muted} text-sm mb-4`}>
-                  How different SGPA outcomes this semester would affect your CGPA:
-                </p>
-                {/* CGPA Projection Scenarios (Horizontal Swipe on Mobile) */}
-                <div className="flex overflow-x-auto pb-4 gap-3 snap-x md:grid md:grid-cols-6 md:overflow-visible md:pb-0 scrollbar-thin">
-                  {[10, 9.5, 9, 8.5, 8, 7.5, 7, 6.5, 6].map(scenarioSgpa => {
-                    const prevSgpa = parseFloat(prevCgpaDetails.sgpa);
-                    const prevCreds = parseFloat(prevCgpaDetails.credits);
-                    const currCreds = metrics.totalCredits;
-
-                    if (isNaN(prevSgpa) || isNaN(prevCreds)) return null;
-
-                    const scenarioCgpa = ((prevSgpa * prevCreds) + (scenarioSgpa * currCreds)) / (prevCreds + currCreds);
-                    const isCurrentScenario = Math.abs(parseFloat(sgpa) - scenarioSgpa) < 0.25;
-
-                    return (
-                      <div
-                        key={scenarioSgpa}
-                        /* CHANGE IS HERE: Added 'min-w-[120px]' and 'snap-center' */
-                        className={`p-3 rounded-lg text-center border min-w-[120px] snap-center flex-shrink-0 ${isCurrentScenario
-                          ? 'bg-blue-100 dark:bg-blue-900/50 border-blue-500'
-                          : `${themeClasses.card} ${themeClasses.border}`
-                          }`}
-                      >
-                        <div className={`text-xs ${themeClasses.muted} mb-1`}>If SGPA</div>
-                        <div className="font-bold">{scenarioSgpa}</div>
-                        <div className={`text-lg font-bold mt-2 ${scenarioCgpa >= 9 ? 'text-green-500' :
-                          scenarioCgpa >= 8 ? 'text-blue-500' :
-                            scenarioCgpa >= 7 ? 'text-yellow-500' :
-                              'text-orange-500'
-                          }`}>
-                          {scenarioCgpa.toFixed(2)}
-                        </div>
-                        <div className={`text-[10px] ${themeClasses.muted}`}>CGPA</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Formula Explanation */}
-            <div className={`${themeClasses.card} border rounded-xl p-6`}>
-              <h3 className="font-bold mb-4 flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-blue-500" /> How CGPA is Calculated
-              </h3>
-              <div className={`${themeClasses.muted} text-sm space-y-3`}>
-                <p>
-                  <strong>Formula:</strong> CGPA = (Previous SGPA × Previous Credits + Current SGPA × Current Credits) ÷ Total Credits
-                </p>
-                <div className={`p-4 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-100'} font-mono text-xs`}>
-                  CGPA = ({prevCgpaDetails.sgpa || 'X'} × {prevCgpaDetails.credits || 'Y'} + {sgpa} × {metrics.totalCredits}) ÷ ({prevCgpaDetails.credits || 'Y'} + {metrics.totalCredits})
-                  {finalCgpa && (
-                    <>
-                      <br />
-                      CGPA = {finalCgpa}
-                    </>
-                  )}
-                </div>
-              </div>
+            {/* Actions */}
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={resetCGPA}
+                className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" /> Clear History
+              </button>
             </div>
+
+            {/* Disclaimer */}
+            <div className="text-center text-[10px] opacity-40 mt-8">
+              Calculated using: Σ (SGPA × Credits) / Σ Credits
+            </div>
+
           </div>
         )}
 
