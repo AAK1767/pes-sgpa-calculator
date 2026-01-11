@@ -153,6 +153,9 @@ export default function PES_Universal_Calculator() {
     }
   };
 
+  // State for Quick CGPA
+  const [simpleCgpa, setSimpleCgpa] = useState({ prevCgpa: '', prevCredits: '', currSgpa: '', currCredits: '' });
+
   // --- UI State ---
   const [sgpa, setSgpa] = useState(0);
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -2234,115 +2237,136 @@ export default function PES_Universal_Calculator() {
               </div>
             )}
 
-            {/* ==================== ATTENDANCE CALCULATOR ==================== */}
-            <div className={`${themeClasses.card} border rounded-xl p-4 mt-6`}>
-              <h3 className="font-bold text-sm flex items-center gap-2 mb-3">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                Quick Attendance Check
-                <span className={`text-[10px] ${themeClasses.muted} font-normal ml-auto`}>Not saved</span>
-              </h3>
+            {/* ==================== ATTENDANCE CALCULATOR (Collapsible) ==================== */}
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
+              <details className="group">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    {/* Icon */}
+                    <CheckCircle2 className="w-5 h-5 text-green-500" />
 
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Total Classes Completed</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 40"
-                    value={attendanceData.total}
-                    onChange={(e) => setAttendanceData(prev => ({ ...prev, total: e.target.value }))}
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-                <div>
-                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Classes Attended</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 35"
-                    value={attendanceData.attended}
-                    onChange={(e) => setAttendanceData(prev => ({ ...prev, attended: e.target.value }))}
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-              </div>
+                    {/* Text Column */}
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-slate-700 dark:text-slate-200">Quick Attendance Check</span>
+                        {/* The 'Not Saved' Badge */}
+                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-slate-100 dark:bg-slate-800 border`}>Not saved</span>
+                      </div>
 
-              {/* Results */}
-              {attendanceResult && (
-                <div className="space-y-3">
-                  {/* Current Percentage Bar */}
-                  <div className={`p-3 rounded-lg ${attendanceResult.isAbove75 ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className={`text-xs font-bold ${attendanceResult.isAbove75 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                        Current Attendance
-                      </span>
-                      <span className={`text-lg font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {attendanceResult.currentPercentage}%
-                      </span>
+                      <p className={`text-xs ${themeClasses.muted} font-normal mt-0.5`}>
+                        Calculate safe no. of classes you can miss vs. 75% requirement
+                      </p>
                     </div>
-                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all ${attendanceResult.isAbove75 ? 'bg-green-500' : 'bg-red-500'}`}
-                        style={{ width: `${Math.min(100, parseFloat(attendanceResult.currentPercentage))}%` }}
+                  </div>
+                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
+                </summary>
+
+                <div className={`p-4 border-t ${themeClasses.border} bg-slate-50/50 dark:bg-slate-900/20`}>
+
+                  {/* Inputs */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1`}>Total Classes Completed</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 40"
+                        value={attendanceData.total}
+                        onChange={(e) => setAttendanceData(prev => ({ ...prev, total: e.target.value }))}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
                       />
                     </div>
-                    <div className="flex justify-between text-[10px] mt-1">
-                      <span className={themeClasses.muted}>0%</span>
-                      <span className={`font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>75% Required</span>
-                      <span className={themeClasses.muted}>100%</span>
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1`}>Classes Attended</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 35"
+                        value={attendanceData.attended}
+                        onChange={(e) => setAttendanceData(prev => ({ ...prev, attended: e.target.value }))}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                      />
                     </div>
                   </div>
 
-                  {/* Action Cards */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {attendanceResult.isAbove75 ? (
-                      <div className="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                          <span className="text-xs font-bold text-green-700 dark:text-green-300">You're Safe!</span>
+                  {/* Results */}
+                  {attendanceResult && (
+                    <div className="space-y-3">
+                      {/* Current Percentage Bar */}
+                      <div className={`p-3 rounded-lg ${attendanceResult.isAbove75 ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className={`text-xs font-bold ${attendanceResult.isAbove75 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                            Current Attendance
+                          </span>
+                          <span className={`text-lg font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {attendanceResult.currentPercentage}%
+                          </span>
                         </div>
-                        <p className="text-sm text-green-800 dark:text-green-200">
-                          You can miss up to <strong className="text-lg">{attendanceResult.canMiss}</strong> more class{attendanceResult.canMiss !== 1 ? 'es' : ''} and still stay above 75%.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                          <span className="text-xs font-bold text-red-700 dark:text-red-300">Below 75%!</span>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${attendanceResult.isAbove75 ? 'bg-green-500' : 'bg-red-500'}`}
+                            style={{ width: `${Math.min(100, parseFloat(attendanceResult.currentPercentage))}%` }}
+                          />
                         </div>
-                        <p className="text-sm text-red-800 dark:text-red-200">
-                          Attend the next <strong className="text-lg">{attendanceResult.needToAttend}</strong> class{attendanceResult.needToAttend !== 1 ? 'es' : ''} continuously to reach 75%.
-                        </p>
+                        <div className="flex justify-between text-[10px] mt-1">
+                          <span className={themeClasses.muted}>0%</span>
+                          <span className={`font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>75% Required</span>
+                          <span className={themeClasses.muted}>100%</span>
+                        </div>
                       </div>
-                    )}
 
-                    {/* Stats Card */}
-                    <div className={`${darkMode ? 'bg-slate-700/50' : 'bg-slate-100'} rounded-lg p-3`}>
-                      <div className="text-xs font-bold mb-2 opacity-70">Quick Stats</div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <span className={themeClasses.muted}>Attended:</span>
-                          <span className="ml-1 font-bold">{attendanceResult.attended}/{attendanceResult.total}</span>
-                        </div>
-                        <div>
-                          <span className={themeClasses.muted}>Missed:</span>
-                          <span className="ml-1 font-bold">{attendanceResult.total - attendanceResult.attended}</span>
-                        </div>
-                        <div className="col-span-2">
-                          <span className={themeClasses.muted}>Classes for 75%:</span>
-                          <span className="ml-1 font-bold">{Math.ceil(attendanceResult.total * 0.75)}</span>
+                      {/* Action Cards */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {attendanceResult.isAbove75 ? (
+                          <div className="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              <span className="text-xs font-bold text-green-700 dark:text-green-300">You're Safe!</span>
+                            </div>
+                            <p className="text-sm text-green-800 dark:text-green-200">
+                              You can miss up to <strong className="text-lg">{attendanceResult.canMiss}</strong> more class{attendanceResult.canMiss !== 1 ? 'es' : ''} and still stay above 75%.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-1">
+                              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                              <span className="text-xs font-bold text-red-700 dark:text-red-300">Below 75%!</span>
+                            </div>
+                            <p className="text-sm text-red-800 dark:text-red-200">
+                              Attend the next <strong className="text-lg">{attendanceResult.needToAttend}</strong> class{attendanceResult.needToAttend !== 1 ? 'es' : ''} continuously to reach 75%.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Stats Card */}
+                        <div className={`${darkMode ? 'bg-slate-700/50' : 'bg-slate-100'} rounded-lg p-3`}>
+                          <div className="text-xs font-bold mb-2 opacity-70">Quick Stats</div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className={themeClasses.muted}>Attended:</span>
+                              <span className="ml-1 font-bold">{attendanceResult.attended}/{attendanceResult.total}</span>
+                            </div>
+                            <div>
+                              <span className={themeClasses.muted}>Missed:</span>
+                              <span className="ml-1 font-bold">{attendanceResult.total - attendanceResult.attended}</span>
+                            </div>
+                            <div className="col-span-2">
+                              <span className={themeClasses.muted}>Classes for 75%:</span>
+                              <span className="ml-1 font-bold">{Math.ceil(attendanceResult.total * 0.75)}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  )}
 
-              {/* Empty State */}
-              {!attendanceResult && (
-                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                  Enter total classes completed as of now and attended classes to check your attendance status.(for a subject)
+                  {!attendanceResult && (
+                    <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                      Enter total classes completed as of now and attended classes to check your attendance status.(for a subject)
+                    </div>
+                  )}
+
                 </div>
-              )}
+              </details>
             </div>
 
             {/* ==================== QUICK SGPA ESTIMATOR (FROM GRADES) ==================== */}
@@ -3282,14 +3306,14 @@ export default function PES_Universal_Calculator() {
                 <div
                   key={sem.id}
                   className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${(sem.sgpa && sem.credits)
-                      ? `${themeClasses.card} border-teal-500/30 shadow-sm`
-                      : 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-75 hover:opacity-100'
+                    ? `${themeClasses.card} border-teal-500/30 shadow-sm`
+                    : 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-75 hover:opacity-100'
                     }`}
                 >
                   {/* Semester Label */}
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${(sem.sgpa && sem.credits)
-                      ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                    ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
                     }`}>
                     S{sem.id}
                   </div>
@@ -3336,6 +3360,110 @@ export default function PES_Universal_Calculator() {
             {/* Disclaimer */}
             <div className="text-center text-[10px] opacity-40 mt-8">
               Calculated using: Σ (SGPA × Credits) / Σ Credits
+            </div>
+
+            {/* ==================== QUICK PREVIOUS CGPA CALCULATOR (Fully Manual) ==================== */}
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
+              <details className="group">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shadow-sm">
+                      <span className="text-lg">⚡</span>
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">Quick CGPA Estimator</h3>
+                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-slate-100 dark:bg-slate-800 border`}>Isolated</span>
+                      </div>
+                      <p className={`text-xs ${themeClasses.muted} mt-0.5`}>
+                        Calculate new CGPA by combining previous history + current sem results
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
+                </summary>
+
+                <div className={`p-4 border-t ${themeClasses.border} bg-slate-50/50 dark:bg-slate-900/20`}>
+
+                  {/* Row 1: Previous Stats */}
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold`}>Previous CGPA</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 8.5"
+                        value={simpleCgpa.prevCgpa}
+                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, prevCgpa: e.target.value }))}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold`}>Prev Credits</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 80"
+                        value={simpleCgpa.prevCredits}
+                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, prevCredits: e.target.value }))}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 2: Current Stats */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-600 dark:text-teal-400`}>Current Sem SGPA</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 9.2"
+                        value={simpleCgpa.currSgpa}
+                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currSgpa: e.target.value }))}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-200 dark:border-teal-900/50 bg-teal-50/30 dark:bg-teal-900/10`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-600 dark:text-teal-400`}>Sem Credits</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 24"
+                        value={simpleCgpa.currCredits}
+                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currCredits: e.target.value }))}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-200 dark:border-teal-900/50 bg-teal-50/30 dark:bg-teal-900/10`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Calculation Result */}
+                  <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border shadow-sm flex items-center justify-between">
+                    {(() => {
+                      const pCgpa = parseFloat(simpleCgpa.prevCgpa) || 0;
+                      const pCreds = parseFloat(simpleCgpa.prevCredits) || 0;
+                      const cSgpa = parseFloat(simpleCgpa.currSgpa) || 0;
+                      const cCreds = parseFloat(simpleCgpa.currCredits) || 0;
+
+                      let newCGPA = "0.00";
+                      if (pCreds + cCreds > 0) {
+                        const totalPoints = (pCgpa * pCreds) + (cSgpa * cCreds);
+                        const totalCreds = pCreds + cCreds;
+                        newCGPA = (totalPoints / totalCreds).toFixed(2);
+                      }
+
+                      return (
+                        <>
+                          <div className="text-xs opacity-70">
+                            <div>Total Credits: <strong>{pCreds + cCreds}</strong></div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-[10px] uppercase font-bold opacity-50">Predicted CGPA</div>
+                            <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{newCGPA}</div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+
+                </div>
+              </details>
             </div>
 
           </div>
