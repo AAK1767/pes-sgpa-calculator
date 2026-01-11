@@ -2762,7 +2762,7 @@ export default function PES_Universal_Calculator() {
                   <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-10 h-10" /></div>
                   <div className="text-2xl font-bold text-indigo-300">{metrics.momentumSGPA}</div>
                   <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">Momentum SGPA *</div>
-                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form</p>
+                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form, i.e ISA performance = ESA</p>
                 </div>
               </div>
 
