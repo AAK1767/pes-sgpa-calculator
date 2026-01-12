@@ -93,10 +93,7 @@ const GradingSchemes = {
 
 export default function PES_Universal_Calculator() {
   // --- Theme State ---
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('pes_theme');
-    return saved ? saved === 'dark' : false;
-  });
+  const darkMode = true;
 
   const [subjects, setSubjects] = useState(() => {
     // --- THE RESET LOGIC ---
@@ -386,13 +383,9 @@ export default function PES_Universal_Calculator() {
   }, [prevCgpaDetails]);
 
   useEffect(() => {
-    localStorage.setItem('pes_theme', darkMode ? 'dark' : 'light');
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('pes_theme', 'dark'); // Ensure it stays dark
+  }, []);
 
   // --- Undo/Redo Functions ---
   const saveStateForUndo = () => {
@@ -1622,16 +1615,16 @@ export default function PES_Universal_Calculator() {
 
   const finalCgpa = calculateCGPA();
 
-  // --- Theme Classes ---
+  // --- Theme Classes (Static Dark Mode) ---
   const themeClasses = {
-    bg: darkMode ? 'bg-slate-900' : 'bg-slate-50',
-    text: darkMode ? 'text-slate-100' : 'text-slate-800',
-    card: darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200',
-    cardHover: darkMode ? 'hover:border-slate-600' : 'hover: border-blue-200',
-    input: darkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-700',
-    inputBg: darkMode ? 'bg-slate-800' : 'bg-slate-50',
-    muted: darkMode ? 'text-slate-400' : 'text-slate-500',
-    border: darkMode ? 'border-slate-700' : 'border-slate-200',
+    bg: 'bg-slate-900',
+    text: 'text-slate-100',
+    card: 'bg-slate-800 border-slate-700',
+    cardHover: 'hover:border-slate-600',
+    input: 'bg-slate-700 border-slate-600 text-white',
+    inputBg: 'bg-slate-800',
+    muted: 'text-slate-400',
+    border: 'border-slate-700',
   };
 
   return (
@@ -1666,13 +1659,6 @@ export default function PES_Universal_Calculator() {
                 {sgpa}
               </div>
             </div>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-              title={darkMode ? 'Light Mode' : 'Dark Mode'}
-            >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
           </div>
         </div>
       </div>
@@ -2967,6 +2953,29 @@ export default function PES_Universal_Calculator() {
                 <Target className="w-5 h-5" /> Reverse Calculator
               </h2>
 
+            {subjects.some(sub => (marks[sub.id]?.esa && parseFloat(marks[sub.id]?.esa) > 0)) && (
+              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-sm text-amber-800 dark:text-amber-300">ESA Marks Detected (Subject Locked)</h4>
+                  <div className="text-xs text-amber-700 dark:text-amber-400 mt-1 space-y-1">
+                    <p>
+                      You have entered ESA marks for some subjects. These subjects will be treated as <strong>Fixed/Locked</strong> and will NOT be reverse-calculated.
+                    </p>
+                    <p>
+                      If you want to <strong>predict</strong> marks for a specific subject, please go back and <strong>clear its ESA score</strong>.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setActiveTab('subjects')}
+                    className="mt-3 text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-bold transition-colors"
+                  >
+                    Manage Subjects
+                  </button>
+                </div>
+              </div>
+            )}
+
               {/* ORIGINAL TEXT: Description */}
               <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
                 Set your desired SGPA and see exactly what you need to score in each ESA. Lock subjects where you're confident about your score.
@@ -2993,7 +3002,7 @@ export default function PES_Universal_Calculator() {
                     className="flex-1 bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
                     title="Shuffle: Find a different combination of grades"
                   >
-                    <Dice5 className={`w-4 h-4 ${shuffledResults ? 'animate-spin' : ''}`} /> Shuffle
+                    <Dice5 className="w-4 h-4" /> Shuffle
                   </button>
 
                   <button
@@ -3001,7 +3010,7 @@ export default function PES_Universal_Calculator() {
                     className="flex-1 bg-teal-600 hover:bg-teal-700 text-white p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
                     title="Balanced: Keeps scores even across subjects"
                   >
-                    <Scale className={`w-4 h-4 ${shuffledResults ? 'animate-pulse' : ''}`} /> Balanced
+                    <Scale className="w-4 h-4" /> Balanced
                   </button>
 
                   {shuffledResults && (
@@ -3106,7 +3115,7 @@ export default function PES_Universal_Calculator() {
                             <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
                           </div>
                           <span className="text-[9px] text-yellow-500 mt-0.5">
-                            {sub.isHardLocked ? 'Main Tab' : 'Manual'}
+                            {sub.isHardLocked ? 'Set in subjects tab' : 'Manual'}
                           </span>
                         </div>
                       ) : sub.alreadyAchieved ? (
