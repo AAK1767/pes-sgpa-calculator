@@ -2953,28 +2953,39 @@ export default function PES_Universal_Calculator() {
                 <Target className="w-5 h-5" /> Reverse Calculator
               </h2>
 
-            {subjects.some(sub => (marks[sub.id]?.esa && parseFloat(marks[sub.id]?.esa) > 0)) && (
-              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                <div>
-                  <h4 className="font-bold text-sm text-amber-800 dark:text-amber-300">ESA Marks Detected (Subject Locked)</h4>
-                  <div className="text-xs text-amber-700 dark:text-amber-400 mt-1 space-y-1">
-                    <p>
-                      You have entered ESA marks for some subjects. These subjects will be treated as <strong>Fixed/Locked</strong> and will NOT be reverse-calculated.
-                    </p>
-                    <p>
-                      If you want to <strong>predict</strong> marks for a specific subject, please go back and <strong>clear its ESA score</strong>.
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => setActiveTab('subjects')}
-                    className="mt-3 text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-bold transition-colors"
-                  >
-                    Manage Subjects
-                  </button>
+              {/* ESA Marks Detected Warning (Collapsible) */}
+              {subjects.some(sub => (marks[sub.id]?.esa && parseFloat(marks[sub.id]?.esa) > 0)) && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 overflow-hidden mb-6">
+                  <details className="group">
+                    <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-amber-100/50 dark:hover:bg-amber-900/40 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <h4 className="font-bold text-sm text-amber-800 dark:text-amber-300">
+                          ESA Marks Detected (Subject Locked)
+                        </h4>
+                      </div>
+                      <ChevronDown className="w-5 h-5 text-amber-600 dark:text-amber-400 opacity-70 transition-transform group-open:rotate-180" />
+                    </summary>
+
+                    <div className="px-4 pb-4 pt-0">
+                      <div className="text-xs text-amber-700 dark:text-amber-400 mt-1 space-y-2 border-t border-amber-200 dark:border-amber-800/50 pt-3">
+                        <p>
+                          You have entered ESA marks for some subjects. These subjects will be treated as <strong>Fixed/Locked</strong> and will NOT be reverse-calculated.
+                        </p>
+                        <p>
+                          If you want to <strong>predict</strong> marks for a specific subject, please go back and <strong>clear its ESA score</strong>.
+                        </p>
+                        <button
+                          onClick={() => setActiveTab('subjects')}
+                          className="mt-2 text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-bold transition-colors"
+                        >
+                          Manage Subjects
+                        </button>
+                      </div>
+                    </div>
+                  </details>
                 </div>
-              </div>
-            )}
+              )}
 
               {/* ORIGINAL TEXT: Description */}
               <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
