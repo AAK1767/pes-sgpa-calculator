@@ -132,11 +132,21 @@ export default function PES_Universal_Calculator() {
     return saved ? JSON.parse(saved) : { sgpa: '', credits: '' };
   });
 
-  // --- CGPA Tab State ---
-  // We initialize 8 semesters with empty values
-  const [semesterData, setSemesterData] = useState(
-    Array(8).fill(null).map((_, i) => ({ id: i + 1, sgpa: '', credits: '' }))
-  );
+  // --- CGPA Tab State (With Persistence) ---
+  const [semesterData, setSemesterData] = useState(() => {
+    // 1. Try to load from local storage
+    const saved = localStorage.getItem('pes_cgpa_semesters');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    // 2. Fallback to empty default
+    return Array(8).fill(null).map((_, i) => ({ id: i + 1, sgpa: '', credits: '' }));
+  });
+
+  // --- Persistence Effect for CGPA ---
+  useEffect(() => {
+    localStorage.setItem('pes_cgpa_semesters', JSON.stringify(semesterData));
+  }, [semesterData]);
 
   const updateSemester = (id, field, value) => {
     setSemesterData(prev => prev.map(sem =>
