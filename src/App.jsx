@@ -491,10 +491,20 @@ export default function PES_Universal_Calculator() {
       if (numValue > max) numValue = max;
     }
 
-    setMarks(prev => ({
-      ...prev,
-      [id]: { ...prev[id], [field]: numValue }
-    }));
+    setMarks(prev => {
+      const newMarks = { ...prev, [id]: { ...prev[id], [field]: numValue } };
+      
+      // If a Max field is updated, ensure the corresponding score doesn't exceed it
+      if (field.includes('Max')) {
+        const scoreField = field.replace('Max', '');
+        const currentScore = newMarks[id][scoreField];
+        if (currentScore !== '' && currentScore !== undefined && currentScore > numValue) {
+          newMarks[id][scoreField] = numValue;
+        }
+      }
+      
+      return newMarks;
+    });
   };
 
   const handleSubjectChange = (id, field, value) => {
@@ -1882,7 +1892,7 @@ export default function PES_Universal_Calculator() {
                                 <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
-                                  value={subject.isa1Max ?? 40}
+                                  value={marks[subject.id]?.isa1Max ?? 40}
                                   onChange={(e) => handleMarkChange(subject.id, 'isa1Max', e.target.value)}
                                   className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
@@ -1912,7 +1922,7 @@ export default function PES_Universal_Calculator() {
                                 <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
-                                  value={subject.isa2Max ?? 40}
+                                  value={marks[subject.id]?.isa2Max ?? 40}
                                   onChange={(e) => handleMarkChange(subject.id, 'isa2Max', e.target.value)}
                                   className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
@@ -1942,7 +1952,7 @@ export default function PES_Universal_Calculator() {
                                 <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
-                                  value={subject.assignmentMax ?? 10}
+                                  value={marks[subject.id]?.assignmentMax ?? 10}
                                   onChange={(e) => handleMarkChange(subject.id, 'assignmentMax', e.target.value)}
                                   className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
@@ -1972,7 +1982,7 @@ export default function PES_Universal_Calculator() {
                                 <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
-                                  value={subject.labMax ?? 20}
+                                  value={marks[subject.id]?.labMax ?? 20}
                                   onChange={(e) => handleMarkChange(subject.id, 'labMax', e.target.value)}
                                   className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
@@ -2001,7 +2011,7 @@ export default function PES_Universal_Calculator() {
                               <span className={themeClasses.muted}>/</span>
                               <input
                                 type="number"
-                                value={subject.esaMax ?? 100}
+                                value={marks[subject.id]?.esaMax ?? 100}
                                 onChange={(e) => handleMarkChange(subject.id, 'esaMax', e.target.value)}
                                 className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                               />
