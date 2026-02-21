@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import {
@@ -1635,47 +1636,38 @@ export default function PES_Universal_Calculator() {
 
   const finalCgpa = calculateCGPA();
 
-  // --- Theme Classes (Softened "Eye-Care" Black) ---
+  // --- Theme Classes (Premium Dark) ---
   const themeClasses = {
-    bg: 'bg-black',                       
-    text: 'text-zinc-300',                // CHANGED: Softer silver text (no more flashbang)
-    card: 'bg-zinc-950 border-zinc-800',  
-    cardHover: 'hover:border-zinc-700',   
-    input: 'bg-zinc-900 border-zinc-800 text-zinc-200 focus:ring-2 focus:ring-zinc-700', // Softer input text
-    inputBg: 'bg-zinc-900',
-    muted: 'text-zinc-500',               
-    border: 'border-zinc-800',            
+    bg: 'bg-[#06060a]',
+    text: 'text-zinc-300',
+    card: 'bg-[#0c0c14]/90 backdrop-blur-sm border-white/[0.06]',
+    cardHover: 'hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20',
+    input: 'bg-[#0e0e18] border-white/[0.08] text-zinc-200 placeholder:text-zinc-600 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all',
+    inputBg: 'bg-[#0e0e18]',
+    muted: 'text-zinc-500',
+    border: 'border-white/[0.06]',
   };
 
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24`}>
-      {/* Hides the up/down arrows in number inputs */}
-      <style>{`
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-          -webkit-appearance: none; 
-          margin: 0; 
-        }
-        input[type=number] {
-          -moz-appearance: textfield;
-        }
-      `}</style>
-      {/* Modern Glass Header */}
-      <div className="bg-black/80 backdrop-blur-xl border-b border-zinc-800 text-zinc-200 py-4 px-4 md:p-6 sticky top-0 z-50">
+      {/* Glass Header */}
+      <div className="bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06] text-zinc-200 py-4 px-4 md:p-6 sticky top-0 z-50 shadow-xl shadow-black/40">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-              <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" />
-              PESU Calculator
+            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2.5">
+              <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
+              </div>
+              <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
             </h1>
-            <p className="text-blue-200 text-[10px] md:text-xs mt-1 font-medium tracking-wide">
-              UNIVERSAL • ANY CYCLE • AUTO-SAVES • ANY SEM • ANY COLLEGE • ANY SCHEME
+            <p className="text-zinc-500 text-[10px] md:text-xs mt-1.5 font-medium tracking-widest uppercase">
+              Universal &bull; Auto-Saves &bull; Any College
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="text-[10px] md:text-xs text-blue-200 uppercase tracking-wider font-semibold">Predicted SGPA</div>
-              <div className={`text-2xl md:text-4xl font-extrabold ${parseFloat(sgpa) >= targetSgpa ? 'text-green-400' : 'text-zinc-200'}`}>
+              <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider font-semibold">SGPA</div>
+              <div className={`text-3xl md:text-4xl font-black tabular-nums tracking-tight ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-white'}`}>
                 {sgpa}
               </div>
             </div>
@@ -1683,41 +1675,41 @@ export default function PES_Universal_Calculator() {
         </div>
       </div>
 
-      {/* Modern Navigation Tabs */}
-      <div className={`hidden md:block sticky top-[72px] md:top-[89px] z-40 bg-black/80 backdrop-blur-xl border-b ${themeClasses.border}`}>
-        <div className="max-w-4xl mx-auto flex overflow-x-auto">
+      {/* Desktop Navigation */}
+      <div className="hidden md:block sticky top-[72px] md:top-[89px] z-40 bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06]">
+        <div className="max-w-4xl mx-auto flex overflow-x-auto gap-1 px-2 py-1.5">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            // Added 'highlight: true' and specific colors for the core tabs
-            { id: 'analysis', label: 'Analysis', icon: Activity, highlight: true, color: 'text-blue-600 dark:text-blue-400' },
-            { id: 'reverse', label: 'Reverse Calc', icon: Target, highlight: true, color: 'text-teal-600 dark:text-teal-400' },
+            { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
+            { id: 'reverse', label: 'Reverse Calc', icon: Target, accent: 'emerald' },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === tab.id
-                ? 'border-blue-500 text-blue-600'
-                : `border-transparent hover:text-blue-500 ${tab.highlight ? tab.color : themeClasses.muted}`
+              className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+                ? 'bg-white/[0.08] text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]'
                 }`}
             >
-              <tab.icon className={`w-4 h-4 ${tab.highlight && activeTab !== tab.id ? 'opacity-80' : ''}`} />
+              <tab.icon className="w-4 h-4" />
               {tab.label}
-
-              {/* The Pulsing Dot for Highlighted Tabs */}
-              {tab.highlight && activeTab !== tab.id && (
-                <span className="absolute top-2 right-1 flex h-1.5 w-1.5">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${tab.id === 'analysis' ? 'bg-blue-400' : 'bg-teal-400'}`}></span>
-                  <span className={`relative inline-flex rounded-full h-1.5 w-1.5 ${tab.id === 'analysis' ? 'bg-blue-500' : 'bg-teal-500'}`}></span>
-                </span>
+              {tab.accent && activeTab !== tab.id && (
+                <span className={`w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-glow-pulse`} />
               )}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
+      <motion.div
+        key={activeTab}
+        className="max-w-4xl mx-auto p-4 space-y-6"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
 
         {/* ==================== SUBJECTS TAB ==================== */}
         {activeTab === 'subjects' && (
@@ -1728,15 +1720,15 @@ export default function PES_Universal_Calculator() {
               {/* LEFT SIDE: Text Content (Unified Collapsible for Desktop & Mobile) */}
               <div className="flex-1">
                 <details className="group">
-                  <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-600 hover:text-blue-700 transition-colors">
+                  <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-400 hover:text-blue-300 transition-colors">
                     <Settings className="w-5 h-5 flex-shrink-0" />
-                    <span className="font-bold text-slate-700 dark:text-slate-200">Universal Calculator</span>
-                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded-full text-blue-700 dark:text-blue-300 flex items-center">
+                    <span className="font-bold text-zinc-200">Universal Calculator</span>
+                    <span className="text-[10px] bg-blue-500/10 px-2 py-0.5 rounded-full text-blue-400 flex items-center">
                       Info <ChevronDown className="w-3 h-3 ml-1 transition-transform group-open:rotate-180" />
                     </span>
                   </summary>
 
-                  <div className={`mt-3 text-sm ${themeClasses.muted} leading-relaxed pl-7 border-t border-slate-100 dark:border-slate-800 pt-3 space-y-2`}>
+                  <div className={`mt-3 text-sm ${themeClasses.muted} leading-relaxed pl-7 border-t border-white/[0.06] pt-3 space-y-2`}>
                     <p>
                       Works for all semesters. 5-credit courses scale from 120% to 100%.
                     </p>
@@ -1751,7 +1743,7 @@ export default function PES_Universal_Calculator() {
               </div>
 
               {/* RIGHT SIDE: Buttons (Always Visible) */}
-              <div className="flex flex-wrap gap-2 items-center justify-end border-t border-slate-100 dark:border-slate-800 pt-3 md:border-none md:pt-0">
+              <div className="flex flex-wrap gap-2 items-center justify-end border-t border-white/[0.06] pt-3 md:border-none md:pt-0">
                 <select
                   onChange={(e) => loadPreset(e.target.value)}
                   className={`${themeClasses.input} px-3 py-2 rounded-lg text-xs border max-w-[130px] md:max-w-none`}
@@ -1764,24 +1756,24 @@ export default function PES_Universal_Calculator() {
                 </select>
 
                 <div className="flex gap-1">
-                  <button onClick={undo} disabled={undoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${undoStack.length === 0 ? 'opacity-30' : 'hover:bg-blue-50 dark:hover:bg-slate-700'}`}>
+                  <button onClick={undo} disabled={undoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${undoStack.length === 0 ? 'opacity-30' : 'hover:bg-white/[0.06]'}`}>
                     <Undo2 className="w-4 h-4" />
                   </button>
-                  <button onClick={redo} disabled={redoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${redoStack.length === 0 ? 'opacity-30' : 'hover:bg-blue-50 dark:hover:bg-slate-700'}`}>
+                  <button onClick={redo} disabled={redoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${redoStack.length === 0 ? 'opacity-30' : 'hover:bg-white/[0.06]'}`}>
                     <Redo2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <button onClick={exportData} className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs hover:bg-blue-50 dark:hover:bg-slate-700`}>
+                <button onClick={exportData} className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs hover:bg-white/[0.06]`}>
                   <Download className="w-3 h-3" /> <span className="hidden sm:inline">Export</span>
                 </button>
 
-                <label className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700`}>
+                <label className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs cursor-pointer hover:bg-white/[0.06]`}>
                   <Upload className="w-3 h-3" /> <span className="hidden sm:inline">Import</span>
                   <input type="file" accept=".json" onChange={importData} className="hidden" />
                 </label>
 
-                <button onClick={clearAll} className="flex items-center gap-1 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800 transition-colors text-xs">
+                <button onClick={clearAll} className="flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-2 rounded-lg border border-red-500/20 transition-colors text-xs">
                   <Eraser className="w-3 h-3" />
                 </button>
               </div>
@@ -1826,7 +1818,7 @@ export default function PES_Universal_Calculator() {
                 const isExpanded = expandedSubject === subject.id;
 
                 return (
-                  <div key={subject.id} className={`${themeClasses.card} rounded-xl shadow-sm border transition-all duration-200 ${isExpanded ? 'border-blue-400 ring-2 ring-blue-500/20' : themeClasses.cardHover}`}>
+                  <div key={subject.id} className={`${themeClasses.card} rounded-xl border transition-all duration-300 ease-out ${isExpanded ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.07)] ring-1 ring-blue-500/10' : themeClasses.cardHover}`}>
                     {/* Subject Header */}
                     <div
                       className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer rounded-t-xl gap-4"
@@ -1835,11 +1827,11 @@ export default function PES_Universal_Calculator() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-bold text-lg">{subject.name}</h3>
-                          <span className={`text-xs font-bold ${darkMode ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'} px-2 py-0.5 rounded-full border ${themeClasses.border}`}>
+                          <span className="text-xs font-bold bg-white/[0.08] text-zinc-300 px-2 py-0.5 rounded-full border border-white/[0.06]">
                             {subject.credits} Cr
                           </span>
                           {totalWeight > 100 && (
-                            <span className="text-xs font-bold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-700">
+                            <span className="text-xs font-bold bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20">
                               Scaled ({totalWeight}%)
                             </span>
                           )}
@@ -1854,18 +1846,18 @@ export default function PES_Universal_Calculator() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-zinc-200 shadow-sm ${gradeInfo.bg}`}>
+                      <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-lg ${gradeInfo.bg}`}>
                             {gradeInfo.grade}
                           </div>
-                          {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                          {isExpanded ? <ChevronUp className="w-5 h-5 text-zinc-400" /> : <ChevronDown className="w-5 h-5 text-zinc-400" />}
                         </div>
                       </div>
                     </div>
 
                     {/* Expanded Content */}
                     {isExpanded && (
-                      <div className={`p-4 border-t ${themeClasses.border} ${darkMode ? 'bg-slate-800/50' : 'bg-slate-50/50'} rounded-b-xl`}>
+                      <div className={`p-4 border-t ${themeClasses.border} bg-black/20 rounded-b-xl`}>
                         {/* DYNAMIC INPUTS GRID (Fixed: Allows 0 marks) */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
 
@@ -1991,9 +1983,9 @@ export default function PES_Universal_Calculator() {
                           )}
 
                           {/* SLOT 5: ESA */}
-                          <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-200 dark:border-blue-900/30`}>
+                          <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-500/20`}>
                             <div className="flex justify-between items-center mb-1">
-                              <span className="font-bold text-xs text-blue-600 dark:text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
+                              <span className="font-bold text-xs text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
                                 {subject.customConfig?.labels.esa || "ESA"}
                               </span>
                               <span className={`text-[10px] ${themeClasses.muted}`}>
@@ -2023,7 +2015,7 @@ export default function PES_Universal_Calculator() {
                         {/* Quick Config */}
                         <div className={`mt-4 pt-4 border-t ${themeClasses.border}`}>
                           <details className="group">
-                            <summary className={`flex items-center gap-2 text-xs font-bold ${themeClasses.muted} uppercase tracking-wide cursor-pointer hover:text-blue-600 select-none transition-colors`}>
+                            <summary className={`flex items-center gap-2 text-xs font-bold ${themeClasses.muted} uppercase tracking-wide cursor-pointer hover:text-blue-400 select-none transition-colors`}>
                               <Settings className="w-4 h-4" /> Edit Subject Details
                             </summary>
                             <div className={`mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 ${themeClasses.card} rounded-lg border`}>
@@ -2113,21 +2105,21 @@ export default function PES_Universal_Calculator() {
                                 </div>
 
                                 {/* --- Grade Cutoff Editor --- */}
-                                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 w-full">
+                                <div className="mt-4 pt-3 border-t border-white/[0.08] w-full">
                                   <details>
-                                    <summary className="text-xs font-bold cursor-pointer hover:text-blue-500 flex items-center gap-1 select-none text-slate-500">
+                                    <summary className="text-xs font-bold cursor-pointer hover:text-blue-500 flex items-center gap-1 select-none text-zinc-500">
                                       <Target className="w-3 h-3" /> Advanced: Adjust Grade Cutoffs (Curve)
                                     </summary>
 
-                                    <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded border border-yellow-200 dark:border-yellow-800/30">
-                                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-2">
+                                    <div className="mt-3 p-3 bg-yellow-500/5 rounded border border-yellow-500/15">
+                                      <p className="text-[10px] text-zinc-400 mb-2">
                                         If the paper was hard and cutoffs were lowered, adjust them here.
                                       </p>
 
                                       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                         {(subject.customGradeMap || GradeMap).filter(g => g.gp > 0).map((g, idx) => (
                                           <div key={g.grade} className="flex flex-col">
-                                            <label className={`text-[10px] font-bold text-center mb-1 ${g.color || 'text-slate-500'}`}>
+                                            <label className={`text-[10px] font-bold text-center mb-1 ${g.color || 'text-zinc-500'}`}>
                                               {g.grade} (&ge;)
                                             </label>
                                             <input
@@ -2168,7 +2160,7 @@ export default function PES_Universal_Calculator() {
 
                                 <button
                                   onClick={() => removeSubject(subject.id)}
-                                  className="w-full text-red-600 text-xs border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover: bg-red-900/50 p-2 rounded flex items-center justify-center gap-2 mt-2"
+                                  className="w-full text-red-400 text-xs border border-red-500/20 bg-red-500/10 hover:bg-red-500/15  p-2 rounded flex items-center justify-center gap-2 mt-2"
                                 >
                                   <Trash2 className="w-3 h-3" /> Remove Subject
                                 </button>
@@ -2187,14 +2179,14 @@ export default function PES_Universal_Calculator() {
 
             <button
               onClick={addNewSubject}
-              className={`w-full py-3 border-2 border-dashed ${themeClasses.border} rounded-xl ${themeClasses.muted} hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all flex items-center justify-center gap-2 font-bold text-sm`}
+              className={`w-full py-3 border-2 border-dashed ${themeClasses.border} rounded-xl ${themeClasses.muted} hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200 flex items-center justify-center gap-2 font-bold text-sm`}
             >
               <Plus className="w-4 h-4" /> Add Custom Subject
             </button>
 
             {/* Subtle "Next Steps" Footer */}
             <div className="mt-8 mb-2 flex justify-center">
-              <div className={`inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 p-1 sm:p-2 sm:px-4 rounded-xl border ${darkMode ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-200'} transition-all`}>
+              <div className={`inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 p-1 sm:p-2 sm:px-4 rounded-xl border bg-[#0e0e18]/50 border-white/[0.06] transition-all`}>
 
                 <span className={`text-xs font-semibold ${themeClasses.muted} hidden sm:block`}>
                   Done updating?
@@ -2203,14 +2195,14 @@ export default function PES_Universal_Calculator() {
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => setActiveTab('analysis')}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-blue-600 bg-blue-100/50 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/40 rounded-lg transition-colors"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/15 rounded-lg transition-colors"
                   >
                     <Activity className="w-3.5 h-3.5" /> Check Analysis
                   </button>
 
                   <button
                     onClick={() => setActiveTab('reverse')}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-teal-600 bg-teal-100/50 hover:bg-teal-100 dark:bg-teal-900/20 dark:text-teal-300 dark:hover:bg-teal-900/40 rounded-lg transition-colors"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-teal-300 bg-teal-500/10 hover:bg-teal-500/15 rounded-lg transition-colors"
                   >
                     <Target className="w-3.5 h-3.5" /> Plan Targets
                   </button>
@@ -2222,20 +2214,20 @@ export default function PES_Universal_Calculator() {
             {alerts.length > 0 && (
               <div className="space-y-2">
                 {alerts.filter(a => a.type === 'critical').map((alert, i) => (
-                  <div key={i} className="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 p-3 rounded-r-lg flex items-start gap-2">
-                    <AlertCircle className="w-5 h-5 text-red-600 dark: text-red-400 flex-shrink-0 mt-0.5" />
+                  <div key={i} className="bg-red-500/10 border-l-4 border-red-500 p-3 rounded-r-lg flex items-start gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold text-red-800 dark:text-red-300">{alert.subject}:  </span>
-                      <span className="text-red-700 dark:text-red-400 text-sm">{alert.message}</span>
+                      <span className="font-bold text-red-300">{alert.subject}:  </span>
+                      <span className="text-red-400 text-sm">{alert.message}</span>
                     </div>
                   </div>
                 ))}
                 {alerts.filter(a => a.type === 'opportunity').slice(0, 2).map((alert, i) => (
-                  <div key={i} className="bg-blue-100 dark: bg-blue-900/30 border-l-4 border-blue-500 p-3 rounded-r-lg flex items-start gap-2">
-                    <Lightbulb className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div key={i} className="bg-blue-500/10 border-l-4 border-blue-500 p-3 rounded-r-lg flex items-start gap-2">
+                    <Lightbulb className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold text-blue-800 dark:text-blue-300">{alert.subject}:  </span>
-                      <span className="text-blue-700 dark:text-blue-400 text-sm">{alert.message}</span>
+                      <span className="font-bold text-blue-300">{alert.subject}:  </span>
+                      <span className="text-blue-400 text-sm">{alert.message}</span>
                     </div>
                   </div>
                 ))}
@@ -2245,7 +2237,7 @@ export default function PES_Universal_Calculator() {
             {/* ==================== ATTENDANCE CALCULATOR (Collapsible) ==================== */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
               <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
                   <div className="flex items-center gap-3">
                     {/* Icon */}
                     <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -2253,9 +2245,9 @@ export default function PES_Universal_Calculator() {
                     {/* Text Column */}
                     <div className="text-left">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-700 dark:text-slate-200">Quick Attendance Check</span>
+                      <span className="font-bold text-sm text-zinc-200">Quick Attendance Check</span>
                         {/* The 'Not Saved' Badge */}
-                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-slate-100 dark:bg-slate-800 border`}>Not saved</span>
+                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-white/[0.04] border`}>Not saved</span>
                       </div>
 
                       <p className={`text-xs ${themeClasses.muted} font-normal mt-0.5`}>
@@ -2266,7 +2258,7 @@ export default function PES_Universal_Calculator() {
                   <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
                 </summary>
 
-                <div className={`p-4 border-t ${themeClasses.border} bg-slate-50/50 dark:bg-slate-900/20`}>
+                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
 
                   {/* Inputs */}
                   <div className="grid grid-cols-2 gap-3 mb-4">
@@ -2296,16 +2288,16 @@ export default function PES_Universal_Calculator() {
                   {attendanceResult && (
                     <div className="space-y-3">
                       {/* Current Percentage Bar */}
-                      <div className={`p-3 rounded-lg ${attendanceResult.isAbove75 ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'}`}>
+                      <div className={`p-3 rounded-lg ${attendanceResult.isAbove75 ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
                         <div className="flex justify-between items-center mb-2">
-                          <span className={`text-xs font-bold ${attendanceResult.isAbove75 ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                          <span className={`text-xs font-bold ${attendanceResult.isAbove75 ? 'text-green-300' : 'text-red-300'}`}>
                             Current Attendance
                           </span>
-                          <span className={`text-lg font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          <span className={`text-lg font-bold ${attendanceResult.isAbove75 ? 'text-green-400' : 'text-red-400'}`}>
                             {attendanceResult.currentPercentage}%
                           </span>
                         </div>
-                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                        <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
                           <div
                             className={`h-full transition-all ${attendanceResult.isAbove75 ? 'bg-green-500' : 'bg-red-500'}`}
                             style={{ width: `${Math.min(100, parseFloat(attendanceResult.currentPercentage))}%` }}
@@ -2313,7 +2305,7 @@ export default function PES_Universal_Calculator() {
                         </div>
                         <div className="flex justify-between text-[10px] mt-1">
                           <span className={themeClasses.muted}>0%</span>
-                          <span className={`font-bold ${attendanceResult.isAbove75 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>75% Required</span>
+                          <span className={`font-bold ${attendanceResult.isAbove75 ? 'text-green-400' : 'text-red-400'}`}>75% Required</span>
                           <span className={themeClasses.muted}>100%</span>
                         </div>
                       </div>
@@ -2321,29 +2313,29 @@ export default function PES_Universal_Calculator() {
                       {/* Action Cards */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {attendanceResult.isAbove75 ? (
-                          <div className="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg p-3">
+                          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
                             <div className="flex items-center gap-2 mb-1">
-                              <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                              <span className="text-xs font-bold text-green-700 dark:text-green-300">You're Safe!</span>
+                              <CheckCircle2 className="w-4 h-4 text-green-400" />
+                              <span className="text-xs font-bold text-green-300">You're Safe!</span>
                             </div>
-                            <p className="text-sm text-green-800 dark:text-green-200">
+                            <p className="text-sm text-green-200">
                               You can miss up to <strong className="text-lg">{attendanceResult.canMiss}</strong> more class{attendanceResult.canMiss !== 1 ? 'es' : ''} and still stay above 75%.
                             </p>
                           </div>
                         ) : (
-                          <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg p-3">
+                          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                             <div className="flex items-center gap-2 mb-1">
-                              <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                              <span className="text-xs font-bold text-red-700 dark:text-red-300">Below 75%!</span>
+                              <AlertTriangle className="w-4 h-4 text-red-400" />
+                              <span className="text-xs font-bold text-red-300">Below 75%!</span>
                             </div>
-                            <p className="text-sm text-red-800 dark:text-red-200">
+                            <p className="text-sm text-red-200">
                               Attend the next <strong className="text-lg">{attendanceResult.needToAttend}</strong> class{attendanceResult.needToAttend !== 1 ? 'es' : ''} continuously to reach 75%.
                             </p>
                           </div>
                         )}
 
                         {/* Stats Card */}
-                        <div className={`${darkMode ? 'bg-slate-700/50' : 'bg-slate-100'} rounded-lg p-3`}>
+                        <div className={`bg-white/[0.04] rounded-lg p-3`}>
                           <div className="text-xs font-bold mb-2 opacity-70">Quick Stats</div>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             <div>
@@ -2377,25 +2369,25 @@ export default function PES_Universal_Calculator() {
             {/* ==================== QUICK SGPA ESTIMATOR (FROM GRADES) ==================== */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
               <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-md">
                       <span className="text-zinc-200 text-lg font-bold">✨</span>
                     </div>
                     <div className="text-left">
-                      <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">Quick SGPA Estimator</h3>
+                      <h3 className="font-bold text-sm text-zinc-200">Quick SGPA Estimator</h3>
                       <p className={`text-xs ${themeClasses.muted}`}>Calculate SGPA by directly selecting grades</p>
                     </div>
                   </div>
                   <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
                 </summary>
 
-                <div className={`p-4 border-t ${themeClasses.border} bg-slate-50/50 dark:bg-slate-900/20`}>
+                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
 
                   {/* Results Header */}
-                  <div className="flex items-center justify-between mb-4 bg-white dark:bg-slate-800 p-3 rounded-lg border shadow-sm">
+                  <div className="flex items-center justify-between mb-4 bg-[#0e0e18] p-3 rounded-lg border border-white/[0.06] shadow-sm">
                     <span className="text-xs font-bold uppercase opacity-50">Hypothetical SGPA</span>
-                    <span className="text-2xl font-black text-teal-600 dark:text-teal-400">
+                    <span className="text-2xl font-black text-teal-400">
                       {(() => {
                         let totalPoints = 0;
                         let totalCredits = 0;
@@ -2426,7 +2418,7 @@ export default function PES_Universal_Calculator() {
                         const scheme = sub.customGradeMap || GradeMap;
 
                         return (
-                          <div key={sub.id} className="flex items-center justify-between gap-3 p-2 bg-white dark:bg-slate-800 rounded border dark:border-slate-700">
+                          <div key={sub.id} className="flex items-center justify-between gap-3 p-2 bg-[#0e0e18] rounded border border-white/[0.06]">
                             <div className="flex-1 min-w-0">
                               <div className="text-xs font-bold truncate" title={sub.name}>{sub.name}</div>
                               <div className="text-[10px] opacity-50">{sub.credits} Credits</div>
@@ -2453,7 +2445,7 @@ export default function PES_Universal_Calculator() {
                   <div className="mt-3 flex justify-end">
                     <button
                       onClick={() => setManualGrades({})}
-                      className="text-xs text-red-500 hover:text-red-600 font-medium underline decoration-red-200 hover:decoration-red-500 underline-offset-2 transition-all"
+                      className="text-xs text-red-500 hover:text-red-400 font-medium underline decoration-red-500/30 hover:decoration-red-500 underline-offset-2 transition-all"
                     >
                       Reset All
                     </button>
@@ -2467,7 +2459,7 @@ export default function PES_Universal_Calculator() {
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-8`}>
               <button
                 onClick={() => setShowTemplateBuilder(!showTemplateBuilder)}
-                className={`w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors`}
+                className={`w-full p-4 flex items-center justify-between hover:bg-white/[0.03] hover:bg-white/[0.04] transition-colors`}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md">
@@ -2485,8 +2477,8 @@ export default function PES_Universal_Calculator() {
                 <div className={`p-4 border-t ${themeClasses.border} space-y-6 animate-in slide-in-from-top-2`}>
 
                   {/* Intro Text */}
-                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-4 rounded-lg border border-purple-200 dark:border-purple-800/30">
-                    <p className="text-sm text-purple-800 dark:text-purple-200">
+                  <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 from-purple-500/10 to-pink-500/10 p-4 rounded-lg border border-purple-500/20">
+                    <p className="text-sm text-purple-200">
                       <strong>Universal Mode:</strong> This calculator works for any college. Define your assessment pattern and grading scheme below, then click "Create Subject".
                     </p>
                   </div>
@@ -2536,7 +2528,7 @@ export default function PES_Universal_Calculator() {
                           /* CHANGED: 'flex-wrap' allows items to drop to next line on tiny screens */
                           className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2 rounded-lg border transition-all ${comp.enabled
                             ? `${themeClasses.card} ${themeClasses.border}`
-                            : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-50'
+                            : 'bg-white/[0.04] border-white/[0.08] opacity-50'
                             }`}
                         >
                           <div className="flex items-center gap-2 flex-grow min-w-[120px]">
@@ -2553,7 +2545,7 @@ export default function PES_Universal_Calculator() {
                               onChange={(e) => updateTemplateComponent(idx, 'name', e.target.value)}
                               disabled={!comp.enabled}
                               /* CHANGED: reduced padding and font size for tightness */
-                              className={`flex-1 p-1 text-xs border-b border-transparent hover:border-slate-300 dark:hover:border-slate-600 bg-transparent focus:outline-none ${!comp.enabled && 'opacity-50'}`}
+                              className={`flex-1 p-1 text-xs border-b border-transparent hover:border-white/[0.1] bg-transparent focus:outline-none ${!comp.enabled && 'opacity-50'}`}
                             />
                           </div>
 
@@ -2585,7 +2577,7 @@ export default function PES_Universal_Calculator() {
 
                             <button
                               onClick={() => removeComponentFromTemplate(idx)}
-                              className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                              className="p-1 text-red-500 hover:bg-red-500/10 hover:bg-red-500/10 rounded"
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -2596,15 +2588,15 @@ export default function PES_Universal_Calculator() {
 
                     <button
                       onClick={addComponentToTemplate}
-                      className={`w-full py-2 border-2 border-dashed ${themeClasses.border} rounded-lg ${themeClasses.muted} hover:text-purple-600 hover:border-purple-400 transition-all flex items-center justify-center gap-2 text-xs font-bold`}
+                      className={`w-full py-2 border-2 border-dashed ${themeClasses.border} rounded-lg ${themeClasses.muted} hover:text-purple-400 hover:border-purple-500/40 transition-all flex items-center justify-center gap-2 text-xs font-bold`}
                     >
                       <Plus className="w-3 h-3" /> Add Component
                     </button>
 
                     {customTemplate.components.filter(c => c.enabled).reduce((sum, c) => sum + c.weight, 0) !== 100 && (
-                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-                        <div className="text-xs text-yellow-700 dark:text-yellow-300">
+                      <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3 flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <div className="text-xs text-yellow-300">
                           <strong>Note:</strong> Total weight is {customTemplate.components.filter(c => c.enabled).reduce((sum, c) => sum + c.weight, 0)}%. (PES uses 120%, but standard is 100%).
                         </div>
                       </div>
@@ -2640,7 +2632,7 @@ export default function PES_Universal_Calculator() {
                       </select>
                     </div>
 
-                    <div className={`p-3 rounded-lg border ${themeClasses.border} ${darkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
+                    <div className={`p-3 rounded-lg border ${themeClasses.border} bg-[#0e0e18]/50`}>
                       <div className="space-y-2">
                         <div className="grid grid-cols-12 gap-2 text-[10px] uppercase font-bold opacity-50 px-1">
                           <div className="col-span-3">Grade</div>
@@ -2669,7 +2661,7 @@ export default function PES_Universal_Calculator() {
                               onChange={(e) => updateCustomGrade(idx, 'gp', e.target.value)}
                               className={`col-span-4 p-1 text-xs text-center border rounded ${themeClasses.input}`}
                             />
-                            <button onClick={() => removeCustomGrade(idx)} className="col-span-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded flex justify-center">
+                            <button onClick={() => removeCustomGrade(idx)} className="col-span-1 text-red-500 hover:bg-red-500/10 hover:bg-red-500/10 rounded flex justify-center">
                               <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
@@ -2677,7 +2669,7 @@ export default function PES_Universal_Calculator() {
                       </div>
                       <button
                         onClick={addCustomGrade}
-                        className="mt-3 text-xs text-purple-600 hover:underline flex items-center gap-1 w-full justify-center"
+                        className="mt-3 text-xs text-purple-400 hover:underline flex items-center gap-1 w-full justify-center"
                       >
                         <Plus className="w-3 h-3" /> Add Grade Row
                       </button>
@@ -2685,14 +2677,14 @@ export default function PES_Universal_Calculator() {
 
                     <button
                       onClick={applyGradingSchemeToAll}
-                      className="w-full py-2 text-xs bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center gap-2"
+                      className="w-full py-2 text-xs bg-indigo-500/10 text-indigo-300 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center gap-2"
                     >
                       <Zap className="w-3 h-3" /> Apply Scheme to ALL Subjects
                     </button>
                   </div>
 
                   {/* Create Button */}
-                  <div className="flex gap-3 pt-4 border-t dark:border-slate-700">
+                  <div className="flex gap-3 pt-4 border-t border-white/[0.06]">
                     <button
                       onClick={applyCustomTemplate}
                       className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-zinc-200 rounded-lg font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2"
@@ -2711,13 +2703,13 @@ export default function PES_Universal_Calculator() {
         {activeTab === 'analysis' && (
           <div className="space-y-6">
             {/* Target Analyzer (Top Cards) */}
-            <div className="bg-zinc-950 rounded-xl shadow-lg p-6 text-zinc-200 border border-zinc-800">
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 border border-white/[0.06]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <h2 className="text-lg font-bold flex items-center gap-2 text-yellow-400">
                   <Activity className="w-5 h-5" /> Target Analysis
                 </h2>
-                <div className="flex items-center gap-2 bg-slate-700 px-3 py-2 rounded-lg">
-                  <span className="text-xs text-slate-400 uppercase font-bold">Target SGPA</span>
+                <div className="flex items-center gap-2 bg-white/[0.08] px-3 py-2 rounded-lg">
+                  <span className="text-xs text-zinc-400 uppercase font-bold">Target SGPA</span>
                   <input
                     type="number"
                     step="0.1"
@@ -2733,21 +2725,21 @@ export default function PES_Universal_Calculator() {
               {/* Grid with Range */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {/* Range Card */}
-                <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 col-span-2 relative overflow-hidden group">
+                <div className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.06] col-span-2 relative overflow-hidden group">
                   <div className="flex justify-between items-end mb-2">
                     <div>
-                      <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Achievable Range</div>
+                      <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">Achievable Range</div>
                       <div className="text-2xl font-bold text-zinc-200 flex items-baseline gap-2">
-                        {sgpaRange.min} <span className="text-sm text-slate-500 font-normal">to</span> {sgpaRange.max}
+                        {sgpaRange.min} <span className="text-sm text-zinc-500 font-normal">to</span> {sgpaRange.max}
                       </div>
                     </div>
                     <Activity className="w-8 h-8 text-slate-600 group-hover:text-blue-500/50 transition-colors" />
                   </div>
-                  <div className="w-full bg-slate-800 h-2 rounded-full mt-2 overflow-hidden relative">
+                  <div className="w-full bg-[#0e0e18] h-2 rounded-full mt-2 overflow-hidden relative">
                     <div className="absolute h-full bg-blue-500/30" style={{ left: `${(sgpaRange.min / 10) * 100}%`, right: `${100 - (sgpaRange.max / 10) * 100}%` }} />
                     <div className="absolute h-full w-1 bg-yellow-400 top-0 z-10" style={{ left: `${(Math.min(Math.max(sgpa, sgpaRange.min), sgpaRange.max) / 10) * 100}%` }} />
                   </div>
-                  <div className="flex justify-between text-[9px] text-slate-500 mt-1 font-mono">
+                  <div className="flex justify-between text-[9px] text-zinc-500 mt-1 font-mono">
                     <span>{sgpaRange.min}</span>
                     <span className="text-yellow-500 font-bold">Curr: {sgpa}</span>
                     <span>{sgpaRange.max}</span>
@@ -2755,11 +2747,11 @@ export default function PES_Universal_Calculator() {
                 </div>
 
                 {/* Target Gap */}
-                <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600 relative overflow-hidden">
+                <div className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.06] relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-2 opacity-10"><Target className="w-10 h-10" /></div>
                   <div className="text-2xl font-bold">{metrics.allowableLoss.toFixed(1)}</div>
-                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">GP Budget</div>
-                  <p className="text-[10px] text-slate-500 mt-1">Points you can lose to hit {targetSgpa}</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">GP Budget</div>
+                  <p className="text-[10px] text-zinc-500 mt-1">Points you can lose to hit {targetSgpa}</p>
                 </div>
 
                 {/* Momentum */}
@@ -2775,7 +2767,7 @@ export default function PES_Universal_Calculator() {
               <div className="space-y-3 md:space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
 
                 {/* Table Header (Desktop Only) */}
-                <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-slate-500 uppercase font-bold pb-2 border-b border-slate-700 sticky top-0 bg-slate-800 z-10">
+                <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-zinc-500 uppercase font-bold pb-2 border-b border-white/[0.06] sticky top-0 bg-[#0c0c14] z-10">
                   <div className="col-span-3">Subject</div>
                   <div className="col-span-2 text-center">Momentum</div>
                   <div className="col-span-2 text-center text-zinc-200/90">Pass (40)</div>
@@ -2793,18 +2785,18 @@ export default function PES_Universal_Calculator() {
                     <div
                       key={i}
                       className={`
-                        flex flex-col gap-3 p-3 rounded-xl border border-slate-700/50 bg-slate-800/40
-                        md:grid md:grid-cols-12 md:gap-2 md:items-center md:py-2 md:border-b md:border-t-0 md:border-x-0 md:border-slate-700/50 md:bg-transparent md:rounded-none md:hover:bg-slate-700/30
+                        flex flex-col gap-3 p-3 rounded-xl border border-white/[0.04] bg-white/[0.02]
+                        md:grid md:grid-cols-12 md:gap-2 md:items-center md:py-2 md:border-b md:border-t-0 md:border-x-0 md:border-white/[0.04] md:bg-transparent md:rounded-none md:hover:bg-white/[0.03]
                       `}
                     >
                       {/* Header: Name & GP */}
                       <div className="flex items-center justify-between md:contents">
-                        <div className="md:col-span-3 truncate text-slate-200 font-bold md:font-medium text-sm">
+                        <div className="md:col-span-3 truncate text-zinc-200 font-bold md:font-medium text-sm">
                           {d.name}
                         </div>
                         <div className="md:hidden flex items-center gap-2">
-                          <span className="text-[10px] uppercase text-slate-500 font-bold">Curr GP</span>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
+                          <span className="text-[10px] uppercase text-zinc-500 font-bold">Curr GP</span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/[0.1] text-zinc-300'}`}>
                             {d.currentGP}
                           </span>
                         </div>
@@ -2814,16 +2806,16 @@ export default function PES_Universal_Calculator() {
                       <div className="grid grid-cols-2 gap-2 md:contents">
 
                         {/* 1. Momentum */}
-                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">Momentum</span>
-                          <span className={`font-bold text-lg md:text-sm ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-slate-300' : 'text-red-400'}`}>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">Momentum</span>
+                          <span className={`font-bold text-lg md:text-sm ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-zinc-300' : 'text-red-400'}`}>
                             {d.momentumScore}
                           </span>
                         </div>
 
                         {/* 2. Pass Requirement (Fixed Logic) */}
-                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">To Pass</span>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">To Pass</span>
                           {reqPass.safe === null ? (
                             <span className="text-red-500 text-xs font-bold">Impossible</span>
                           ) : reqPass.safe === 0 ? (
@@ -2833,12 +2825,12 @@ export default function PES_Universal_Calculator() {
                             </div>
                           ) : (
                             <div className="flex flex-col items-center">
-                              <span className={`font-mono font-bold text-base md:text-sm ${reqPass.requiresRounding ? 'text-orange-300' : 'text-slate-200'}`}>
+                              <span className={`font-mono font-bold text-base md:text-sm ${reqPass.requiresRounding ? 'text-orange-300' : 'text-zinc-200'}`}>
                                 {reqPass.safe}
                               </span>
                               {/* Show Min Value if it differs */}
                               {reqPass.minimum !== null && reqPass.minimum < reqPass.safe && (
-                                <div className="text-[9px] text-slate-500 leading-none">min: {reqPass.minimum}</div>
+                                <div className="text-[9px] text-zinc-500 leading-none">min: {reqPass.minimum}</div>
                               )}
                               {reqPass.requiresRounding && (
                                 <div className="text-[9px] text-orange-400 leading-none">*rounding</div>
@@ -2848,8 +2840,8 @@ export default function PES_Universal_Calculator() {
                         </div>
 
                         {/* 3. Target A */}
-                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">For A (80)</span>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For A (80)</span>
                           {d.reqA === null ? (
                             <span className="text-red-500 text-xs font-bold">Impossible</span>
                           ) : d.reqA === 0 ? (
@@ -2857,14 +2849,14 @@ export default function PES_Universal_Calculator() {
                           ) : (
                             <div className="flex flex-col items-center">
                               <span className={`font-mono font-bold text-base md:text-sm ${d.reqARequiresRounding ? 'text-orange-300' : 'text-blue-300'}`}>{d.reqA}</span>
-                              {d.reqAMin !== null && d.reqAMin < d.reqA && <div className="text-[9px] text-slate-500 leading-none">min: {d.reqAMin}</div>}
+                              {d.reqAMin !== null && d.reqAMin < d.reqA && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqAMin}</div>}
                             </div>
                           )}
                         </div>
 
                         {/* 4. Target S */}
-                        <div className="bg-slate-900/50 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-slate-500 uppercase font-bold mb-1">For S (90)</span>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For S (90)</span>
                           {d.reqS === null ? (
                             <span className="text-red-500 text-xs font-bold">Impossible</span>
                           ) : d.reqS === 0 ? (
@@ -2872,7 +2864,7 @@ export default function PES_Universal_Calculator() {
                           ) : (
                             <div className="flex flex-col items-center">
                               <span className={`font-mono font-bold text-base md:text-sm ${d.reqSRequiresRounding ? 'text-orange-300' : 'text-yellow-300'}`}>{d.reqS}</span>
-                              {d.reqSMin !== null && d.reqSMin < d.reqS && <div className="text-[9px] text-slate-500 leading-none">min: {d.reqSMin}</div>}
+                              {d.reqSMin !== null && d.reqSMin < d.reqS && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqSMin}</div>}
                             </div>
                           )}
                         </div>
@@ -2880,7 +2872,7 @@ export default function PES_Universal_Calculator() {
 
                       {/* Desktop GP (Hidden on Mobile) */}
                       <div className="hidden md:block col-span-1 text-center">
-                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-600 text-slate-300'}`}>
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/[0.1] text-zinc-300'}`}>
                           {d.currentGP}
                         </span>
                       </div>
@@ -2890,11 +2882,11 @@ export default function PES_Universal_Calculator() {
               </div>
 
               {/* Footer Notes */}
-              <div className="mt-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-                <div className="flex items-start gap-2 text-xs text-slate-400">
+              <div className="mt-4 p-3 bg-white/[0.04] rounded-lg border border-white/[0.06]">
+                <div className="flex items-start gap-2 text-xs text-zinc-400">
                   <Lightbulb className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-slate-300">Safe vs Minimum scores:</strong> The main number is the <strong>safe</strong> ESA score that guarantees the grade.
+                    <strong className="text-zinc-300">Safe vs Minimum scores:</strong> The main number is the <strong>safe</strong> ESA score that guarantees the grade.
                     The "min" value (when shown) is the absolute minimum that <em>might</em> work due to rounding up, but scoring the safe value is recommended.
                   </div>
                 </div>
@@ -2916,7 +2908,7 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* Smart Strategy Panel (Collapsible on Mobile to save space) */}
-            <div className={`${darkMode ? 'bg-slate-800' : 'bg-slate-800'} rounded-xl shadow-lg p-4 md:p-6 text-zinc-200 border ${darkMode ? 'border-slate-700' : 'border-slate-700'}`}>
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm rounded-xl shadow-2xl shadow-black/20 p-4 md:p-6 text-zinc-200 border border-white/[0.06]">
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4 text-green-400">
                 <Lightbulb className="w-5 h-5" /> Path to Target ({targetSgpa} SGPA)
               </h2>
@@ -2939,19 +2931,19 @@ export default function PES_Universal_Calculator() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs text-slate-400 mb-2">Most efficient upgrades:</p>
+                  <p className="text-xs text-zinc-400 mb-2">Most efficient upgrades:</p>
                   {strategy.plan.map((step, idx) => (
-                    <div key={idx} className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 flex items-start gap-3">
-                      <div className="bg-slate-800 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-slate-400 flex-shrink-0 mt-0.5">
+                    <div key={idx} className="bg-white/[0.04] p-3 rounded-lg border border-white/[0.06] flex items-start gap-3">
+                      <div className="bg-[#0e0e18] w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-zinc-400 flex-shrink-0 mt-0.5">
                         {idx + 1}
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm font-bold text-slate-200 flex justify-between items-center">
+                        <div className="text-sm font-bold text-zinc-200 flex justify-between items-center">
                           <span>{step.name}</span>
                           <span className="text-[10px] bg-indigo-900 text-indigo-200 px-1.5 py-0.5 rounded">+{step.gpGain.toFixed(1)} GP</span>
                         </div>
-                        <div className="text-xs text-slate-400 mt-1 flex items-center gap-1 flex-wrap">
-                          <span className="text-zinc-200 font-bold bg-slate-600 px-1.5 rounded">{step.esaNeeded}/{step.esaMax}</span>
+                        <div className="text-xs text-zinc-400 mt-1 flex items-center gap-1 flex-wrap">
+                          <span className="text-zinc-200 font-bold bg-white/[0.1] px-1.5 rounded">{step.esaNeeded}/{step.esaMax}</span>
                           <span>ESA for</span>
                           <span className={`font-bold ${step.toGrade === 'S' ? 'text-green-400' : 'text-blue-400'}`}>{step.toGrade}</span>
                         </div>
@@ -2967,29 +2959,29 @@ export default function PES_Universal_Calculator() {
         {/* ==================== REVERSE CALCULATOR TAB ==================== */}
         {activeTab === 'reverse' && (
           <div className="space-y-4">
-            <div className="bg-zinc-950 border border-emerald-900/30 rounded-xl shadow-lg p-4 text-zinc-200 relative overflow-hidden">
-              {/* Optional: Add a subtle glow effect */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none"></div>
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-emerald-500/10 rounded-xl shadow-2xl shadow-black/20 p-4 text-zinc-200 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/[0.07] blur-[60px] rounded-full pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/[0.04] blur-[50px] rounded-full pointer-events-none"></div>
               <h2 className="text-lg font-bold flex items-center gap-2 mb-2">
                 <Target className="w-5 h-5" /> Reverse Calculator
               </h2>
 
               {/* ESA Marks Detected Warning (Collapsible) */}
               {subjects.some(sub => (marks[sub.id]?.esa && parseFloat(marks[sub.id]?.esa) > 0)) && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 overflow-hidden mb-6">
+                <div className="rounded-xl border border-amber-200 bg-amber-500/10 border-amber-500/20 overflow-hidden mb-6">
                   <details className="group">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-amber-100/50 dark:hover:bg-amber-900/40 transition-colors">
+                    <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-amber-500/10 hover:bg-amber-500/15 transition-colors">
                       <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                        <h4 className="font-bold text-sm text-amber-800 dark:text-amber-300">
+                        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+                        <h4 className="font-bold text-sm text-amber-300">
                           ESA Marks Detected (Subject Locked)
                         </h4>
                       </div>
-                      <ChevronDown className="w-5 h-5 text-amber-600 dark:text-amber-400 opacity-70 transition-transform group-open:rotate-180" />
+                      <ChevronDown className="w-5 h-5 text-amber-400 opacity-70 transition-transform group-open:rotate-180" />
                     </summary>
 
                     <div className="px-4 pb-4 pt-0">
-                      <div className="text-xs text-amber-700 dark:text-amber-400 mt-1 space-y-2 border-t border-amber-200 dark:border-amber-800/50 pt-3">
+                      <div className="text-xs text-amber-400 mt-1 space-y-2 border-t border-amber-500/20/50 pt-3">
                         <p>
                           You have entered ESA marks for some subjects. These subjects will be treated as <strong>Fixed/Locked</strong> and will NOT be reverse-calculated.
                         </p>
@@ -3015,7 +3007,7 @@ export default function PES_Universal_Calculator() {
 
               {/* Controls: Input & Buttons (Compacted layout) */}
               <div className="flex flex-col gap-3 mb-4">
-                <div className="flex items-center gap-3 bg-white/20 px-3 py-2 rounded-lg w-full sm:w-auto">
+                <div className="flex items-center gap-3 bg-white/[0.08] px-3 py-2 rounded-lg w-full sm:w-auto">
                   <label className="text-sm font-semibold whitespace-nowrap">I want SGPA: </label>
                   <input
                     type="number"
@@ -3024,7 +3016,7 @@ export default function PES_Universal_Calculator() {
                     max="10"
                     value={reverseTargetSgpa}
                     onChange={(e) => setReverseTargetSgpa(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-white/20 border border-white/30 rounded-lg px-2 py-1 text-zinc-200 font-bold text-center text-lg focus:outline-none focus:border-white"
+                    className="w-full bg-white/[0.08] border border-white/[0.12] rounded-lg px-2 py-1 text-zinc-200 font-bold text-center text-lg focus:outline-none focus:border-white"
                   />
                 </div>
 
@@ -3112,7 +3104,7 @@ export default function PES_Universal_Calculator() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] opacity-70">
-                      <span className={`px-1.5 rounded ${darkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>{sub.credits} Cr</span>
+                      <span className={`px-1.5 rounded bg-white/[0.08]`}>{sub.credits} Cr</span>
                       {sub.isImpossible ? (
                         <span className="text-red-500 font-bold">Impossible</span>
                       ) : (
@@ -3140,8 +3132,8 @@ export default function PES_Universal_Calculator() {
                                 setLockedSubjects(prev => ({ ...prev, [sub.id]: val }));
                               }}
                               className={`w-12 p-1 text-center text-sm font-bold border rounded focus:outline-none ${sub.isHardLocked
-                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 cursor-not-allowed border-transparent'
-                                : 'bg-yellow-100 dark:bg-yellow-900/40 border-yellow-400 text-yellow-700 dark:text-yellow-300'
+                                ? 'bg-white/[0.04] text-zinc-500 cursor-not-allowed border-transparent'
+                                : 'bg-yellow-500/10 bg-yellow-500/15 border-yellow-400 text-yellow-300'
                                 }`}
                             />
                             <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
@@ -3184,8 +3176,8 @@ export default function PES_Universal_Calculator() {
                       disabled={sub.isHardLocked}
                       className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
                         sub.locked
-                          ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700 text-yellow-600 dark:text-yellow-400'
-                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-blue-500 hover:border-blue-300'
+                          ? 'bg-yellow-500/10 bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                          : 'bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-blue-500 hover:border-blue-300'
                         }`}
                     >
                       {sub.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -3196,7 +3188,7 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* ORIGINAL TEXT: Bottom Info */}
-            <div className="mt-6 p-4 bg-white/10 dark:bg-slate-800/50 rounded-lg border dark:border-slate-700">
+            <div className="mt-6 p-4 bg-white/[0.04] bg-white/[0.03] rounded-lg border border-white/[0.06]">
               <div className="flex items-start gap-2 text-sm">
                 <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div className="space-y-2">
@@ -3204,7 +3196,7 @@ export default function PES_Universal_Calculator() {
                     <strong>How to use:</strong> Lock subjects where you're confident about your ESA score.
                     The calculator will then adjust the requirements for other subjects to compensate.
                   </p>
-                  <p className="opacity-60 text-xs italic border-t border-slate-200 dark:border-slate-700 pt-2">
+                  <p className="opacity-60 text-xs italic border-t border-white/[0.08] pt-2">
                     <strong>Note:</strong> There are many combinations of grades that can achieve your target.
                     This result is just the most efficient path (requiring the least amount of total marks).
                   </p>
@@ -3217,8 +3209,8 @@ export default function PES_Universal_Calculator() {
               <div className="mt-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
                 <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <strong className="text-yellow-600 dark:text-yellow-200">Using Momentum Scores</strong>
-                  <p className="text-yellow-700 dark:text-yellow-100/70 text-xs mt-1 leading-relaxed">
+                  <strong className="text-yellow-200">Using Momentum Scores</strong>
+                  <p className="text-yellow-700 text-yellow-100/70 text-xs mt-1 leading-relaxed">
                     Some internals (like Lab/ISA2/Assignment) are empty. We are projecting these based on your current performance trend so the calculator doesn't panic. And also the max achievable SGPA might be higher than reality (since empty internals are optimistically filled).
                   </p>
                 </div>
@@ -3226,7 +3218,7 @@ export default function PES_Universal_Calculator() {
             )}
 
             {/* Minimum Passing Table (Restored & Scrollable for Mobile) */}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl shadow-lg p-6 mt-8">
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 mt-8">
               <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
                 <Calculator className="w-5 h-5 text-blue-500" /> Minimum ESA Scores Needed
               </h2>
@@ -3249,11 +3241,11 @@ export default function PES_Universal_Calculator() {
                   </thead>
                   <tbody>
                     {minimumPassingTable.map(sub => (
-                      <tr key={sub.id} className={`border-b ${themeClasses.border} hover:${darkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+                      <tr key={sub.id} className={`border-b ${themeClasses.border} hover:bg-white/[0.04]`}>
 
                         {/* CHANGED: Increased max-w to 150px for better readability on mobile */}
                         <td className="py-3 px-2 font-medium max-w-[150px] sm:max-w-none">
-                          <div className="truncate font-bold text-slate-700 dark:text-slate-200" title={sub.name}>
+                          <div className="truncate font-bold text-zinc-200" title={sub.name}>
                             {sub.name}
                           </div>
                           <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max: {sub.esaMax}</div>
@@ -3266,13 +3258,13 @@ export default function PES_Universal_Calculator() {
                               {!req?.possible ? (
                                 <span className="text-red-500 text-xs font-bold">✗</span>
                               ) : req.alreadyAchieved ? (
-                                <span className="text-green-600 dark:text-green-400 font-bold">✓</span>
+                                <span className="text-green-400 font-bold">✓</span>
                               ) : (
                                 <div>
-                                  <span className={`font-mono font-bold ${req.requiresRounding ? 'text-orange-600 dark:text-orange-400' :
-                                    req.easy ? 'text-green-600 dark:text-green-400' :
-                                      req.moderate ? 'text-blue-600 dark:text-blue-400' :
-                                        'text-orange-600 dark:text-orange-400'
+                                  <span className={`font-mono font-bold ${req.requiresRounding ? 'text-orange-400' :
+                                    req.easy ? 'text-green-400' :
+                                      req.moderate ? 'text-blue-400' :
+                                        'text-orange-400'
                                     }`}>
                                     {req.requiredEsa}
                                     {req.requiresRounding && '*'}
@@ -3294,13 +3286,13 @@ export default function PES_Universal_Calculator() {
               </div>
 
               <div className={`flex flex-wrap gap-4 mt-4 text-xs ${themeClasses.muted} pt-4 border-t ${themeClasses.border}`}>
-                <span><span className="text-green-600 dark:text-green-400 font-bold">✓</span> Already achieved</span>
-                <span><span className="text-green-600 dark:text-green-400">Green</span> Easy (≤50)</span>
-                <span><span className="text-blue-600 dark:text-blue-400">Blue</span> Moderate (51-75)</span>
-                <span><span className="text-orange-600 dark:text-orange-400">Orange</span> Hard (&gt;75)</span>
+                <span><span className="text-green-400 font-bold">✓</span> Already achieved</span>
+                <span><span className="text-green-400">Green</span> Easy (≤50)</span>
+                <span><span className="text-blue-400">Blue</span> Moderate (51-75)</span>
+                <span><span className="text-orange-400">Orange</span> Hard (&gt;75)</span>
                 <span><span className="text-red-500 font-bold">✗</span> Not possible</span>
                 <span><span className={themeClasses.muted}>(xx)</span> Best case (with rounding)</span>
-                <span><span className="text-orange-600 dark:text-orange-400">*</span> Requires rounding luck</span>
+                <span><span className="text-orange-400">*</span> Requires rounding luck</span>
               </div>
             </div>
           </div>
@@ -3311,13 +3303,14 @@ export default function PES_Universal_Calculator() {
           <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
 
             {/* Header & Result Card */}
-            <div className={`${themeClasses.card} p-6 rounded-2xl shadow-lg border ${themeClasses.border} text-center relative overflow-hidden`}>
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-500"></div>
+            <div className={`${themeClasses.card} p-6 rounded-2xl shadow-2xl border ${themeClasses.border} text-center relative overflow-hidden`}>
+              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-teal-400 via-blue-500 to-violet-500"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-teal-500/[0.06] blur-[40px] pointer-events-none"></div>
 
               <h2 className={`text-sm font-bold uppercase tracking-wider ${themeClasses.muted} mb-2`}>Cumulative GPA</h2>
 
               <div className="flex items-center justify-center gap-1">
-                <span className="text-5xl md:text-6xl font-black text-teal-600 dark:text-teal-400">
+                <span className="text-5xl md:text-6xl font-black text-teal-400">
                   {(() => {
                     const filledSems = semesterData.filter(s => s.sgpa && s.credits);
                     if (filledSems.length === 0) return "0.00";
@@ -3348,13 +3341,13 @@ export default function PES_Universal_Calculator() {
                   key={sem.id}
                   className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${(sem.sgpa && sem.credits)
                     ? `${themeClasses.card} border-teal-500/30 shadow-sm`
-                    : 'bg-slate-50 dark:bg-slate-800/50 border-transparent opacity-75 hover:opacity-100'
+                    : 'bg-white/[0.03] border-transparent opacity-75 hover:opacity-100'
                     }`}
                 >
                   {/* Semester Label */}
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${(sem.sgpa && sem.credits)
-                    ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+                    ? 'bg-teal-500/10 text-teal-300'
+                    : 'bg-white/[0.06] text-zinc-500'
                     }`}>
                     S{sem.id}
                   </div>
@@ -3392,7 +3385,7 @@ export default function PES_Universal_Calculator() {
             <div className="flex justify-end pt-4">
               <button
                 onClick={resetCGPA}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 hover:bg-red-500/10 rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" /> Clear History
               </button>
@@ -3406,15 +3399,15 @@ export default function PES_Universal_Calculator() {
             {/* ==================== QUICK PREVIOUS CGPA CALCULATOR (Fully Manual) ==================== */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
               <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shadow-sm">
                       <span className="text-lg">⚡</span>
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm text-slate-700 dark:text-slate-200">Quick CGPA Estimator</h3>
-                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-slate-100 dark:bg-slate-800 border`}>Isolated</span>
+                        <h3 className="font-bold text-sm text-zinc-200">Quick CGPA Estimator</h3>
+                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-white/[0.04] border`}>Isolated</span>
                       </div>
                       <p className={`text-xs ${themeClasses.muted} mt-0.5`}>
                         Calculate new CGPA by combining previous history + current sem results
@@ -3424,7 +3417,7 @@ export default function PES_Universal_Calculator() {
                   <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
                 </summary>
 
-                <div className={`p-4 border-t ${themeClasses.border} bg-slate-50/50 dark:bg-slate-900/20`}>
+                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
 
                   {/* Row 1: Previous Stats */}
                   <div className="grid grid-cols-2 gap-3 mb-3">
@@ -3453,29 +3446,29 @@ export default function PES_Universal_Calculator() {
                   {/* Row 2: Current Stats */}
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-600 dark:text-teal-400`}>Current Sem SGPA</label>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-400`}>Current Sem SGPA</label>
                       <input
                         type="number"
                         placeholder="e.g. 9.2"
                         value={simpleCgpa.currSgpa}
                         onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currSgpa: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-200 dark:border-teal-900/50 bg-teal-50/30 dark:bg-teal-900/10`}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-500/20 bg-teal-500/5`}
                       />
                     </div>
                     <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-600 dark:text-teal-400`}>Sem Credits</label>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-400`}>Sem Credits</label>
                       <input
                         type="number"
                         placeholder="e.g. 24"
                         value={simpleCgpa.currCredits}
                         onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currCredits: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-200 dark:border-teal-900/50 bg-teal-50/30 dark:bg-teal-900/10`}
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-500/20 bg-teal-500/5`}
                       />
                     </div>
                   </div>
 
                   {/* Calculation Result */}
-                  <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border shadow-sm flex items-center justify-between">
+                  <div className="bg-[#0e0e18] rounded-lg p-3 border shadow-sm flex items-center justify-between">
                     {(() => {
                       const pCgpa = parseFloat(simpleCgpa.prevCgpa) || 0;
                       const pCreds = parseFloat(simpleCgpa.prevCredits) || 0;
@@ -3496,7 +3489,7 @@ export default function PES_Universal_Calculator() {
                           </div>
                           <div className="text-right">
                             <div className="text-[10px] uppercase font-bold opacity-50">Predicted CGPA</div>
-                            <div className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{newCGPA}</div>
+                            <div className="text-3xl font-black text-indigo-400">{newCGPA}</div>
                           </div>
                         </>
                       );
@@ -3515,7 +3508,7 @@ export default function PES_Universal_Calculator() {
           <div className="space-y-6">
 
             {/* Intro Banner */}
-            <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border border-zinc-800 rounded-xl shadow-lg p-6 text-zinc-200 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#0e0e18] to-[#0a0a12] border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 relative overflow-hidden">
               <div className="relative z-10">
                 <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
                   <BookOpen className="w-6 h-6 text-yellow-300" /> User Guide & Pro Features
@@ -3532,7 +3525,7 @@ export default function PES_Universal_Calculator() {
 
               {/* Feature A: Local Storage */}
               <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
-                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 mb-3">
+                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mb-3">
                   <Download className="w-4 h-4" />
                 </div>
                 <h3 className="font-bold text-sm mb-1">Auto-Save & Privacy</h3>
@@ -3543,7 +3536,7 @@ export default function PES_Universal_Calculator() {
 
               {/* Feature B: Presets */}
               <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
-                <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 mb-3">
+                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 mb-3">
                   <BookOpen className="w-4 h-4" />
                 </div>
                 <h3 className="font-bold text-sm mb-1">One-Click Presets</h3>
@@ -3554,22 +3547,22 @@ export default function PES_Universal_Calculator() {
 
               {/* Feature C: Shortcuts */}
               <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
-                <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 mb-3 font-mono text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 mb-3 font-mono text-xs font-bold">
                   CTRL
                 </div>
                 <h3 className="font-bold text-sm mb-1">Keyboard Shortcuts</h3>
                 <div className={`text-xs ${themeClasses.muted} space-y-1`}>
-                  <div className="flex justify-between"><span>Undo</span> <kbd className="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded">Ctrl+Z</kbd></div>
-                  <div className="flex justify-between"><span>Redo</span> <kbd className="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded">Ctrl+Y</kbd></div>
-                  <div className="flex justify-between"><span>Export</span> <kbd className="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded">Ctrl+S</kbd></div>
-                  <div className="flex justify-between"><span>Close</span> <kbd className="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded">Esc</kbd></div>
+                  <div className="flex justify-between"><span>Undo</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+Z</kbd></div>
+                  <div className="flex justify-between"><span>Redo</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+Y</kbd></div>
+                  <div className="flex justify-between"><span>Export</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+S</kbd></div>
+                  <div className="flex justify-between"><span>Close</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Esc</kbd></div>
                 </div>
               </div>
             </div>
 
             {/* 2. THE MOMENTUM LOGIC */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <div className="p-4 border-b bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700 flex items-center gap-2">
+              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
                 <Zap className="w-5 h-5 text-yellow-500" />
                 <h3 className="font-bold text-lg">How "Momentum" Works</h3>
               </div>
@@ -3577,13 +3570,13 @@ export default function PES_Universal_Calculator() {
                 <p className={`text-sm ${themeClasses.muted} mb-3`}>
                   Usually, if you leave a field blank (like ISA 2), calculators treat it as a <strong>0</strong>. This crashes your predicted SGPA.
                 </p>
-                <div className="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800/30">
-                  <strong className="text-sm text-yellow-800 dark:text-yellow-200 block mb-2">The Solution: Smart Projection</strong>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-300/80 leading-relaxed">
+                <div className="bg-yellow-500/5 p-4 rounded-lg border border-yellow-500/15">
+                  <strong className="text-sm text-yellow-200 block mb-2">The Solution: Smart Projection</strong>
+                  <p className="text-xs text-yellow-300/80 leading-relaxed">
                     If you have marks for ISA 1 but <strong>not</strong> ISA 2, we assume you will perform <em>similarly</em> in ISA 2.
                     This "Momentum Score" is used to give you realistic predictions before you've even written the exam.
                   </p>
-                  <p className="text-[10px] mt-2 text-yellow-600 dark:text-yellow-400 font-mono">
+                  <p className="text-[10px] mt-2 text-yellow-400 font-mono">
                     *Look for the "Using Momentum" warning in the Reverse tab if you have empty fields.
                   </p>
                 </div>
@@ -3596,47 +3589,47 @@ export default function PES_Universal_Calculator() {
                 <Target className="w-24 h-24 text-emerald-500" />
               </div>
               <div className="p-4 border-b border-emerald-500/20 bg-emerald-500/10 flex items-center gap-2">
-                <Target className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                <h3 className="font-bold text-lg text-emerald-800 dark:text-emerald-300">The Hidden Gem: Reverse Calculator</h3>
+                <Target className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-bold text-lg text-emerald-300">The Hidden Gem: Reverse Calculator</h3>
               </div>
               <div className="p-5">
-                <p className="text-sm font-medium mb-4 text-emerald-800 dark:text-emerald-200">
+                <p className="text-sm font-medium mb-4 text-emerald-200">
                   You set the SGPA (e.g., 9.0), we tell you exactly what marks you need.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* The 3 Buttons Explained */}
                   <div>
-                    <h4 className="font-bold text-sm text-emerald-700 dark:text-emerald-400 mb-2">The 3 Magic Buttons</h4>
+                    <h4 className="font-bold text-sm text-emerald-400 mb-2">The 3 Magic Buttons</h4>
                     <ul className="space-y-3">
                       <li className="flex gap-3 items-start">
-                        <div className="bg-white dark:bg-slate-800 p-1.5 rounded shadow-sm flex-shrink-0">
+                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
                           <Target className="w-4 h-4 text-blue-500" />
                         </div>
                         <div>
-                          <strong className="text-xs block text-slate-700 dark:text-slate-200">Default (Efficient)</strong>
+                          <strong className="text-xs block text-zinc-200">Default (Efficient)</strong>
                           <p className={`text-[10px] ${themeClasses.muted}`}>
                             The "Lazy" path. It finds the <strong>absolute cheapest way</strong> to hit your target, even if it means getting 99 in one subject and 40 in another.
                           </p>
                         </div>
                       </li>
                       <li className="flex gap-3 items-start">
-                        <div className="bg-white dark:bg-slate-800 p-1.5 rounded shadow-sm flex-shrink-0">
+                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
                           <Dice5 className="w-4 h-4 text-purple-500" />
                         </div>
                         <div>
-                          <strong className="text-xs block text-slate-700 dark:text-slate-200">Shuffle</strong>
+                          <strong className="text-xs block text-zinc-200">Shuffle</strong>
                           <p className={`text-[10px] ${themeClasses.muted}`}>
                             Don't like the plan? Click Shuffle to get a <strong>random valid combination</strong>. It's like re-rolling the dice on your semester.
                           </p>
                         </div>
                       </li>
                       <li className="flex gap-3 items-start">
-                        <div className="bg-white dark:bg-slate-800 p-1.5 rounded shadow-sm flex-shrink-0">
+                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
                           <Scale className="w-4 h-4 text-teal-500" />
                         </div>
                         <div>
-                          <strong className="text-xs block text-slate-700 dark:text-slate-200">Balanced</strong>
+                          <strong className="text-xs block text-zinc-200">Balanced</strong>
                           <p className={`text-[10px] ${themeClasses.muted}`}>
                             The "Smart" path. It penalizes extremely high scores, trying to keep effort <strong>spread evenly</strong> across all subjects.
                           </p>
@@ -3648,11 +3641,11 @@ export default function PES_Universal_Calculator() {
                   {/* Locking & Logic */}
                   <div className="space-y-4">
                     <div>
-                      <h4 className="font-bold text-sm text-emerald-700 dark:text-emerald-400 mb-2">Locking Scores</h4>
+                      <h4 className="font-bold text-sm text-emerald-400 mb-2">Locking Scores</h4>
                       <p className={`text-xs ${themeClasses.muted} mb-2`}>
                         Confident you'll get exactly 85 in Math?
                       </p>
-                      <div className="bg-white/50 dark:bg-black/20 p-2 rounded border border-emerald-500/20 flex items-center gap-2">
+                      <div className="bg-white/[0.04] p-2 rounded border border-emerald-500/20 flex items-center gap-2">
                         <Lock className="w-4 h-4 text-yellow-500" />
                         <span className="text-xs">Click the <strong>Lock Icon</strong>. Enter the score you are confident you will at least get. The app freezes that score and recalculates the rest of the subjects around it.</span>
                       </div>
@@ -3667,7 +3660,7 @@ export default function PES_Universal_Calculator() {
 
             {/* 4. THE BASICS: Subjects Tab (Detailed) */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <div className="p-4 border-b bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700 flex items-center gap-2">
+              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-blue-500" />
                 <h3 className="font-bold text-lg">The Basics: Subjects Tab</h3>
               </div>
@@ -3676,16 +3669,16 @@ export default function PES_Universal_Calculator() {
                   The control center of the app. This is where you enter marks, but there are hidden settings inside every subject card.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border dark:border-slate-700">
-                    <strong className="text-blue-600 dark:text-blue-400 text-sm mb-2 block">1. Configuration & Weights</strong>
+                  <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.06]">
+                    <strong className="text-blue-400 text-sm mb-2 block">1. Configuration & Weights</strong>
                     <p className={`text-xs ${themeClasses.muted} leading-relaxed`}>
                       Expand any subject and click <strong>"Edit Subject Details"</strong>.
                       <br />• <strong>Weights:</strong> Default is 50/50, but you can change it to anything (e.g. 40/60).
                       <br />• <strong>Credits:</strong> Change the credit value (e.g. 2 Cr for Labs) to ensure accurate SGPA calculation.
                     </p>
                   </div>
-                  <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg border dark:border-slate-700">
-                    <strong className="text-blue-600 dark:text-blue-400 text-sm mb-2 block">2. Advanced: Custom Cutoffs</strong>
+                  <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.06]">
+                    <strong className="text-blue-400 text-sm mb-2 block">2. Advanced: Custom Cutoffs</strong>
                     <p className={`text-xs ${themeClasses.muted} leading-relaxed`}>
                       Found inside the "Edit" menu.
                       <br />If a subject is notoriously hard and the college lowers the S-Grade cutoff to 85, you can enter that here. The <strong>entire app</strong> (Analysis, Reverse Calc) will respect this new rule!
@@ -3697,7 +3690,7 @@ export default function PES_Universal_Calculator() {
 
             {/* 5. THE ANALYST: Analysis Tab (Detailed) */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <div className="p-4 border-b bg-slate-50 dark:bg-slate-800/50 dark:border-slate-700 flex items-center gap-2">
+              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
                 <Activity className="w-5 h-5 text-purple-500" />
                 <h3 className="font-bold text-lg">The Analyst: Analysis Tab</h3>
               </div>
@@ -3706,7 +3699,7 @@ export default function PES_Universal_Calculator() {
                   This tab gives you a reality check on your standing and shows the best path forward.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3 border rounded-lg dark:border-slate-700">
+                  <div className="p-3 border rounded-lg border-white/[0.06]">
                     <strong className="block text-sm mb-1">Safe vs Minimum</strong>
                     <p className={`${themeClasses.muted}`}>
                       • <strong>Safe Score:</strong> The marks you need to in ESA based on your current ISA marks(and momentum is some fields are empty) to <em>guarantee</em> the grade(A/S) (e.g. 90).
@@ -3714,21 +3707,21 @@ export default function PES_Universal_Calculator() {
                       <br />• <strong>Momentum Score:</strong> Shows your momentum score in ESA based on ISA if applicable.
                     </p>
                   </div>
-                  <div className="p-3 border rounded-lg dark:border-slate-700">
+                  <div className="p-3 border rounded-lg border-white/[0.06]">
                     <strong className="block text-sm mb-1">Achievable Range</strong>
                     <p className={`${themeClasses.muted}`}>
                       The slider at the top shows your mathematically <strong>Best Case SGPA</strong> (if you ace everything) and <strong>Worst Case SGPA</strong> (if you fail everything).
                     </p>
                   </div>
-                  <div className="p-3 border rounded-lg dark:border-slate-700 bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800/30">
-                    <strong className="block text-sm mb-1 text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                  <div className="p-3 border rounded-lg border-white/[0.06] bg-purple-500/5 border-purple-500/20">
+                    <strong className="block text-sm mb-1 text-purple-300 flex items-center gap-1">
                       <Lightbulb className="w-3 h-3" /> Path to Target
                     </strong>
                     <p className={`${themeClasses.muted} leading-relaxed`}>
                       A smart algorithm that generates a <strong>step-by-step plan</strong>. It identifies exactly which subjects are the easiest to upgrade (e.g., "Score 45 in Chem to get A") to hit your target SGPA with the least effort.
                     </p>
                   </div>
-                  <div className="p-3 border rounded-lg dark:border-slate-700">
+                  <div className="p-3 border rounded-lg border-white/[0.06]">
                     <strong className="block text-sm mb-1">GP Budget</strong>
                     <p className={`${themeClasses.muted}`}>
                       Shows exactly how many Grade Points you can afford to "lose" while still hitting your target.
@@ -3743,8 +3736,8 @@ export default function PES_Universal_Calculator() {
 
               {/* Quick SGPA Estimator (Static) */}
               <div className={`${themeClasses.card} border rounded-xl p-4`}>
-                <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
-                  <span className="bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">✨</span>
+                <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                  <span className="bg-teal-500/10 text-teal-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">✨</span>
                   <span>Quick SGPA Estimator</span>
                 </div>
                 <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
@@ -3762,8 +3755,8 @@ export default function PES_Universal_Calculator() {
 
               {/* UPDATED: CGPA Guide (Static) */}
               <div className={`${themeClasses.card} border rounded-xl p-4`}>
-                <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
-                  <span className="bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
+                <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                  <span className="bg-indigo-500/10 text-indigo-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
                   <span>Cumulative GPA (CGPA)</span>
                 </div>
                 <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
@@ -3781,8 +3774,8 @@ export default function PES_Universal_Calculator() {
 
             {/* UPDATED: Attendance Guide (Static) */}
             <div className={`${themeClasses.card} border rounded-xl p-4`}>
-              <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
-                <span className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
+              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                <span className="bg-green-500/10 text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
                 <span>How does the Attendance Calculator work?</span>
               </div>
               <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
@@ -3801,8 +3794,8 @@ export default function PES_Universal_Calculator() {
 
             {/* UPDATED: Universal Mode Guide (Static) */}
             <div className={`${themeClasses.card} border rounded-xl p-4`}>
-              <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200 mb-3">
-                <span className="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
+              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                <span className="bg-purple-500/10 text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
                 <span>I'm not from PES / Custom Curriculum</span>
               </div>
               <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
@@ -3832,40 +3825,41 @@ export default function PES_Universal_Calculator() {
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
           <p>Data is auto-saved locally in your browser. </p>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v3.0 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v4.0 © 2026</p>
           <p className="mt-2 text-[10px] opacity-30">
             Keyboard Shortcuts: Ctrl+Z (Undo) • Ctrl+Y (Redo) • Ctrl+S (Export) • Esc (Close)
           </p>
         </div>
 
-      </div>
+      </motion.div>
 
       {/* Mobile Bottom Navigation */}
-      <div className={`fixed bottom-0 left-0 right-0 ${darkMode ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200'} backdrop-blur-md border-t md:hidden z-20 pb-5 pt-2`}>
-        <div className="flex justify-around items-end">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#08080e]/95 backdrop-blur-2xl border-t border-white/[0.06] md:hidden z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+        <div className="flex justify-around items-end pt-1.5">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', icon: Activity, highlight: true }, // Added highlight
-            { id: 'reverse', label: 'Reverse', icon: Target, highlight: true },     // Added highlight
+            { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
+            { id: 'reverse', label: 'Reverse', icon: Target, accent: 'emerald' },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex flex-col items-center py-2 px-3 transition-colors ${activeTab === tab.id
-                ? 'text-blue-600'
-                : tab.highlight
-                  ? (tab.id === 'analysis' ? 'text-blue-600/70 dark:text-blue-400/70' : 'text-teal-600/70 dark:text-teal-400/70')
-                  : themeClasses.muted
+              className={`relative flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 ${activeTab === tab.id
+                ? 'text-white'
+                : 'text-zinc-600 active:text-zinc-400'
                 }`}
             >
-              <tab.icon className="w-5 h-5" />
-              <span className="text-[10px] mt-1 font-medium">{tab.label}</span>
-
-              {/* Mobile Dot */}
-              {tab.highlight && activeTab !== tab.id && (
-                <span className={`absolute top-2 right-3 h-1.5 w-1.5 rounded-full ${tab.id === 'analysis' ? 'bg-blue-500' : 'bg-teal-500'}`}></span>
+              <div className={`relative ${activeTab === tab.id ? 'scale-110' : ''} transition-transform duration-200`}>
+                <tab.icon className="w-5 h-5" />
+                {activeTab === tab.id && (
+                  <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md -z-10" />
+                )}
+              </div>
+              <span className={`text-[10px] mt-1 font-medium ${activeTab === tab.id ? 'text-white' : ''}`}>{tab.label}</span>
+              {tab.accent && activeTab !== tab.id && (
+                <span className={`absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
               )}
             </button>
           ))}

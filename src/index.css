@@ -1,3 +1,51 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #1a1a2a transparent;
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #1a1a2a; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2a2a3c; }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-[#06060a] text-zinc-300 antialiased;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.06), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 60%, rgba(139,92,246,0.03), transparent);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(59,130,246,0.3);
+  }
+
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type=number] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-[#0c0c14]/80 backdrop-blur-xl border border-white/[0.06] shadow-2xl shadow-black/20;
+  }
+  .glass-input {
+    @apply bg-[#0e0e18] border-white/[0.08] text-zinc-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all duration-200;
+  }
+}
