@@ -114,12 +114,12 @@ export default function PES_Universal_Calculator() {
       // Save the new version so this doesn't happen on next reload
       localStorage.setItem('pes_version', CURRENT_VERSION);
 
-      return ChemistryCycleDefaults;
+      return PhysicsCycleDefaults;
     }
     // --- END RESET LOGIC ---
 
     const saved = localStorage.getItem('pes_subjects');
-    return saved ? JSON.parse(saved) : ChemistryCycleDefaults;
+    return saved ? JSON.parse(saved) : PhysicsCycleDefaults;
   });
 
   const [marks, setMarks] = useState(() => {
@@ -568,9 +568,9 @@ export default function PES_Universal_Calculator() {
   };
 
   const resetToDefault = () => {
-    if (window.confirm("This will erase your custom subjects and restore the Chemistry Cycle defaults. Continue?")) {
+    if (window.confirm("This will erase your custom subjects and restore the Physics Cycle defaults. Continue?")) {
       saveStateForUndo();
-      setSubjects(ChemistryCycleDefaults);
+      setSubjects(PhysicsCycleDefaults);
       setMarks({});
     }
   };
