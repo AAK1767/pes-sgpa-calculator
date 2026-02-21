@@ -494,7 +494,7 @@ export default function PES_Universal_Calculator() {
 
     setMarks(prev => {
       const newMarks = { ...prev, [id]: { ...prev[id], [field]: numValue } };
-      
+
       // If a Max field is updated, ensure the corresponding score doesn't exceed it
       if (field.includes('Max')) {
         const scoreField = field.replace('Max', '');
@@ -503,7 +503,7 @@ export default function PES_Universal_Calculator() {
           newMarks[id][scoreField] = numValue;
         }
       }
-      
+
       return newMarks;
     });
   };
@@ -1846,7 +1846,7 @@ export default function PES_Universal_Calculator() {
                           </div>
                         </div>
 
-                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-lg ${gradeInfo.bg}`}>
                             {gradeInfo.grade}
                           </div>
@@ -2245,7 +2245,7 @@ export default function PES_Universal_Calculator() {
                     {/* Text Column */}
                     <div className="text-left">
                       <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-zinc-200">Quick Attendance Check</span>
+                        <span className="font-bold text-sm text-zinc-200">Quick Attendance Check</span>
                         {/* The 'Not Saved' Badge */}
                         <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-white/[0.04] border`}>Not saved</span>
                       </div>
