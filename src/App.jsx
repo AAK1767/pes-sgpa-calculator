@@ -3817,7 +3817,7 @@ export default function PES_Universal_Calculator() {
 
             {/* Footer Note */}
             <div className="text-center text-xs opacity-50 py-4">
-              Built for PESU.
+              Built for PESU / PES / PESIT.
             </div>
           </div>
         )}
