@@ -655,7 +655,7 @@ export default function PES_Universal_Calculator() {
   // --- Calculations ---
   const getSubjectMetrics = (subject) => {
     const m = marks[subject.id];
-    if (!m) return { finalScore: 0, currentInternals: 0, totalWeight: 100, momentumScore: 0, hasIsa1: false, hasIsa2: false };
+    if (!m) return { finalScore: 0, rawScore: 0, currentInternals: 0, totalWeight: 100, momentumScore: 0, momentumIsa2Marks: null, hasIsa1: false, hasIsa2: false };
 
     const calcComponent = (score, max, weight) => {
       const s = parseFloat(score);
@@ -690,9 +690,11 @@ export default function PES_Universal_Calculator() {
     // 4. Standard Final Score (based on actual entered marks only)
     let rawSum = currentInternals + esaComponent;
     let finalScore = Math.ceil((rawSum / totalWeight) * 100);
+    let rawScore = Math.round(rawSum * 10) / 10;
 
     // 5. Momentum Logic - Project unfilled components
     let momentumScore = 0;
+    let momentumIsa2Marks = null;
 
     if (hasIsa1 || hasIsa2 || hasAssignment || hasLab) {
       // Calculate ISA-only performance ratio (for projecting ISA2)
@@ -710,6 +712,11 @@ export default function PES_Universal_Calculator() {
 
       // ISA performance ratio (how well they're doing in ISAs specifically)
       const isaRatio = isaWeightFilled > 0 ? (isaPerformance / isaWeightFilled) : 0;
+      const isa2Max = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
+      if (!hasIsa2 && hasIsa1 && subject.hasIsa2 !== false && !isNaN(isa2Max) && isa2Max > 0) {
+        const projectedIsa2 = Math.min(isa2Max, Math.max(0, isaRatio * isa2Max));
+        momentumIsa2Marks = Math.round(projectedIsa2 * 10) / 10;
+      }
 
       // Calculate overall internal performance ratio (for projecting assignment/lab/ESA)
       let filledInternalScore = 0;
@@ -767,9 +774,11 @@ export default function PES_Universal_Calculator() {
 
     return {
       finalScore: Math.min(100, Math.max(0, finalScore)),
+      rawScore: Math.max(0, rawScore),
       currentInternals,
       totalWeight,
       momentumScore: Math.min(100, Math.max(0, momentumScore)),
+      momentumIsa2Marks,
       esaWeight: subject.esaWeight,
       hasIsa1,
       hasIsa2
@@ -891,9 +900,10 @@ export default function PES_Universal_Calculator() {
     let analysisData = [];
 
     subjects.forEach(sub => {
-      const { finalScore, currentInternals, totalWeight, momentumScore, esaWeight } = getSubjectMetrics(sub);
+      const { finalScore, currentInternals, totalWeight, momentumScore, momentumIsa2Marks, esaWeight } = getSubjectMetrics(sub);
       const currentGP = getGradePoint(finalScore, sub);
       const momentumGP = getGradePoint(momentumScore, sub);
+      const isa2Max = parseFloat(marks[sub.id]?.isa2Max ?? sub.isa2Max ?? 40) || 40;
 
       momentumWeightedGP += (momentumGP * sub.credits);
 
@@ -917,6 +927,8 @@ export default function PES_Universal_Calculator() {
         currentGP,
         momentumGP,
         momentumScore,
+        momentumIsa2Marks,
+        isa2Max,
         finalScore
       });
     });
@@ -1812,10 +1824,14 @@ export default function PES_Universal_Calculator() {
             <div className="space-y-4">
               {subjects.map((subject) => {
                 const m = marks[subject.id] || {};
-                const { finalScore, totalWeight } = getSubjectMetrics(subject);
+                const { finalScore, rawScore, totalWeight } = getSubjectMetrics(subject);
                 const gp = getGradePoint(finalScore, subject);
                 const gradeInfo = getGradeInfo(finalScore, subject);
                 const isExpanded = expandedSubject === subject.id;
+                const hasLabComponent = subject.hasLab || ((subject.customConfig?.weights.lab ?? 0) > 0);
+                const showTotalWeight = hasLabComponent && totalWeight > 100;
+                const totalWeightLabel = Number.isInteger(totalWeight) ? totalWeight : totalWeight.toFixed(1);
+                const rawScoreLabel = Number.isInteger(rawScore) ? rawScore : rawScore.toFixed(1);
 
                 return (
                   <div key={subject.id} className={`${themeClasses.card} rounded-xl border transition-all duration-300 ease-out ${isExpanded ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.07)] ring-1 ring-blue-500/10' : themeClasses.cardHover}`}>
@@ -1844,6 +1860,11 @@ export default function PES_Universal_Calculator() {
                           <div className={`font-bold text-xl leading-none ${gradeInfo.color}`}>
                             {finalScore}
                           </div>
+                          {showTotalWeight && (
+                            <div className={`text-[10px] ${themeClasses.muted} mt-0.5`}>
+                              actual: {rawScoreLabel}/{totalWeightLabel}
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -1869,7 +1890,7 @@ export default function PES_Universal_Calculator() {
                                   {subject.customConfig?.labels.isa1 || "ISA 1"}
                                 </span>
                                 <span className={`text-[10px] ${themeClasses.muted}`}>
-                                  {subject.customConfig ? subject.customConfig.weights.isa1 : (subject.isaWeight / (subject.hasIsa2 ? 2 : 1))}%
+                                  {subject.customConfig ? subject.customConfig.weights.isa1 : subject.isaWeight}%
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
@@ -1900,7 +1921,7 @@ export default function PES_Universal_Calculator() {
                                   {subject.customConfig?.labels.isa2 || "ISA 2"}
                                 </span>
                                 <span className={`text-[10px] ${themeClasses.muted}`}>
-                                  {subject.customConfig ? subject.customConfig.weights.isa2 : (subject.isaWeight / 2)}%
+                                  {subject.customConfig ? subject.customConfig.weights.isa2 : subject.isaWeight}%
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
@@ -2811,6 +2832,11 @@ export default function PES_Universal_Calculator() {
                           <span className={`font-bold text-lg md:text-sm ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-zinc-300' : 'text-red-400'}`}>
                             {d.momentumScore}
                           </span>
+                          {d.momentumIsa2Marks !== null && (
+                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
+                              ISA2 est: {d.momentumIsa2Marks}/{d.isa2Max}
+                            </span>
+                          )}
                         </div>
 
                         {/* 2. Pass Requirement (Fixed Logic) */}
