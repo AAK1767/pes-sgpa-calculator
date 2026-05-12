@@ -695,6 +695,7 @@ export default function PES_Universal_Calculator() {
     // 5. Momentum Logic - Project unfilled components
     let momentumScore = 0;
     let momentumIsa2Marks = null;
+    let projectedInternals = currentInternals;
 
     if (hasIsa1 || hasIsa2 || hasAssignment || hasLab) {
       // Calculate ISA-only performance ratio (for projecting ISA2)
@@ -742,8 +743,6 @@ export default function PES_Universal_Calculator() {
       const overallInternalRatio = filledInternalWeight > 0 ? (filledInternalScore / filledInternalWeight) : 0;
 
       // Start with actual internals
-      let projectedInternals = currentInternals;
-
       // Project ISA2 based on ISA1 performance (if only ISA1 is filled)
       // This makes sense because ISA1 and ISA2 are similar exam formats
       if (!hasIsa2 && hasIsa1) {
@@ -778,9 +777,12 @@ export default function PES_Universal_Calculator() {
       totalWeight,
       momentumScore: Math.min(100, Math.max(0, momentumScore)),
       momentumIsa2Marks,
+      projectedInternals,
       esaWeight: subject.esaWeight,
       hasIsa1,
-      hasIsa2
+      hasIsa2,
+      hasAssignment,
+      hasLab
     };
   };
 
@@ -802,10 +804,22 @@ export default function PES_Universal_Calculator() {
   // Helper function to calculate required ESA with safety margin
   const getRequiredESAForGrade = (subject, targetScore, withSafetyMargin = true, options = {}) => {
     const m = marks[subject.id] || {};
-    const { currentInternals, totalWeight, esaWeight, momentumIsa2Marks, hasIsa2 } = getSubjectMetrics(subject);
+    const { currentInternals, totalWeight, esaWeight, momentumIsa2Marks, hasIsa2, projectedInternals, hasIsa1, hasAssignment, hasLab } = getSubjectMetrics(subject);
     let effectiveInternals = currentInternals;
 
-    if (options.useMomentumIsa2 && !hasIsa2 && momentumIsa2Marks !== null && subject.hasIsa2 !== false) {
+    const useMomentumInternals = options.useMomentumInternals === true;
+    if (useMomentumInternals) {
+      const missingIsa1 = !hasIsa1;
+      const missingIsa2 = subject.hasIsa2 !== false && !hasIsa2;
+      const missingAssignment = subject.hasAssignment && !hasAssignment;
+      const missingLab = subject.hasLab && !hasLab;
+      const isProjecting = missingIsa1 || missingIsa2 || missingAssignment || missingLab;
+      if (isProjecting) {
+        effectiveInternals = projectedInternals;
+      }
+    }
+
+    if (!useMomentumInternals && options.useMomentumIsa2 && !hasIsa2 && momentumIsa2Marks !== null && subject.hasIsa2 !== false) {
       const isa2Max = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
       if (!isNaN(isa2Max) && isa2Max > 0) {
         effectiveInternals += (momentumIsa2Marks / isa2Max) * subject.isaWeight;
@@ -918,8 +932,8 @@ export default function PES_Universal_Calculator() {
       currentLostGP += (loss * sub.credits);
 
       // Use the new helper function with safety margin
-      const reqSData = getRequiredESAForGrade(sub, 90, true, { useMomentumIsa2: true });
-      const reqAData = getRequiredESAForGrade(sub, 80, true, { useMomentumIsa2: true });
+      const reqSData = getRequiredESAForGrade(sub, 90, true, { useMomentumIsa2: true, useMomentumInternals: true });
+      const reqAData = getRequiredESAForGrade(sub, 80, true, { useMomentumIsa2: true, useMomentumInternals: true });
 
       analysisData.push({
         id: sub.id,
@@ -2807,7 +2821,7 @@ export default function PES_Universal_Calculator() {
                 {metrics.analysisData.map((d, i) => {
                   // Calculate Passing Requirement on the fly
                   const sub = subjects.find(s => s.id === d.id);
-                  const reqPass = getRequiredESAForGrade(sub, 40, true, { useMomentumIsa2: true });
+                  const reqPass = getRequiredESAForGrade(sub, 40, true, { useMomentumIsa2: true, useMomentumInternals: true });
 
                   return (
                     <div
