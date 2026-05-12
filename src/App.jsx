@@ -750,15 +750,14 @@ export default function PES_Universal_Calculator() {
         projectedInternals += isaRatio * subject.isaWeight;
       }
 
-      // Project assignment based on overall internal performance (if not filled)
-      // We use overall ratio here because assignment performance may differ from ISA
+      // Project assignment as full marks if not filled
       if (subject.hasAssignment && !hasAssignment) {
-        projectedInternals += overallInternalRatio * subject.assignmentWeight;
+        projectedInternals += subject.assignmentWeight;
       }
 
-      // Project lab based on overall internal performance (if not filled)
+      // Project lab as full marks if not filled
       if (subject.hasLab && !hasLab) {
-        projectedInternals += overallInternalRatio * subject.labWeight;
+        projectedInternals += subject.labWeight;
       }
 
       // Project ESA based on overall internal performance
@@ -801,15 +800,23 @@ export default function PES_Universal_Calculator() {
   };
 
   // Helper function to calculate required ESA with safety margin
-  const getRequiredESAForGrade = (subject, targetScore, withSafetyMargin = true) => {
+  const getRequiredESAForGrade = (subject, targetScore, withSafetyMargin = true, options = {}) => {
     const m = marks[subject.id] || {};
-    const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(subject);
+    const { currentInternals, totalWeight, esaWeight, momentumIsa2Marks, hasIsa2 } = getSubjectMetrics(subject);
+    let effectiveInternals = currentInternals;
+
+    if (options.useMomentumIsa2 && !hasIsa2 && momentumIsa2Marks !== null && subject.hasIsa2 !== false) {
+      const isa2Max = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
+      if (!isNaN(isa2Max) && isa2Max > 0) {
+        effectiveInternals += (momentumIsa2Marks / isa2Max) * subject.isaWeight;
+      }
+    }
     const esaMax = m.esaMax || 100;
 
     // First check: Is this grade even achievable with max ESA?
     // Calculate what score we'd get with perfect ESA
     const maxEsaComponent = (esaMax / esaMax) * esaWeight; // = esaWeight
-    const maxPossibleRaw = ((currentInternals + maxEsaComponent) / totalWeight) * 100;
+    const maxPossibleRaw = ((effectiveInternals + maxEsaComponent) / totalWeight) * 100;
     const maxPossibleScore = Math.ceil(maxPossibleRaw);
 
     // If even with perfect ESA we can't reach the target, it's impossible
@@ -823,7 +830,7 @@ export default function PES_Universal_Calculator() {
       // To guarantee this, we need the raw percentage to be >= targetScore - 0.5 (midpoint for ceiling)
       // But to be SAFE, we calculate for exactly targetScore (no rounding benefit)
       const requiredWeightedTotal = (targetScore * totalWeight) / 100;
-      const requiredEsaComponent = requiredWeightedTotal - currentInternals;
+      const requiredEsaComponent = requiredWeightedTotal - effectiveInternals;
 
       if (requiredEsaComponent <= 0) return { safe: 0, minimum: 0 };
 
@@ -836,7 +843,7 @@ export default function PES_Universal_Calculator() {
       // We need ceil(x) >= targetScore, so x > targetScore - 1
       // Find the minimum ESA where ceil gives us targetScore
       const minWeightedTotal = ((targetScore - 1) * totalWeight / 100) + 0.001;
-      const minRequiredEsaComponent = minWeightedTotal - currentInternals;
+      const minRequiredEsaComponent = minWeightedTotal - effectiveInternals;
       const minEsaMarks = minRequiredEsaComponent > 0
         ? Math.ceil((minRequiredEsaComponent / esaWeight) * esaMax)
         : 0;
@@ -861,7 +868,7 @@ export default function PES_Universal_Calculator() {
     } else {
       // Original calculation (minimum possible)
       const minWeightedTotal = ((targetScore - 1) * totalWeight / 100) + 0.001;
-      const requiredEsaComponent = minWeightedTotal - currentInternals;
+      const requiredEsaComponent = minWeightedTotal - effectiveInternals;
 
       if (requiredEsaComponent <= 0) return 0;
 
@@ -911,8 +918,8 @@ export default function PES_Universal_Calculator() {
       currentLostGP += (loss * sub.credits);
 
       // Use the new helper function with safety margin
-      const reqSData = getRequiredESAForGrade(sub, 90, true);
-      const reqAData = getRequiredESAForGrade(sub, 80, true);
+      const reqSData = getRequiredESAForGrade(sub, 90, true, { useMomentumIsa2: true });
+      const reqAData = getRequiredESAForGrade(sub, 80, true, { useMomentumIsa2: true });
 
       analysisData.push({
         id: sub.id,
@@ -2800,7 +2807,7 @@ export default function PES_Universal_Calculator() {
                 {metrics.analysisData.map((d, i) => {
                   // Calculate Passing Requirement on the fly
                   const sub = subjects.find(s => s.id === d.id);
-                  const reqPass = getRequiredESAForGrade(sub, 40, true);
+                  const reqPass = getRequiredESAForGrade(sub, 40, true, { useMomentumIsa2: true });
 
                   return (
                     <div
@@ -2927,7 +2934,7 @@ export default function PES_Universal_Calculator() {
                     <ChevronDown className="w-3 h-3 ml-auto opacity-50 transition-transform group-open:rotate-180" />
                   </summary>
                   <div className="mt-2 text-xs text-indigo-200/70 leading-relaxed pl-7 border-t border-indigo-500/10 pt-2">
-                    The momentum score purely assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong>
+                    The momentum score purely assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong> If ISA2 is empty, the Pass/A/S ESA requirements use a momentum-projected ISA2 score and are estimates. Missing assignment or lab marks are treated as full for momentum.
                   </div>
                 </details>
               </div>
@@ -3852,6 +3859,7 @@ export default function PES_Universal_Calculator() {
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
           <p>Data is auto-saved locally in your browser. </p>
           <p className="mt-1 opacity-50">PES SGPA Calculator v4.0 © 2026</p>
+          <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <p className="mt-2 text-[10px] opacity-30">
             Keyboard Shortcuts: Ctrl+Z (Undo) • Ctrl+Y (Redo) • Ctrl+S (Export) • Esc (Close)
           </p>
