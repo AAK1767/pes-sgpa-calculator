@@ -697,6 +697,13 @@ export default function PES_Universal_Calculator() {
     let momentumIsa2Marks = null;
     let projectedInternals = currentInternals;
 
+    const assignmentMaxRaw = parseFloat(m.assignmentMax ?? subject.assignmentMax ?? 10);
+    const labMaxRaw = parseFloat(m.labMax ?? subject.labMax ?? 20);
+    const assignmentMax = !isNaN(assignmentMaxRaw) ? assignmentMaxRaw : 10;
+    const labMax = !isNaN(labMaxRaw) ? labMaxRaw : 20;
+    let momentumAssignmentMarks = null;
+    let momentumLabMarks = null;
+
     if (hasIsa1 || hasIsa2 || hasAssignment || hasLab) {
       // Calculate ISA-only performance ratio (for projecting ISA2)
       let isaPerformance = 0;
@@ -717,6 +724,14 @@ export default function PES_Universal_Calculator() {
       if (!hasIsa2 && hasIsa1 && subject.hasIsa2 !== false && !isNaN(isa2Max) && isa2Max > 0) {
         const projectedIsa2 = Math.min(isa2Max, Math.max(0, isaRatio * isa2Max));
         momentumIsa2Marks = Math.round(projectedIsa2 * 10) / 10;
+      }
+
+      if (subject.hasAssignment && !hasAssignment && assignmentMax > 0) {
+        momentumAssignmentMarks = Math.round(assignmentMax * 10) / 10;
+      }
+
+      if (subject.hasLab && !hasLab && labMax > 0) {
+        momentumLabMarks = Math.round(labMax * 10) / 10;
       }
 
       // Calculate overall internal performance ratio (for projecting assignment/lab/ESA)
@@ -777,6 +792,10 @@ export default function PES_Universal_Calculator() {
       totalWeight,
       momentumScore: Math.min(100, Math.max(0, momentumScore)),
       momentumIsa2Marks,
+      momentumAssignmentMarks,
+      momentumLabMarks,
+      assignmentMax,
+      labMax,
       projectedInternals,
       esaWeight: subject.esaWeight,
       hasIsa1,
@@ -894,6 +913,68 @@ export default function PES_Universal_Calculator() {
     }
   };
 
+  const getRequiredISA2ForPass = (subject) => {
+    if (subject.hasIsa2 === false) return null;
+
+    const m = marks[subject.id] || {};
+    const hasIsa2 = m.isa2 !== '' && m.isa2 !== undefined && !isNaN(parseFloat(m.isa2));
+    if (hasIsa2) return null;
+
+    const isa2MaxRaw = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
+    const isa2Max = !isNaN(isa2MaxRaw) ? isa2MaxRaw : 40;
+    const isaWeight = parseFloat(subject.isaWeight ?? 0);
+    if (!isaWeight || isa2Max <= 0) return null;
+
+    const calcComponent = (score, max, weight) => {
+      const s = parseFloat(score);
+      const mx = parseFloat(max);
+      if (isNaN(s) || isNaN(mx) || mx === 0) return 0;
+      return (s / mx) * weight;
+    };
+
+    const hasIsa1 = m.isa1 !== '' && m.isa1 !== undefined && !isNaN(parseFloat(m.isa1));
+    const hasAssignment = m.assignment !== '' && m.assignment !== undefined && !isNaN(parseFloat(m.assignment));
+    const hasLab = m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab));
+    const hasEsa = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
+
+    const assignmentWeight = subject.hasAssignment ? (subject.assignmentWeight || 0) : 0;
+    const labWeight = subject.hasLab ? (subject.labWeight || 0) : 0;
+    const esaWeight = subject.esaWeight || 0;
+
+    let baseInternals = 0;
+    if (hasIsa1) baseInternals += calcComponent(m.isa1, m.isa1Max, isaWeight);
+
+    if (subject.hasAssignment) {
+      baseInternals += hasAssignment
+        ? calcComponent(m.assignment, m.assignmentMax, assignmentWeight)
+        : assignmentWeight;
+    }
+
+    if (subject.hasLab) {
+      baseInternals += hasLab
+        ? calcComponent(m.lab, m.labMax, labWeight)
+        : labWeight;
+    }
+
+    const esaComponent = hasEsa ? calcComponent(m.esa, m.esaMax, esaWeight) : 0;
+
+    const totalWeight = (isaWeight * 2) +
+      assignmentWeight +
+      labWeight +
+      esaWeight;
+    if (totalWeight <= 0) return null;
+
+    const requiredWeightedTotal = (40 * totalWeight) / 100;
+    const requiredIsa2Component = requiredWeightedTotal - baseInternals - esaComponent;
+
+    if (requiredIsa2Component <= 0) return { needed: 0, max: isa2Max };
+
+    const requiredIsa2Marks = Math.ceil((requiredIsa2Component / isaWeight) * isa2Max);
+    if (requiredIsa2Marks > isa2Max) return { needed: null, max: isa2Max };
+
+    return { needed: Math.max(0, requiredIsa2Marks), max: isa2Max };
+  };
+
   // --- SGPA Calculation ---
   useEffect(() => {
     let totalCredits = 0;
@@ -921,10 +1002,21 @@ export default function PES_Universal_Calculator() {
     let analysisData = [];
 
     subjects.forEach(sub => {
-      const { finalScore, currentInternals, totalWeight, momentumScore, momentumIsa2Marks, esaWeight } = getSubjectMetrics(sub);
+      const {
+        finalScore,
+        currentInternals,
+        totalWeight,
+        momentumScore,
+        momentumIsa2Marks,
+        momentumAssignmentMarks,
+        momentumLabMarks,
+        assignmentMax,
+        labMax
+      } = getSubjectMetrics(sub);
       const currentGP = getGradePoint(finalScore, sub);
       const momentumGP = getGradePoint(momentumScore, sub);
       const isa2Max = parseFloat(marks[sub.id]?.isa2Max ?? sub.isa2Max ?? 40) || 40;
+      const isa2PassInfo = getRequiredISA2ForPass(sub);
 
       momentumWeightedGP += (momentumGP * sub.credits);
 
@@ -949,7 +1041,14 @@ export default function PES_Universal_Calculator() {
         momentumGP,
         momentumScore,
         momentumIsa2Marks,
+        momentumAssignmentMarks,
+        momentumLabMarks,
         isa2Max,
+        assignmentMax,
+        labMax,
+        isa2PassNeeded: isa2PassInfo ? isa2PassInfo.needed : null,
+        isa2PassMax: isa2PassInfo ? isa2PassInfo.max : isa2Max,
+        showIsa2PassNeeded: !!isa2PassInfo,
         finalScore
       });
     });
@@ -2822,6 +2921,17 @@ export default function PES_Universal_Calculator() {
                   // Calculate Passing Requirement on the fly
                   const sub = subjects.find(s => s.id === d.id);
                   const reqPass = getRequiredESAForGrade(sub, 40, true, { useMomentumIsa2: true, useMomentumInternals: true });
+                  const isa2Label = sub?.customConfig?.labels?.isa2 || 'ISA2';
+                  const assignmentLabel = sub?.customConfig?.labels?.assignment || 'Assignment';
+                  const assignmentLabelShort = assignmentLabel === 'Assignment' ? 'Asg' : assignmentLabel;
+                  const labLabel = sub?.customConfig?.labels?.lab || 'Lab';
+                  const isa2PassLine = d.showIsa2PassNeeded ? (
+                    d.isa2PassNeeded === null ? (
+                      <div className="text-[9px] text-red-400 leading-none mt-0.5">{isa2Label} pass: impossible</div>
+                    ) : (
+                      <div className="text-[9px] text-zinc-500 leading-none mt-0.5">{isa2Label} pass: {d.isa2PassNeeded}/{d.isa2PassMax}</div>
+                    )
+                  ) : null;
 
                   return (
                     <div
@@ -2855,7 +2965,17 @@ export default function PES_Universal_Calculator() {
                           </span>
                           {d.momentumIsa2Marks !== null && (
                             <span className="text-[9px] text-indigo-300/80 mt-0.5">
-                              ISA2 est: {d.momentumIsa2Marks}/{d.isa2Max}
+                              {isa2Label} est: {d.momentumIsa2Marks}/{d.isa2Max}
+                            </span>
+                          )}
+                          {d.momentumAssignmentMarks !== null && (
+                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
+                              {assignmentLabelShort} est: {d.momentumAssignmentMarks}/{d.assignmentMax}
+                            </span>
+                          )}
+                          {d.momentumLabMarks !== null && (
+                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
+                              {labLabel} est: {d.momentumLabMarks}/{d.labMax}
                             </span>
                           )}
                         </div>
@@ -2864,11 +2984,17 @@ export default function PES_Universal_Calculator() {
                         <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
                           <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">To Pass</span>
                           {reqPass.safe === null ? (
-                            <span className="text-red-500 text-xs font-bold">Impossible</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-red-500 text-xs font-bold">Impossible</span>
+                              {isa2PassLine}
+                            </div>
                           ) : reqPass.safe === 0 ? (
-                            <div className="flex items-center justify-center gap-1">
-                              <CheckCircle2 className="w-4 h-4 text-green-500" />
-                              <span className="text-green-500 text-xs font-bold md:hidden">Passed</span>
+                            <div className="flex flex-col items-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                <span className="text-green-500 text-xs font-bold md:hidden">Passed</span>
+                              </div>
+                              {isa2PassLine}
                             </div>
                           ) : (
                             <div className="flex flex-col items-center">
@@ -2882,6 +3008,7 @@ export default function PES_Universal_Calculator() {
                               {reqPass.requiresRounding && (
                                 <div className="text-[9px] text-orange-400 leading-none">*rounding</div>
                               )}
+                              {isa2PassLine}
                             </div>
                           )}
                         </div>
@@ -2948,7 +3075,7 @@ export default function PES_Universal_Calculator() {
                     <ChevronDown className="w-3 h-3 ml-auto opacity-50 transition-transform group-open:rotate-180" />
                   </summary>
                   <div className="mt-2 text-xs text-indigo-200/70 leading-relaxed pl-7 border-t border-indigo-500/10 pt-2">
-                    The momentum score purely assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong> If ISA2 is empty, the Pass/A/S ESA requirements use a momentum-projected ISA2 score and are estimates. Missing assignment or lab marks are treated as full for momentum.
+                    The momentum score assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong> If ISA2 is empty, the Pass/A/S ESA requirements use a momentum-projected ISA2 score and are estimates. When Assignment or Lab is empty, momentum assumes full marks for those components. The ISA2 pass line (when shown) tells how much ISA2 you need to pass, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
                   </div>
                 </details>
               </div>
@@ -3258,7 +3385,7 @@ export default function PES_Universal_Calculator() {
                 <div className="text-sm">
                   <strong className="text-yellow-200">Using Momentum Scores</strong>
                   <p className="text-yellow-700 text-yellow-100/70 text-xs mt-1 leading-relaxed">
-                    Some internals (like Lab/ISA2/Assignment) are empty. We are projecting these based on your current performance trend so the calculator doesn't panic. And also the max achievable SGPA might be higher than reality (since empty internals are optimistically filled).
+                    Some internals (like Lab, ISA2, or Assignment) are empty. We project ISA2 from ISA1, assume full marks for empty Assignment or Lab, and estimate ESA using your current internal ratio so the calculator does not crash early in the semester. This is optimistic, so the max achievable SGPA can be higher than reality until you enter actual marks.
                   </p>
                 </div>
               </div>
@@ -3623,6 +3750,9 @@ export default function PES_Universal_Calculator() {
                     If you have marks for ISA 1 but <strong>not</strong> ISA 2, we assume you will perform <em>similarly</em> in ISA 2.
                     This "Momentum Score" is used to give you realistic predictions before you've even written the exam.
                   </p>
+                  <p className="text-xs text-yellow-300/80 leading-relaxed mt-2">
+                    If Assignment or Lab is empty, momentum assumes full marks for those components. If ESA is empty, momentum estimates it using your current internal performance ratio.
+                  </p>
                   <p className="text-[10px] mt-2 text-yellow-400 font-mono">
                     *Look for the "Using Momentum" warning in the Reverse tab if you have empty fields.
                   </p>
@@ -3752,6 +3882,7 @@ export default function PES_Universal_Calculator() {
                       • <strong>Safe Score:</strong> The marks you need to in ESA based on your current ISA marks(and momentum is some fields are empty) to <em>guarantee</em> the grade(A/S) (e.g. 90).
                       <br />• <strong>Min Score:</strong> A lower score (e.g. 89.5) that <em>might</em> work because the college rounds up decimals.
                       <br />• <strong>Momentum Score:</strong> Shows your momentum score in ESA based on ISA if applicable.
+                      <br />• <strong>Pass (40) + ISA2 pass line:</strong> Pass shows the ESA needed to pass using momentum internals. If ISA2 is empty, the ISA2 pass line shows the ISA2 marks needed to pass, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
                     </p>
                   </div>
                   <div className="p-3 border rounded-lg border-white/[0.06]">
