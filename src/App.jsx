@@ -183,37 +183,182 @@ export default function PES_Universal_Calculator() {
   const [reverseEsaMode, setReverseEsaMode] = useState('safe');
   const [lockedSubjects, setLockedSubjects] = useState({});
   const [showHelp, setShowHelp] = useState(false);
-  // --- Attendance Calculator State (No persistence) ---
-  const [attendanceData, setAttendanceData] = useState({ total: '', attended: '' });
+  const ATTENDANCE_MIN_PERCENT = 75;
+  // --- Attendance (Mode 1 is the source for all planners) ---
+  const [attendanceStatusMode, setAttendanceStatusMode] = useState(() => {
+    const saved = localStorage.getItem('pes_attendance_mode_status');
+    return saved ? JSON.parse(saved) : { total: '', attended: '', bufferPercent: '80' };
+  });
+  const [attendanceClassesLeftMode, setAttendanceClassesLeftMode] = useState(() => {
+    const saved = localStorage.getItem('pes_attendance_mode_classes_left');
+    return saved ? JSON.parse(saved) : { classesLeft: '' };
+  });
+  const [attendanceSemesterMode, setAttendanceSemesterMode] = useState(() => {
+    const saved = localStorage.getItem('pes_attendance_mode_semester');
+    return saved ? JSON.parse(saved) : { semesterTotal: '' };
+  });
+  const [attendanceWeeklyMode, setAttendanceWeeklyMode] = useState(() => {
+    const saved = localStorage.getItem('pes_attendance_mode_weekly');
+    return saved ? JSON.parse(saved) : {
+      weeksLeft: '',
+      minPerWeek: '',
+      maxPerWeek: ''
+    };
+  });
 
-  const calculateAttendance = () => {
-    const total = parseInt(attendanceData.total);
-    const attended = parseInt(attendanceData.attended);
+  useEffect(() => {
+    localStorage.setItem('pes_attendance_mode_status', JSON.stringify(attendanceStatusMode));
+  }, [attendanceStatusMode]);
 
-    if (isNaN(total) || isNaN(attended) || total <= 0) {
-      return null;
-    }
+  useEffect(() => {
+    localStorage.setItem('pes_attendance_mode_classes_left', JSON.stringify(attendanceClassesLeftMode));
+  }, [attendanceClassesLeftMode]);
 
-    const currentPercentage = (attended / total) * 100;
-    const requiredPercentage = 75;
+  useEffect(() => {
+    localStorage.setItem('pes_attendance_mode_semester', JSON.stringify(attendanceSemesterMode));
+  }, [attendanceSemesterMode]);
 
-    // Calculate how many more can be missed while staying >= 75%
-    const canMiss = Math.floor((attended - requiredPercentage / 100 * total) / (requiredPercentage / 100));
+  useEffect(() => {
+    localStorage.setItem('pes_attendance_mode_weekly', JSON.stringify(attendanceWeeklyMode));
+  }, [attendanceWeeklyMode]);
 
-    // Calculate how many consecutive classes needed to reach 75%
-    const needToAttend = Math.ceil((requiredPercentage / 100 * total - attended) / (1 - requiredPercentage / 100));
+  const parseNonNegativeInt = (value) => {
+    const n = parseInt(value, 10);
+    if (isNaN(n) || n < 0) return null;
+    return n;
+  };
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  const parseTargetPercent = (value, fallback = 80) => {
+    const n = parseFloat(value);
+    if (!Number.isFinite(n)) return fallback;
+    return clamp(n, ATTENDANCE_MIN_PERCENT, 99);
+  };
+
+  const consecutiveClassesNeeded = (total, attended, targetPercent) => {
+    const ratio = targetPercent / 100;
+    if (ratio >= 1) return 0;
+    const raw = (ratio * total - attended) / (1 - ratio);
+    return Math.max(0, Math.ceil(raw));
+  };
+
+  const safeMissesWithinRemaining = (total, attended, remaining, targetPercent) => {
+    if (remaining <= 0) return 0;
+    const ratio = targetPercent / 100;
+    const raw = Math.floor(attended + remaining - ratio * (total + remaining));
+    return Math.max(0, Math.min(remaining, raw));
+  };
+
+  const buildAttendancePlan = (total, attended, remaining, bufferPercent) => {
+    if (remaining < 0) return null;
+    const finalTotal = total + remaining;
+    const bestFinalPercentage = finalTotal > 0 ? ((attended + remaining) / finalTotal) * 100 : 0;
+    const worstFinalPercentage = finalTotal > 0 ? (attended / finalTotal) * 100 : 0;
+
+    const safeMisses75 = safeMissesWithinRemaining(total, attended, remaining, ATTENDANCE_MIN_PERCENT);
+    const mustAttendFor75 = Math.max(0, remaining - safeMisses75);
+    const safeMissesBuffer = safeMissesWithinRemaining(total, attended, remaining, bufferPercent);
+    const mustAttendForBuffer = Math.max(0, remaining - safeMissesBuffer);
 
     return {
-      currentPercentage: currentPercentage.toFixed(1),
-      isAbove75: currentPercentage >= 75,
-      canMiss: Math.max(0, canMiss),
-      needToAttend: Math.max(0, needToAttend),
-      attended,
-      total
+      remaining,
+      bestFinalPercentage,
+      worstFinalPercentage,
+      safeMisses75,
+      mustAttendFor75,
+      safeMissesBuffer,
+      mustAttendForBuffer
     };
   };
 
-  const attendanceResult = calculateAttendance();
+  const buildCurrentAttendanceStats = (totalInput, attendedInput) => {
+    const total = parseNonNegativeInt(totalInput);
+    const attended = parseNonNegativeInt(attendedInput);
+    if (total === null || attended === null || total === 0) {
+      return { ready: false };
+    }
+    if (attended > total) {
+      return { ready: false, invalid: true };
+    }
+
+    const currentPercentage = (attended / total) * 100;
+    const minRatio = ATTENDANCE_MIN_PERCENT / 100;
+    const maxConsecutiveSkipsNow = Math.max(0, Math.floor((attended / minRatio) - total));
+    const classesToAttendNow = consecutiveClassesNeeded(total, attended, ATTENDANCE_MIN_PERCENT);
+
+    return {
+      ready: true,
+      total,
+      attended,
+      currentPercentage,
+      maxConsecutiveSkipsNow,
+      classesToAttendNow,
+      isAboveMinimum: currentPercentage >= ATTENDANCE_MIN_PERCENT
+    };
+  };
+
+  const statusStats = useMemo(() => (
+    buildCurrentAttendanceStats(attendanceStatusMode.total, attendanceStatusMode.attended)
+  ), [attendanceStatusMode]);
+
+  const sharedBufferPercent = useMemo(() => (
+    parseTargetPercent(attendanceStatusMode.bufferPercent, 80)
+  ), [attendanceStatusMode.bufferPercent]);
+
+  const classesLeftPlan = useMemo(() => {
+    if (!statusStats.ready) return null;
+    const classesLeft = parseNonNegativeInt(attendanceClassesLeftMode.classesLeft);
+    if (classesLeft === null) return null;
+    return buildAttendancePlan(
+      statusStats.total,
+      statusStats.attended,
+      classesLeft,
+      sharedBufferPercent
+    );
+  }, [statusStats, attendanceClassesLeftMode.classesLeft, sharedBufferPercent]);
+
+  const semesterPlan = useMemo(() => {
+    const semesterTotal = parseNonNegativeInt(attendanceSemesterMode.semesterTotal);
+    if (!statusStats.ready || semesterTotal === null) return null;
+    if (semesterTotal < statusStats.total) {
+      return { invalid: true, semesterTotal };
+    }
+
+    const classesLeft = semesterTotal - statusStats.total;
+    const result = buildAttendancePlan(
+      statusStats.total,
+      statusStats.attended,
+      classesLeft,
+      sharedBufferPercent
+    );
+    const requiredAttendanceWhole = Math.ceil((ATTENDANCE_MIN_PERCENT / 100) * semesterTotal);
+    const maxTotalMissesWhole75 = Math.max(0, semesterTotal - requiredAttendanceWhole);
+    return result ? { ...result, semesterTotal, classesLeft, maxTotalMissesWhole75 } : null;
+  }, [statusStats, attendanceSemesterMode.semesterTotal, sharedBufferPercent]);
+
+  const weeklyPlan = useMemo(() => {
+    if (!statusStats.ready) return null;
+    const weeksLeft = parseNonNegativeInt(attendanceWeeklyMode.weeksLeft);
+    let minPerWeek = parseNonNegativeInt(attendanceWeeklyMode.minPerWeek);
+    let maxPerWeek = parseNonNegativeInt(attendanceWeeklyMode.maxPerWeek);
+
+    if (weeksLeft === null || minPerWeek === null || maxPerWeek === null) return null;
+    if (minPerWeek > maxPerWeek) {
+      [minPerWeek, maxPerWeek] = [maxPerWeek, minPerWeek];
+    }
+
+    const minRemaining = weeksLeft * minPerWeek;
+    const maxRemaining = weeksLeft * maxPerWeek;
+
+    return {
+      weeksLeft,
+      minPerWeek,
+      maxPerWeek,
+      minPlan: buildAttendancePlan(statusStats.total, statusStats.attended, minRemaining, sharedBufferPercent),
+      maxPlan: buildAttendancePlan(statusStats.total, statusStats.attended, maxRemaining, sharedBufferPercent)
+    };
+  }, [statusStats, attendanceWeeklyMode.weeksLeft, attendanceWeeklyMode.minPerWeek, attendanceWeeklyMode.maxPerWeek, sharedBufferPercent]);
 
   // --- Custom Template Builder State ---
   const [showTemplateBuilder, setShowTemplateBuilder] = useState(false);
@@ -1866,6 +2011,7 @@ export default function PES_Universal_Calculator() {
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
             { id: 'reverse', label: 'Reverse Calc', icon: Target, accent: 'emerald' },
+            { id: 'attendance', label: 'Attendance', icon: CheckCircle2 },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
@@ -2433,138 +2579,6 @@ export default function PES_Universal_Calculator() {
                 </details>
               </div>
             )}
-
-            {/* ==================== ATTENDANCE CALCULATOR (Collapsible) ==================== */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
-              <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                  <div className="flex items-center gap-3">
-                    {/* Icon */}
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-
-                    {/* Text Column */}
-                    <div className="text-left">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-zinc-200">Quick Attendance Check</span>
-                        {/* The 'Not Saved' Badge */}
-                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-white/[0.04] border`}>Not saved</span>
-                      </div>
-
-                      <p className={`text-xs ${themeClasses.muted} font-normal mt-0.5`}>
-                        Calculate safe no. of classes you can miss vs. 75% requirement
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
-                </summary>
-
-                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
-
-                  {/* Inputs */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1`}>Total Classes Completed</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 40"
-                        value={attendanceData.total}
-                        onChange={(e) => setAttendanceData(prev => ({ ...prev, total: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
-                      />
-                    </div>
-                    <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1`}>Classes Attended</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 35"
-                        value={attendanceData.attended}
-                        onChange={(e) => setAttendanceData(prev => ({ ...prev, attended: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Results */}
-                  {attendanceResult && (
-                    <div className="space-y-3">
-                      {/* Current Percentage Bar */}
-                      <div className={`p-3 rounded-lg ${attendanceResult.isAbove75 ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
-                        <div className="flex justify-between items-center mb-2">
-                          <span className={`text-xs font-bold ${attendanceResult.isAbove75 ? 'text-green-300' : 'text-red-300'}`}>
-                            Current Attendance
-                          </span>
-                          <span className={`text-lg font-bold ${attendanceResult.isAbove75 ? 'text-green-400' : 'text-red-400'}`}>
-                            {attendanceResult.currentPercentage}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full transition-all ${attendanceResult.isAbove75 ? 'bg-green-500' : 'bg-red-500'}`}
-                            style={{ width: `${Math.min(100, parseFloat(attendanceResult.currentPercentage))}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-[10px] mt-1">
-                          <span className={themeClasses.muted}>0%</span>
-                          <span className={`font-bold ${attendanceResult.isAbove75 ? 'text-green-400' : 'text-red-400'}`}>75% Required</span>
-                          <span className={themeClasses.muted}>100%</span>
-                        </div>
-                      </div>
-
-                      {/* Action Cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {attendanceResult.isAbove75 ? (
-                          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                            <div className="flex items-center gap-2 mb-1">
-                              <CheckCircle2 className="w-4 h-4 text-green-400" />
-                              <span className="text-xs font-bold text-green-300">You're Safe!</span>
-                            </div>
-                            <p className="text-sm text-green-200">
-                              You can miss up to <strong className="text-lg">{attendanceResult.canMiss}</strong> more class{attendanceResult.canMiss !== 1 ? 'es' : ''} and still stay above 75%.
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                            <div className="flex items-center gap-2 mb-1">
-                              <AlertTriangle className="w-4 h-4 text-red-400" />
-                              <span className="text-xs font-bold text-red-300">Below 75%!</span>
-                            </div>
-                            <p className="text-sm text-red-200">
-                              Attend the next <strong className="text-lg">{attendanceResult.needToAttend}</strong> class{attendanceResult.needToAttend !== 1 ? 'es' : ''} continuously to reach 75%.
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Stats Card */}
-                        <div className={`bg-white/[0.04] rounded-lg p-3`}>
-                          <div className="text-xs font-bold mb-2 opacity-70">Quick Stats</div>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                              <span className={themeClasses.muted}>Attended:</span>
-                              <span className="ml-1 font-bold">{attendanceResult.attended}/{attendanceResult.total}</span>
-                            </div>
-                            <div>
-                              <span className={themeClasses.muted}>Missed:</span>
-                              <span className="ml-1 font-bold">{attendanceResult.total - attendanceResult.attended}</span>
-                            </div>
-                            <div className="col-span-2">
-                              <span className={themeClasses.muted}>Classes for 75%:</span>
-                              <span className="ml-1 font-bold">{Math.ceil(attendanceResult.total * 0.75)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {!attendanceResult && (
-                    <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                      Enter total classes completed as of now and attended classes to check your attendance status.(for a subject)
-                    </div>
-                  )}
-
-                </div>
-              </details>
-            </div>
 
             {/* ==================== QUICK SGPA ESTIMATOR (FROM GRADES) ==================== */}
             <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
@@ -3659,6 +3673,335 @@ export default function PES_Universal_Calculator() {
           </div>
         )}
 
+        {/* ==================== ATTENDANCE TAB ==================== */}
+        {activeTab === 'attendance' && (
+          <div className="space-y-6">
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Overall Attendance
+              </h2>
+              <p className={`text-xs ${themeClasses.muted} mt-1`}>
+                One subject at a time. Mode 1 is the base, and all planning modes use it automatically.
+              </p>
+            </div>
+
+            <details className={`${themeClasses.card} border rounded-xl group`} open>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-bold">Mode 1 — Current Attendance and Shared Baseline</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] ${themeClasses.muted}`}>Saved locally</span>
+                  <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+                </div>
+              </summary>
+
+              <div className="p-4 pt-0 space-y-4">
+
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Held So Far</label>
+                  <input
+                    type="number"
+                    value={attendanceStatusMode.total}
+                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, total: e.target.value }))}
+                    placeholder="e.g. 51"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Attended</label>
+                  <input
+                    type="number"
+                    value={attendanceStatusMode.attended}
+                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, attended: e.target.value }))}
+                    placeholder="e.g. 48"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+                <div className="col-span-2 lg:col-span-1">
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Buffer Target % (used in Mode 2/3/4)</label>
+                  <input
+                    type="number"
+                    value={attendanceStatusMode.bufferPercent}
+                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: e.target.value }))}
+                    placeholder="e.g. 80"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              {statusStats.invalid && (
+                <div className="text-xs text-red-400">
+                  Attended classes cannot be greater than classes held.
+                </div>
+              )}
+
+              {statusStats.ready ? (
+                <div className="space-y-3">
+                  <div className={`p-3 rounded-lg ${statusStats.isAboveMinimum ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`text-xs font-bold ${statusStats.isAboveMinimum ? 'text-green-300' : 'text-red-300'}`}>
+                        Current Attendance
+                      </span>
+                      <span className={`text-lg font-bold ${statusStats.isAboveMinimum ? 'text-green-400' : 'text-red-400'}`}>
+                        {statusStats.currentPercentage.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${statusStats.isAboveMinimum ? 'bg-green-500' : 'bg-red-500'}`}
+                        style={{ width: `${Math.min(100, statusStats.currentPercentage)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[10px] mt-1">
+                      <span className={themeClasses.muted}>0%</span>
+                      <span className={`font-bold ${statusStats.isAboveMinimum ? 'text-green-400' : 'text-red-400'}`}>{ATTENDANCE_MIN_PERCENT}% Minimum</span>
+                      <span className={themeClasses.muted}>100%</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] uppercase font-bold opacity-60">Attendance Entered (Attended / Held)</div>
+                      <div className="text-sm font-bold mt-1">{statusStats.attended}/{statusStats.total}</div>
+                    </div>
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] uppercase font-bold opacity-60">Maximum Consecutive Classes You Can Miss Right Now</div>
+                      <div className="text-sm font-bold mt-1">{statusStats.maxConsecutiveSkipsNow}</div>
+                    </div>
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] uppercase font-bold opacity-60">Consecutive Classes You Must Attend to Reach 75%</div>
+                      <div className="text-sm font-bold mt-1">{statusStats.classesToAttendNow}</div>
+                    </div>
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] uppercase font-bold opacity-60">Distance Above the 75% Minimum</div>
+                      <div className="text-sm font-bold mt-1">{(statusStats.currentPercentage - ATTENDANCE_MIN_PERCENT).toFixed(1)}%</div>
+                    </div>
+                  </div>
+
+                  <div className={`text-xs ${themeClasses.muted}`}>
+                    {statusStats.isAboveMinimum
+                      ? `You are above ${ATTENDANCE_MIN_PERCENT}%. You can miss ${statusStats.maxConsecutiveSkipsNow} consecutive classes before you need to attend again.`
+                      : `You are below ${ATTENDANCE_MIN_PERCENT}%. Attend the next ${statusStats.classesToAttendNow} classes continuously to recover above the minimum.`}
+                  </div>
+                </div>
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  Enter classes held and attended to view this mode.
+                </div>
+              )}
+              </div>
+            </details>
+
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-bold">Mode 2 — Plan Using Classes Remaining</span>
+                </div>
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="p-4 pt-0 space-y-4">
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                {statusStats.ready
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(1)}%). Buffer target: ${sharedBufferPercent.toFixed(1)}%.`
+                  : 'Fill Mode 1 first to unlock this planner.'}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Left</label>
+                  <input
+                    type="number"
+                    value={attendanceClassesLeftMode.classesLeft}
+                    onChange={(e) => setAttendanceClassesLeftMode(prev => ({ ...prev, classesLeft: e.target.value }))}
+                    placeholder="e.g. 24"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              {classesLeftPlan && statusStats.ready ? (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMisses75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.mustAttendFor75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMissesBuffer}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.worstFinalPercentage.toFixed(1)}% - {classesLeftPlan.bestFinalPercentage.toFixed(1)}%</div>
+                  </div>
+                </div>
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  {statusStats.ready ? 'Enter classes left to see the result.' : 'Complete Mode 1 first to use this planner.'}
+                </div>
+              )}
+              </div>
+            </details>
+
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-bold">Mode 3 — Plan Using Total Semester Classes</span>
+                </div>
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="p-4 pt-0 space-y-4">
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                {statusStats.ready
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(1)}%). Buffer target: ${sharedBufferPercent.toFixed(1)}%.`
+                  : 'Fill Mode 1 first to unlock this planner.'}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Total Classes in Semester</label>
+                  <input
+                    type="number"
+                    value={attendanceSemesterMode.semesterTotal}
+                    onChange={(e) => setAttendanceSemesterMode(prev => ({ ...prev, semesterTotal: e.target.value }))}
+                    placeholder="e.g. 90"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              {semesterPlan?.invalid ? (
+                <div className="text-xs text-red-400">
+                  Semester total cannot be less than classes already held.
+                </div>
+              ) : semesterPlan && statusStats.ready ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Classes Remaining in Semester</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.classesLeft}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Total Semester Miss Limit (75%)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.maxTotalMissesWhole75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Additional Misses Allowed From Now (75%)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.safeMisses75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.mustAttendFor75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.safeMissesBuffer}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.worstFinalPercentage.toFixed(1)}% - {semesterPlan.bestFinalPercentage.toFixed(1)}%</div>
+                  </div>
+                </div>
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  {statusStats.ready ? 'Enter total semester classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
+                </div>
+              )}
+              </div>
+            </details>
+
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-violet-400" />
+                  <span className="text-sm font-bold">Mode 4 — Weekly Class Range Planner</span>
+                </div>
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="p-4 pt-0 space-y-4">
+
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                {statusStats.ready
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(1)}%). Buffer target: ${sharedBufferPercent.toFixed(1)}%.`
+                  : 'Fill Mode 1 first to unlock this planner.'}
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Weeks Left</label>
+                  <input
+                    type="number"
+                    value={attendanceWeeklyMode.weeksLeft}
+                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, weeksLeft: e.target.value }))}
+                    placeholder="e.g. 6"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Min Classes / Week</label>
+                  <input
+                    type="number"
+                    value={attendanceWeeklyMode.minPerWeek}
+                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, minPerWeek: e.target.value }))}
+                    placeholder="e.g. 4"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+                <div className="col-span-2 lg:col-span-1">
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Max Classes / Week</label>
+                  <input
+                    type="number"
+                    value={attendanceWeeklyMode.maxPerWeek}
+                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, maxPerWeek: e.target.value }))}
+                    placeholder="e.g. 6"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                Use the same number for minimum and maximum if every week has the same class count.
+              </div>
+
+              {weeklyPlan?.minPlan && weeklyPlan?.maxPlan && statusStats.ready ? (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Estimated Remaining Classes</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.remaining}{weeklyPlan.maxPlan.remaining !== weeklyPlan.minPlan.remaining && <span className="opacity-60"> - {weeklyPlan.maxPlan.remaining}</span>}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMisses75}{weeklyPlan.maxPlan.safeMisses75 !== weeklyPlan.minPlan.safeMisses75 && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMisses75}</span>}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMissesBuffer}{weeklyPlan.maxPlan.safeMissesBuffer !== weeklyPlan.minPlan.safeMissesBuffer && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMissesBuffer}</span>}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.worstFinalPercentage.toFixed(1)}% - {weeklyPlan.maxPlan.bestFinalPercentage.toFixed(1)}%</div>
+                  </div>
+                </div>
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  {statusStats.ready ? 'Enter weekly range values to see the result.' : 'Complete Mode 1 first to use this planner.'}
+                </div>
+              )}
+              </div>
+            </details>
+          </div>
+        )}
+
         {/* ==================== CGPA TAB ==================== */}
         {activeTab === 'cgpa' && (
           <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
@@ -4148,11 +4491,12 @@ export default function PES_Universal_Calculator() {
                   The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
                 </p>
                 <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li><strong>Safe Zone:</strong> If your attendance is above 75%, it calculates exactly how many future classes you can "bunk" (skip) while staying safe.</li>
-                  <li><strong>Danger Zone:</strong> If you drop below 75%, it tells you how many classes you must attend <em>consecutively</em> to get back on track.</li>
+                  <li><strong>Mode 1 First:</strong> Enter current held and attended classes once, and the planners reuse it automatically.</li>
+                  <li><strong>Clear Results:</strong> Every mode explains how many classes you can miss and how many you must attend to stay above your target.</li>
+                  <li><strong>Buffer Target:</strong> Set a stricter target (like 80%) in Mode 1, and all planning modes use it.</li>
                 </ul>
                 <p className="mt-2 text-xs italic opacity-70">
-                  Note: Attendance data is for quick checking and is not saved when you refresh.
+                  Attendance inputs are saved locally in your browser.
                 </p>
               </div>
             </div>
@@ -4206,6 +4550,7 @@ export default function PES_Universal_Calculator() {
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
             { id: 'reverse', label: 'Reverse', icon: Target, accent: 'emerald' },
+            { id: 'attendance', label: 'Attend', icon: CheckCircle2 },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
