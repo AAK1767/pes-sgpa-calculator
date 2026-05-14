@@ -9,6 +9,16 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      workbox: {
+        // Immediately activate the new service worker, don't wait for tabs to close
+        skipWaiting: true,
+        // Take control of all open clients as soon as the new SW activates
+        clientsClaim: true,
+        // Remove outdated precache entries from previous builds
+        cleanupOutdatedCaches: true,
+        // SPA fallback
+        navigateFallback: 'index.html',
+      },
       manifest: {
         name: 'PESU Grade Calculator',
         short_name: 'PESU Calc',
