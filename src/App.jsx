@@ -3645,7 +3645,7 @@ export default function PES_Universal_Calculator() {
 
               <div className="p-4 pt-0 space-y-4">
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                 <div>
                   <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Held So Far</label>
                   <input
@@ -3653,7 +3653,7 @@ export default function PES_Universal_Calculator() {
                     value={attendanceStatusMode.total}
                     onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, total: e.target.value }))}
                     placeholder="e.g. 51"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
                 <div>
@@ -3663,17 +3663,17 @@ export default function PES_Universal_Calculator() {
                     value={attendanceStatusMode.attended}
                     onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, attended: e.target.value }))}
                     placeholder="e.g. 48"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
-                <div>
+                <div className="col-span-2 lg:col-span-1">
                   <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Buffer Target % (used in Mode 2/3/4)</label>
                   <input
                     type="number"
                     value={attendanceStatusMode.bufferPercent}
                     onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: e.target.value }))}
                     placeholder="e.g. 80"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
               </div>
@@ -3708,20 +3708,20 @@ export default function PES_Universal_Calculator() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div className="bg-white/[0.04] rounded-lg p-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                       <div className="text-[10px] uppercase font-bold opacity-60">Attendance Entered (Attended / Held)</div>
                       <div className="text-sm font-bold mt-1">{statusStats.attended}/{statusStats.total}</div>
                     </div>
-                    <div className="bg-white/[0.04] rounded-lg p-3">
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                       <div className="text-[10px] uppercase font-bold opacity-60">Maximum Consecutive Classes You Can Miss Right Now</div>
                       <div className="text-sm font-bold mt-1">{statusStats.maxConsecutiveSkipsNow}</div>
                     </div>
-                    <div className="bg-white/[0.04] rounded-lg p-3">
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                       <div className="text-[10px] uppercase font-bold opacity-60">Consecutive Classes You Must Attend to Reach 75%</div>
                       <div className="text-sm font-bold mt-1">{statusStats.classesToAttendNow}</div>
                     </div>
-                    <div className="bg-white/[0.04] rounded-lg p-3">
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                       <div className="text-[10px] uppercase font-bold opacity-60">Distance Above the 75% Minimum</div>
                       <div className="text-sm font-bold mt-1">{(statusStats.currentPercentage - ATTENDANCE_MIN_PERCENT).toFixed(1)}%</div>
                     </div>
@@ -3765,26 +3765,26 @@ export default function PES_Universal_Calculator() {
                     value={attendanceClassesLeftMode.classesLeft}
                     onChange={(e) => setAttendanceClassesLeftMode(prev => ({ ...prev, classesLeft: e.target.value }))}
                     placeholder="e.g. 24"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
               </div>
 
               {classesLeftPlan && statusStats.ready ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Maximum Classes You Can Miss and Still Stay at 75%</div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
                     <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMisses75}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Classes You Must Attend From Now to Finish at 75%</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
                     <div className="text-sm font-bold mt-1">{classesLeftPlan.mustAttendFor75}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Classes You Can Still Miss and Finish at Buffer Target ({sharedBufferPercent.toFixed(1)}%)</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
                     <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMissesBuffer}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
                     <div className="text-sm font-bold mt-1">{classesLeftPlan.worstFinalPercentage.toFixed(1)}% - {classesLeftPlan.bestFinalPercentage.toFixed(1)}%</div>
                   </div>
@@ -3821,7 +3821,7 @@ export default function PES_Universal_Calculator() {
                     value={attendanceSemesterMode.semesterTotal}
                     onChange={(e) => setAttendanceSemesterMode(prev => ({ ...prev, semesterTotal: e.target.value }))}
                     placeholder="e.g. 90"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
               </div>
@@ -3831,28 +3831,28 @@ export default function PES_Universal_Calculator() {
                   Semester total cannot be less than classes already held.
                 </div>
               ) : semesterPlan && statusStats.ready ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div className="bg-white/[0.04] rounded-lg p-3">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Classes Remaining in Semester</div>
                     <div className="text-sm font-bold mt-1">{semesterPlan.classesLeft}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Total Classes You Can Miss Across the Full Semester (Overall 75% Limit)</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Total Semester Miss Limit (75%)</div>
                     <div className="text-sm font-bold mt-1">{semesterPlan.maxTotalMissesWhole75}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Additional Classes You Can Still Miss From Now (to End at 75%)</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Additional Misses Allowed From Now (75%)</div>
                     <div className="text-sm font-bold mt-1">{semesterPlan.safeMisses75}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Classes You Must Attend From Now to Finish at 75%</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
                     <div className="text-sm font-bold mt-1">{semesterPlan.mustAttendFor75}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Classes You Can Still Miss and Finish at Buffer Target ({sharedBufferPercent.toFixed(1)}%)</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
                     <div className="text-sm font-bold mt-1">{semesterPlan.safeMissesBuffer}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
                     <div className="text-sm font-bold mt-1">{semesterPlan.worstFinalPercentage.toFixed(1)}% - {semesterPlan.bestFinalPercentage.toFixed(1)}%</div>
                   </div>
@@ -3882,7 +3882,7 @@ export default function PES_Universal_Calculator() {
                   : 'Fill Mode 1 first to unlock this planner.'}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                 <div>
                   <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Weeks Left</label>
                   <input
@@ -3890,7 +3890,7 @@ export default function PES_Universal_Calculator() {
                     value={attendanceWeeklyMode.weeksLeft}
                     onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, weeksLeft: e.target.value }))}
                     placeholder="e.g. 6"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
                 <div>
@@ -3900,17 +3900,17 @@ export default function PES_Universal_Calculator() {
                     value={attendanceWeeklyMode.minPerWeek}
                     onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, minPerWeek: e.target.value }))}
                     placeholder="e.g. 4"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
-                <div>
+                <div className="col-span-2 lg:col-span-1">
                   <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Max Classes / Week</label>
                   <input
                     type="number"
                     value={attendanceWeeklyMode.maxPerWeek}
                     onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, maxPerWeek: e.target.value }))}
                     placeholder="e.g. 6"
-                    className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
               </div>
@@ -3920,20 +3920,20 @@ export default function PES_Universal_Calculator() {
               </div>
 
               {weeklyPlan?.minPlan && weeklyPlan?.maxPlan && statusStats.ready ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="bg-white/[0.04] rounded-lg p-3">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Estimated Remaining Classes</div>
                     <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.remaining}{weeklyPlan.maxPlan.remaining !== weeklyPlan.minPlan.remaining && <span className="opacity-60"> - {weeklyPlan.maxPlan.remaining}</span>}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Maximum Classes You Can Miss and Still Stay at 75%</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
                     <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMisses75}{weeklyPlan.maxPlan.safeMisses75 !== weeklyPlan.minPlan.safeMisses75 && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMisses75}</span>}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Classes You Can Still Miss and Finish at Buffer Target ({sharedBufferPercent.toFixed(1)}%)</div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
                     <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMissesBuffer}{weeklyPlan.maxPlan.safeMissesBuffer !== weeklyPlan.minPlan.safeMissesBuffer && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMissesBuffer}</span>}</div>
                   </div>
-                  <div className="bg-white/[0.04] rounded-lg p-3">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
                     <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.worstFinalPercentage.toFixed(1)}% - {weeklyPlan.maxPlan.bestFinalPercentage.toFixed(1)}%</div>
                   </div>
