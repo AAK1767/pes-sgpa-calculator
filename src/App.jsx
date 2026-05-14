@@ -953,10 +953,14 @@ export default function PES_Universal_Calculator() {
     }
   };
 
-  const getRequiredISA2ForPass = (subject) => {
+  const getRequiredISA2ForGrade = (subject, targetScore, options = {}) => {
     if (subject.hasIsa2 === false) return null;
+    const { assumeFullForEmptyInternals = false } = options;
 
     const m = marks[subject.id] || {};
+    const parsedTarget = parseFloat(targetScore);
+    if (isNaN(parsedTarget)) return null;
+
     const hasIsa2 = m.isa2 !== '' && m.isa2 !== undefined && !isNaN(parseFloat(m.isa2));
     if (hasIsa2) return null;
 
@@ -987,13 +991,13 @@ export default function PES_Universal_Calculator() {
     if (subject.hasAssignment) {
       baseInternals += hasAssignment
         ? calcComponent(m.assignment, m.assignmentMax, assignmentWeight)
-        : assignmentWeight;
+        : (assumeFullForEmptyInternals ? assignmentWeight : 0);
     }
 
     if (subject.hasLab) {
       baseInternals += hasLab
         ? calcComponent(m.lab, m.labMax, labWeight)
-        : labWeight;
+        : (assumeFullForEmptyInternals ? labWeight : 0);
     }
 
     const esaComponent = hasEsa ? calcComponent(m.esa, m.esaMax, esaWeight) : 0;
@@ -1004,7 +1008,7 @@ export default function PES_Universal_Calculator() {
       esaWeight;
     if (totalWeight <= 0) return null;
 
-    const requiredWeightedTotal = (40 * totalWeight) / 100;
+    const requiredWeightedTotal = (parsedTarget * totalWeight) / 100;
     const requiredIsa2Component = requiredWeightedTotal - baseInternals - esaComponent;
 
     if (requiredIsa2Component <= 0) return { needed: 0, max: isa2Max };
@@ -1014,6 +1018,10 @@ export default function PES_Universal_Calculator() {
 
     return { needed: Math.max(0, requiredIsa2Marks), max: isa2Max };
   };
+
+  const getRequiredISA2ForPass = (subject) => getRequiredISA2ForGrade(subject, 40, {
+    assumeFullForEmptyInternals: true
+  });
 
   // --- SGPA Calculation ---
   useEffect(() => {
@@ -1658,6 +1666,7 @@ export default function PES_Universal_Calculator() {
 
       const gradeRequirements = GradeMap.slice(0, -1).map(g => {
         const result = getRequiredESAForGrade(sub, g.min, true);
+        const isa2Info = getRequiredISA2ForGrade(sub, g.min, { assumeFullForEmptyInternals: true });
 
         return {
           grade: g.grade,
@@ -1669,7 +1678,10 @@ export default function PES_Universal_Calculator() {
           requiresRounding: result.requiresRounding || false,
           easy: result.safe > 0 && result.safe <= 50 && !result.requiresRounding,
           moderate: result.safe > 50 && result.safe <= 75 && !result.requiresRounding,
-          hard: (result.safe > 75 && !result.requiresRounding) || result.requiresRounding
+          hard: (result.safe > 75 && !result.requiresRounding) || result.requiresRounding,
+          showIsa2Needed: !!isa2Info,
+          isa2Needed: isa2Info ? isa2Info.needed : null,
+          isa2Max: isa2Info ? isa2Info.max : null
         };
       });
 
@@ -2965,20 +2977,26 @@ export default function PES_Universal_Calculator() {
                 </div>
 
                 {metrics.analysisData.map((d, i) => {
-                  // Calculate Passing Requirement on the fly
+                  // Calculate Requirements on the fly
                   const sub = subjects.find(s => s.id === d.id);
                   const reqPass = getRequiredESAForGrade(sub, 40, true, { useMomentumIsa2: true, useMomentumInternals: true });
                   const isa2Label = sub?.customConfig?.labels?.isa2 || 'ISA2';
                   const assignmentLabel = sub?.customConfig?.labels?.assignment || 'Assignment';
                   const assignmentLabelShort = assignmentLabel === 'Assignment' ? 'Asg' : assignmentLabel;
                   const labLabel = sub?.customConfig?.labels?.lab || 'Lab';
-                  const isa2PassLine = d.showIsa2PassNeeded ? (
-                    d.isa2PassNeeded === null ? (
-                      <div className="text-[9px] text-red-400 leading-none mt-0.5">{isa2Label} pass: impossible</div>
-                    ) : (
-                      <div className="text-[9px] text-zinc-500 leading-none mt-0.5">{isa2Label} pass: {d.isa2PassNeeded}/{d.isa2PassMax}</div>
-                    )
-                  ) : null;
+                  const isa2PassInfo = getRequiredISA2ForPass(sub);
+                  const isa2AInfo = getRequiredISA2ForGrade(sub, 80, { assumeFullForEmptyInternals: true });
+                  const isa2SInfo = getRequiredISA2ForGrade(sub, 90, { assumeFullForEmptyInternals: true });
+                  const buildIsa2Line = (targetLabel, info) => {
+                    if (!info) return null;
+                    if (info.needed === null) {
+                      return <div className="text-[9px] text-red-400 leading-none mt-0.5">{isa2Label} {targetLabel}: impossible</div>;
+                    }
+                    return <div className="text-[9px] text-zinc-500 leading-none mt-0.5">{isa2Label} {targetLabel}: {info.needed}/{info.max}</div>;
+                  };
+                  const isa2PassLine = buildIsa2Line('pass', isa2PassInfo);
+                  const isa2ALine = buildIsa2Line('A', isa2AInfo);
+                  const isa2SLine = buildIsa2Line('S', isa2SInfo);
 
                   return (
                     <div
@@ -3064,13 +3082,20 @@ export default function PES_Universal_Calculator() {
                         <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
                           <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For A (80)</span>
                           {d.reqA === null ? (
-                            <span className="text-red-500 text-xs font-bold">Impossible</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-red-500 text-xs font-bold">Impossible</span>
+                              {isa2ALine}
+                            </div>
                           ) : d.reqA === 0 ? (
-                            <span className="text-green-500 text-xs font-bold">✓ Done</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-green-500 text-xs font-bold">✓ Done</span>
+                              {isa2ALine}
+                            </div>
                           ) : (
                             <div className="flex flex-col items-center">
                               <span className={`font-mono font-bold text-base md:text-sm ${d.reqARequiresRounding ? 'text-orange-300' : 'text-blue-300'}`}>{d.reqA}</span>
                               {d.reqAMin !== null && d.reqAMin < d.reqA && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqAMin}</div>}
+                              {isa2ALine}
                             </div>
                           )}
                         </div>
@@ -3079,13 +3104,20 @@ export default function PES_Universal_Calculator() {
                         <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
                           <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For S (90)</span>
                           {d.reqS === null ? (
-                            <span className="text-red-500 text-xs font-bold">Impossible</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-red-500 text-xs font-bold">Impossible</span>
+                              {isa2SLine}
+                            </div>
                           ) : d.reqS === 0 ? (
-                            <span className="text-green-500 text-xs font-bold">✓ Done</span>
+                            <div className="flex flex-col items-center">
+                              <span className="text-green-500 text-xs font-bold">✓ Done</span>
+                              {isa2SLine}
+                            </div>
                           ) : (
                             <div className="flex flex-col items-center">
                               <span className={`font-mono font-bold text-base md:text-sm ${d.reqSRequiresRounding ? 'text-orange-300' : 'text-yellow-300'}`}>{d.reqS}</span>
                               {d.reqSMin !== null && d.reqSMin < d.reqS && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqSMin}</div>}
+                              {isa2SLine}
                             </div>
                           )}
                         </div>
@@ -3122,7 +3154,7 @@ export default function PES_Universal_Calculator() {
                     <ChevronDown className="w-3 h-3 ml-auto opacity-50 transition-transform group-open:rotate-180" />
                   </summary>
                   <div className="mt-2 text-xs text-indigo-200/70 leading-relaxed pl-7 border-t border-indigo-500/10 pt-2">
-                    The momentum score assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong> If ISA2 is empty, the Pass/A/S ESA requirements use a momentum-projected ISA2 score and are estimates. When Assignment or Lab is empty, momentum assumes full marks for those components. The ISA2 pass line (when shown) tells how much ISA2 you need to pass, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
+                    The momentum score assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong> If ISA2 is empty, the Pass/A/S ESA requirements use a momentum-projected ISA2 score and are estimates. When Assignment or Lab is empty, momentum assumes full marks for those components. ISA2 target lines (Pass/A/S) show how much ISA2 you need for that grade, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
                   </div>
                 </details>
               </div>
@@ -3364,6 +3396,9 @@ export default function PES_Universal_Calculator() {
                 const esaInfo = baseSubject && targetScore !== null
                   ? getRequiredESAForGrade(baseSubject, targetScore, true, { useMomentumIsa2: true, useMomentumInternals: true })
                   : null;
+                const isa2TargetInfo = baseSubject && targetScore !== null
+                  ? getRequiredISA2ForGrade(baseSubject, targetScore, { assumeFullForEmptyInternals: true })
+                  : null;
                 const safeEsa = esaInfo?.safe ?? null;
                 const minEsa = esaInfo?.minimum ?? null;
                 const minDiffers = safeEsa !== null && minEsa !== null && minEsa < safeEsa;
@@ -3465,6 +3500,11 @@ export default function PES_Universal_Calculator() {
                             <span className="text-[9px] opacity-50">Needed</span>
                           </div>
                         )}
+                        {isa2TargetInfo && (
+                          <div className={`text-[9px] leading-none mt-1 text-right ${isa2TargetInfo.needed === null ? 'text-red-400' : 'text-zinc-500'}`}>
+                            {isa2Label} {sub.projectedGrade || 'target'}: {isa2TargetInfo.needed === null ? 'impossible' : `${isa2TargetInfo.needed}/${isa2TargetInfo.max}`}
+                          </div>
+                        )}
                       </div>
 
                       {/* Lock Button */}
@@ -3560,12 +3600,25 @@ export default function PES_Universal_Calculator() {
 
                         {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
                           const req = sub.gradeRequirements.find(g => g.grade === grade);
+                          const isa2MiniLine = req?.showIsa2Needed ? (
+                            req.isa2Needed === null ? (
+                              <div className="text-[9px] text-red-400 leading-none mt-0.5">I2: ✗</div>
+                            ) : (
+                              <div className="text-[9px] text-zinc-500 leading-none mt-0.5">I2: {req.isa2Needed}/{req.isa2Max}</div>
+                            )
+                          ) : null;
                           return (
                             <td key={grade} className="text-center py-3 px-2">
                               {!req?.possible ? (
-                                <span className="text-red-500 text-xs font-bold">✗</span>
+                                <div>
+                                  <span className="text-red-500 text-xs font-bold">✗</span>
+                                  {isa2MiniLine}
+                                </div>
                               ) : req.alreadyAchieved ? (
-                                <span className="text-green-400 font-bold">✓</span>
+                                <div>
+                                  <span className="text-green-400 font-bold">✓</span>
+                                  {isa2MiniLine}
+                                </div>
                               ) : (
                                 <div>
                                   <span className={`font-mono font-bold ${req.requiresRounding ? 'text-orange-400' :
@@ -3581,6 +3634,7 @@ export default function PES_Universal_Calculator() {
                                       ({req.minimumEsa})
                                     </div>
                                   )}
+                                  {isa2MiniLine}
                                 </div>
                               )}
                             </td>
@@ -4015,7 +4069,7 @@ export default function PES_Universal_Calculator() {
                       • <strong>Safe Score:</strong> The marks you need to in ESA based on your current ISA marks(and momentum is some fields are empty) to <em>guarantee</em> the grade(A/S) (e.g. 90).
                       <br />• <strong>Min Score:</strong> A lower score (e.g. 89.5) that <em>might</em> work because the college rounds up decimals.
                       <br />• <strong>Momentum Score:</strong> Shows your momentum score in ESA based on ISA if applicable.
-                      <br />• <strong>Pass (40) + ISA2 pass line:</strong> Pass shows the ESA needed to pass using momentum internals. If ISA2 is empty, the ISA2 pass line shows the ISA2 marks needed to pass, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
+                      <br />• <strong>Pass/A/S + ISA2 target lines:</strong> Pass/A/S show ESA needed using momentum internals. If ISA2 is empty, ISA2 lines show marks needed for Pass/A/S, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
                     </p>
                   </div>
                   <div className="p-3 border rounded-lg border-white/[0.06]">
