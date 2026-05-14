@@ -108,7 +108,7 @@ export default function PES_Universal_Calculator() {
 
   const [subjects, setSubjects] = useState(() => {
     // --- THE RESET LOGIC ---
-    const CURRENT_VERSION = '2026_Apr_V3.1'; // Change this string whenever you want to nuke again
+    const CURRENT_VERSION = '2026_MAY_V4.5'; // Change this string whenever you want to nuke again
     const savedVersion = localStorage.getItem('pes_version');
 
     if (savedVersion !== CURRENT_VERSION) {
@@ -4534,7 +4534,7 @@ export default function PES_Universal_Calculator() {
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
           <p>Data is auto-saved locally in your browser. </p>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v4.0 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v4.5 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <p className="mt-2 text-[10px] opacity-30">
             Keyboard Shortcuts: Ctrl+Z (Undo) • Ctrl+Y (Redo) • Ctrl+S (Export) • Esc (Close)
