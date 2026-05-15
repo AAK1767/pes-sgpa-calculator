@@ -205,6 +205,10 @@ export default function PES_Universal_Calculator() {
       maxPerWeek: ''
     };
   });
+  const [attendanceMissPlannerMode, setAttendanceMissPlannerMode] = useState(() => {
+    const saved = localStorage.getItem('pes_attendance_mode_miss_planner');
+    return saved ? JSON.parse(saved) : { misses: '' };
+  });
 
   useEffect(() => {
     localStorage.setItem('pes_attendance_mode_status', JSON.stringify(attendanceStatusMode));
@@ -221,6 +225,10 @@ export default function PES_Universal_Calculator() {
   useEffect(() => {
     localStorage.setItem('pes_attendance_mode_weekly', JSON.stringify(attendanceWeeklyMode));
   }, [attendanceWeeklyMode]);
+
+  useEffect(() => {
+    localStorage.setItem('pes_attendance_mode_miss_planner', JSON.stringify(attendanceMissPlannerMode));
+  }, [attendanceMissPlannerMode]);
 
   const parseNonNegativeInt = (value) => {
     const n = parseInt(value, 10);
@@ -306,6 +314,21 @@ export default function PES_Universal_Calculator() {
     parseTargetPercent(attendanceStatusMode.bufferPercent, 80)
   ), [attendanceStatusMode.bufferPercent]);
 
+  const targetStatusStats = useMemo(() => {
+    if (!statusStats.ready) return null;
+    const targetPercent = sharedBufferPercent;
+    const targetRatio = targetPercent / 100;
+    const maxConsecutiveSkipsForTarget = Math.max(0, Math.floor((statusStats.attended / targetRatio) - statusStats.total));
+    const classesToAttendForTarget = consecutiveClassesNeeded(statusStats.total, statusStats.attended, targetPercent);
+
+    return {
+      targetPercent,
+      maxConsecutiveSkipsForTarget,
+      classesToAttendForTarget,
+      isAboveTarget: statusStats.currentPercentage >= targetPercent
+    };
+  }, [statusStats, sharedBufferPercent]);
+
   const classesLeftPlan = useMemo(() => {
     if (!statusStats.ready) return null;
     const classesLeft = parseNonNegativeInt(attendanceClassesLeftMode.classesLeft);
@@ -359,6 +382,37 @@ export default function PES_Universal_Calculator() {
       maxPlan: buildAttendancePlan(statusStats.total, statusStats.attended, maxRemaining, sharedBufferPercent)
     };
   }, [statusStats, attendanceWeeklyMode.weeksLeft, attendanceWeeklyMode.minPerWeek, attendanceWeeklyMode.maxPerWeek, sharedBufferPercent]);
+
+  const missImpactPlan = useMemo(() => {
+    if (!statusStats.ready) return null;
+    const plannedMisses = parseNonNegativeInt(attendanceMissPlannerMode.misses);
+    if (plannedMisses === null) return null;
+
+    const totalAfterPlannedMisses = statusStats.total + plannedMisses;
+    const attendanceAfterPlannedMisses = totalAfterPlannedMisses > 0
+      ? (statusStats.attended / totalAfterPlannedMisses) * 100
+      : 0;
+
+    const isBelowAfterMisses = attendanceAfterPlannedMisses < ATTENDANCE_MIN_PERCENT;
+    const classesToRecoverAfterMisses = isBelowAfterMisses
+      ? consecutiveClassesNeeded(totalAfterPlannedMisses, statusStats.attended, ATTENDANCE_MIN_PERCENT)
+      : 0;
+
+    const maxMissesFor75 = statusStats.maxConsecutiveSkipsNow;
+    const totalAfterMaxMissesFor75 = statusStats.total + maxMissesFor75;
+    const attendanceAfterMaxMissesFor75 = totalAfterMaxMissesFor75 > 0
+      ? (statusStats.attended / totalAfterMaxMissesFor75) * 100
+      : 0;
+
+    return {
+      plannedMisses,
+      attendanceAfterPlannedMisses,
+      isBelowAfterMisses,
+      classesToRecoverAfterMisses,
+      maxMissesFor75,
+      attendanceAfterMaxMissesFor75
+    };
+  }, [statusStats, attendanceMissPlannerMode.misses]);
 
   // --- Custom Template Builder State ---
   const [showTemplateBuilder, setShowTemplateBuilder] = useState(false);
@@ -3699,7 +3753,7 @@ export default function PES_Universal_Calculator() {
 
               <div className="p-4 pt-0 space-y-4">
 
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Held So Far</label>
                   <input
@@ -3720,16 +3774,6 @@ export default function PES_Universal_Calculator() {
                     className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
                   />
                 </div>
-                <div className="col-span-2 lg:col-span-1">
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Buffer Target % (used in Mode 2/3/4)</label>
-                  <input
-                    type="number"
-                    value={attendanceStatusMode.bufferPercent}
-                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: e.target.value }))}
-                    placeholder="e.g. 80"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
               </div>
 
               {statusStats.invalid && (
@@ -3746,7 +3790,7 @@ export default function PES_Universal_Calculator() {
                         Current Attendance
                       </span>
                       <span className={`text-lg font-bold ${statusStats.isAboveMinimum ? 'text-green-400' : 'text-red-400'}`}>
-                        {statusStats.currentPercentage.toFixed(1)}%
+                        {statusStats.currentPercentage.toFixed(2)}%
                       </span>
                     </div>
                     <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
@@ -3771,14 +3815,27 @@ export default function PES_Universal_Calculator() {
                       <div className="text-[10px] uppercase font-bold opacity-60">Maximum Consecutive Classes You Can Miss Right Now</div>
                       <div className="text-sm font-bold mt-1">{statusStats.maxConsecutiveSkipsNow}</div>
                     </div>
+                    {!statusStats.isAboveMinimum && (
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">Consecutive Classes You Must Attend to Reach 75%</div>
+                        <div className="text-sm font-bold mt-1">{statusStats.classesToAttendNow}</div>
+                      </div>
+                    )}
                     <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                      <div className="text-[10px] uppercase font-bold opacity-60">Consecutive Classes You Must Attend to Reach 75%</div>
-                      <div className="text-sm font-bold mt-1">{statusStats.classesToAttendNow}</div>
+                      <div className="text-[10px] uppercase font-bold opacity-60">Difference From the 75% Minimum</div>
+                      <div className="text-sm font-bold mt-1">
+                        {(statusStats.currentPercentage >= ATTENDANCE_MIN_PERCENT ? '+' : '')}
+                        {(statusStats.currentPercentage - ATTENDANCE_MIN_PERCENT).toFixed(2)}%
+                      </div>
                     </div>
-                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                      <div className="text-[10px] uppercase font-bold opacity-60">Distance Above the 75% Minimum</div>
-                      <div className="text-sm font-bold mt-1">{(statusStats.currentPercentage - ATTENDANCE_MIN_PERCENT).toFixed(1)}%</div>
-                    </div>
+                    {statusStats.isAboveMinimum && statusStats.maxConsecutiveSkipsNow > 0 && (
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing Max Allowed (75%)</div>
+                        <div className="text-sm font-bold mt-1">
+                          {((statusStats.attended / (statusStats.total + statusStats.maxConsecutiveSkipsNow)) * 100).toFixed(2)}%
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className={`text-xs ${themeClasses.muted}`}>
@@ -3792,6 +3849,55 @@ export default function PES_Universal_Calculator() {
                   Enter classes held and attended to view this mode.
                 </div>
               )}
+
+              <div className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.08] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold">Separate Target Planner (Buffer)</div>
+                  <div className={`text-[10px] ${themeClasses.muted}`}>Used in Mode 2/3/4</div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Target Attendance %</label>
+                    <input
+                      type="number"
+                      value={attendanceStatusMode.bufferPercent}
+                      onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: e.target.value }))}
+                      placeholder="e.g. 80"
+                      className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                    />
+                  </div>
+                </div>
+
+                {targetStatusStats ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">
+                          Maximum Consecutive Classes You Can Miss (Target {targetStatusStats.targetPercent.toFixed(2)}%)
+                        </div>
+                        <div className="text-sm font-bold mt-1">{targetStatusStats.maxConsecutiveSkipsForTarget}</div>
+                      </div>
+                      {!targetStatusStats.isAboveTarget && (
+                        <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                          <div className="text-[10px] uppercase font-bold opacity-60">
+                            Consecutive Classes You Must Attend to Reach {targetStatusStats.targetPercent.toFixed(2)}%
+                          </div>
+                          <div className="text-sm font-bold mt-1">{targetStatusStats.classesToAttendForTarget}</div>
+                        </div>
+                      )}
+                    </div>
+                    <div className={`text-xs ${themeClasses.muted}`}>
+                      {targetStatusStats.isAboveTarget
+                        ? `You are already above ${targetStatusStats.targetPercent.toFixed(2)}%.`
+                        : `You are below ${targetStatusStats.targetPercent.toFixed(2)}%. Attend ${targetStatusStats.classesToAttendForTarget} consecutive classes to recover.`}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`text-xs ${themeClasses.muted}`}>
+                    Fill classes held and attended above to activate this target planner.
+                  </div>
+                )}
+              </div>
               </div>
             </details>
 
@@ -3807,7 +3913,7 @@ export default function PES_Universal_Calculator() {
               <div className="p-4 pt-0 space-y-4">
               <div className={`text-[10px] ${themeClasses.muted}`}>
                 {statusStats.ready
-                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(1)}%). Buffer target: ${sharedBufferPercent.toFixed(1)}%.`
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
                   : 'Fill Mode 1 first to unlock this planner.'}
               </div>
 
@@ -3835,12 +3941,12 @@ export default function PES_Universal_Calculator() {
                     <div className="text-sm font-bold mt-1">{classesLeftPlan.mustAttendFor75}</div>
                   </div>
                   <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
                     <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMissesBuffer}</div>
                   </div>
                   <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
-                    <div className="text-sm font-bold mt-1">{classesLeftPlan.worstFinalPercentage.toFixed(1)}% - {classesLeftPlan.bestFinalPercentage.toFixed(1)}%</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.worstFinalPercentage.toFixed(2)}% - {classesLeftPlan.bestFinalPercentage.toFixed(2)}%</div>
                   </div>
                 </div>
               ) : (
@@ -3863,7 +3969,7 @@ export default function PES_Universal_Calculator() {
               <div className="p-4 pt-0 space-y-4">
               <div className={`text-[10px] ${themeClasses.muted}`}>
                 {statusStats.ready
-                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(1)}%). Buffer target: ${sharedBufferPercent.toFixed(1)}%.`
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
                   : 'Fill Mode 1 first to unlock this planner.'}
               </div>
 
@@ -3903,12 +4009,12 @@ export default function PES_Universal_Calculator() {
                     <div className="text-sm font-bold mt-1">{semesterPlan.mustAttendFor75}</div>
                   </div>
                   <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
                     <div className="text-sm font-bold mt-1">{semesterPlan.safeMissesBuffer}</div>
                   </div>
                   <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
-                    <div className="text-sm font-bold mt-1">{semesterPlan.worstFinalPercentage.toFixed(1)}% - {semesterPlan.bestFinalPercentage.toFixed(1)}%</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.worstFinalPercentage.toFixed(2)}% - {semesterPlan.bestFinalPercentage.toFixed(2)}%</div>
                   </div>
                 </div>
               ) : (
@@ -3932,7 +4038,7 @@ export default function PES_Universal_Calculator() {
 
               <div className={`text-[10px] ${themeClasses.muted}`}>
                 {statusStats.ready
-                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(1)}%). Buffer target: ${sharedBufferPercent.toFixed(1)}%.`
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
                   : 'Fill Mode 1 first to unlock this planner.'}
               </div>
 
@@ -3984,12 +4090,12 @@ export default function PES_Universal_Calculator() {
                     <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMisses75}{weeklyPlan.maxPlan.safeMisses75 !== weeklyPlan.minPlan.safeMisses75 && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMisses75}</span>}</div>
                   </div>
                   <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(1)}%)</div>
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
                     <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMissesBuffer}{weeklyPlan.maxPlan.safeMissesBuffer !== weeklyPlan.minPlan.safeMissesBuffer && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMissesBuffer}</span>}</div>
                   </div>
                   <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                     <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
-                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.worstFinalPercentage.toFixed(1)}% - {weeklyPlan.maxPlan.bestFinalPercentage.toFixed(1)}%</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.worstFinalPercentage.toFixed(2)}% - {weeklyPlan.maxPlan.bestFinalPercentage.toFixed(2)}%</div>
                   </div>
                 </div>
               ) : (
@@ -3997,6 +4103,63 @@ export default function PES_Universal_Calculator() {
                   {statusStats.ready ? 'Enter weekly range values to see the result.' : 'Complete Mode 1 first to use this planner.'}
                 </div>
               )}
+              </div>
+            </details>
+
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm font-bold">Mode 5 — Miss Impact Planner</span>
+                </div>
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="p-4 pt-0 space-y-4">
+                <div className={`text-[10px] ${themeClasses.muted}`}>
+                  {statusStats.ready
+                    ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%).`
+                    : 'Fill Mode 1 first to unlock this planner.'}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>How many classes do you want to miss?</label>
+                    <input
+                      type="number"
+                      value={attendanceMissPlannerMode.misses}
+                      onChange={(e) => setAttendanceMissPlannerMode(prev => ({ ...prev, misses: e.target.value }))}
+                      placeholder="e.g. 3"
+                      className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none ${themeClasses.input}`}
+                    />
+                  </div>
+                </div>
+
+                {missImpactPlan && statusStats.ready ? (
+                  <div className="space-y-2">
+                    <div className={`grid ${missImpactPlan.isBelowAfterMisses ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-2`}>
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing {missImpactPlan.plannedMisses} Class(es)</div>
+                        <div className={`text-sm font-bold mt-1 ${missImpactPlan.isBelowAfterMisses ? 'text-red-400' : ''}`}>{missImpactPlan.attendanceAfterPlannedMisses.toFixed(2)}%</div>
+                      </div>
+                      {missImpactPlan.isBelowAfterMisses && (
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 sm:p-3">
+                          <div className="text-[10px] uppercase font-bold opacity-60 text-red-300">Classes You Must Then Attend to Recover 75%</div>
+                          <div className="text-sm font-bold mt-1 text-red-400">{missImpactPlan.classesToRecoverAfterMisses}</div>
+                        </div>
+                      )}
+                    </div>
+                    {missImpactPlan.isBelowAfterMisses && (
+                      <div className="text-xs text-red-400/80">
+                        Missing {missImpactPlan.plannedMisses} class(es) will drop you below 75%. You would need to attend {missImpactPlan.classesToRecoverAfterMisses} consecutive classes after that to recover.
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                    {statusStats.ready ? 'Enter planned missed classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
+                  </div>
+                )}
               </div>
             </details>
           </div>
