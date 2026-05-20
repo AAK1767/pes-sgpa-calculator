@@ -12,6 +12,8 @@ const navigationHandler = createHandlerBoundToURL('/index.html')
 const navigationRoute = new NavigationRoute(navigationHandler)
 registerRoute(navigationRoute)
 
+// When the new SW activates, tell ALL open tabs to reload immediately.
+// This is the nuclear option — no "update available" prompt, just force refresh.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
@@ -20,11 +22,18 @@ self.addEventListener('activate', (event) => {
         includeUncontrolled: true,
       })
 
-      await Promise.all(
-        clientList.map((client) =>
-          client.navigate ? client.navigate(client.url) : Promise.resolve()
-        )
-      )
+      // Post a message to every open tab/window telling it to reload
+      clientList.forEach((client) => {
+        client.postMessage({ type: 'SW_UPDATED' })
+      })
     })()
   )
+})
+
+// Listen for SKIP_WAITING messages from the client
+// (In case the client detects a waiting SW and wants to activate it)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })

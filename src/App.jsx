@@ -4697,7 +4697,7 @@ export default function PES_Universal_Calculator() {
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
           <p>Data is auto-saved locally in your browser. </p>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v4.5.1 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v4.5.2 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <p className="mt-2 text-[10px] opacity-30">
             Keyboard Shortcuts: Ctrl+Z (Undo) • Ctrl+Y (Redo) • Ctrl+S (Export) • Esc (Close)
