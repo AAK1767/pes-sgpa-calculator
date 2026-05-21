@@ -9,7 +9,7 @@ import {
   Lightbulb, ArrowRight, CheckCircle2, AlertCircle,
   Download, Upload, Lock, Unlock, AlertTriangle,
   BookOpen, Award, Zap, BarChart3, Moon, Sun,
-  Undo2, Redo2, HelpCircle, Info
+  Undo2, Redo2, HelpCircle, Info, X, Heart
 } from 'lucide-react';
 
 // --- Default Data for Reset ---
@@ -183,6 +183,7 @@ export default function PES_Universal_Calculator() {
   const [reverseEsaMode, setReverseEsaMode] = useState('safe');
   const [lockedSubjects, setLockedSubjects] = useState({});
   const [showHelp, setShowHelp] = useState(false);
+  const [showToffeeModal, setShowToffeeModal] = useState(false);
   const ATTENDANCE_MIN_PERCENT = 75;
   // --- Attendance (Mode 1 is the source for all planners) ---
   const [attendanceStatusMode, setAttendanceStatusMode] = useState(() => {
@@ -4387,6 +4388,10 @@ export default function PES_Universal_Calculator() {
               <HelpCircle className="absolute right-[-20px] bottom-[-40px] w-40 h-40 text-zinc-200 opacity-10 rotate-12" />
             </div>
 
+            <div className="text-[10px] opacity-30 text-right pr-1">
+              AI assistance was used to some extent.
+            </div>
+
             {/* 1. POWER USER FEATURES (Grid) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -4696,13 +4701,53 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p>Data is auto-saved locally in your browser. </p>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v4.5.26 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v4.5.3 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
-          <p className="mt-2 text-[10px] opacity-30">
-            Keyboard Shortcuts: Ctrl+Z (Undo) • Ctrl+Y (Redo) • Ctrl+S (Export) • Esc (Close)
+          <p
+            className="mt-1 text-[12px] opacity-45 cursor-pointer hover:opacity-60 transition-opacity select-none inline-block translate-x-[9px]"
+            onClick={() => setShowToffeeModal(true)}
+          >
+            buy me a toffee 🍬
           </p>
         </div>
+
+        {/* Toffee Support Modal */}
+        {showToffeeModal && (
+          <div
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowToffeeModal(false)}
+          >
+            <div
+              className="relative bg-[#111118] border border-white/[0.08] rounded-2xl p-6 max-w-xs w-full mx-4 shadow-2xl text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowToffeeModal(false)}
+                className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <div className="text-2xl mb-2">🍬</div>
+              <h3 className="text-sm font-semibold text-zinc-300 mb-1">Buy me a toffee</h3>
+              <p className="text-[11px] text-zinc-500 mb-4 leading-relaxed">
+                If this tool helped you out, feel free to support whatever you feel like. Totally optional, no pressure.
+              </p>
+              <div className="bg-white rounded-xl p-3 inline-block mb-3">
+                <img
+                  src="/upi-qr.png"
+                  alt="UPI QR Code"
+                  className="w-48 h-48 object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <p className="text-[10px] text-zinc-400 hidden">QR code not found — add upi-qr.png to /public</p>
+              </div>
+              <p className="text-[10px] text-zinc-600">Scan with any UPI app</p>
+            </div>
+          </div>
+        )}
 
       </motion.div>
 
