@@ -12,6 +12,15 @@ import {
   Undo2, Redo2, HelpCircle, Info, X, Heart
 } from 'lucide-react';
 
+// Custom Revamped UI Subcomponents
+import SGPASidebar from './components/SidebarSummary.jsx';
+import SubjectCard from './components/SubjectCard.jsx';
+import AttendanceTracker from './components/AttendanceTracker.jsx';
+import CGPAChart from './components/CGPAChart.jsx';
+import StrategyEngine from './components/StrategyEngine.jsx';
+import GuideSection from './components/GuideSection.jsx';
+
+
 // --- Default Data for Reset ---
 const ChemistryCycleDefaults = [
   { id: 1, name: "Mathematics - I/II", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
@@ -2020,2770 +2029,762 @@ export default function PES_Universal_Calculator() {
 
   const finalCgpa = calculateCGPA();
 
-  // --- Theme Classes (Premium Dark) ---
-  const themeClasses = {
-    bg: 'bg-[#06060a]',
-    text: 'text-zinc-300',
-    card: 'bg-[#0c0c14]/90 backdrop-blur-sm border-white/[0.06]',
-    cardHover: 'hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20',
-    input: 'bg-[#0e0e18] border-white/[0.08] text-zinc-200 placeholder:text-zinc-600 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all',
-    inputBg: 'bg-[#0e0e18]',
-    muted: 'text-zinc-500',
-    border: 'border-white/[0.06]',
-  };
-
+  // --- Visual Overhaul Styles ---
   return (
-    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24`}>
+    <div className="min-h-screen bg-[#030307] text-zinc-300 font-sans pb-28 relative overflow-x-hidden selection:bg-indigo-500/25 selection:text-white">
+      
+      {/* Ambient Mesh Glow Orbs */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/5 blur-[120px] rounded-full pointer-events-none -z-10 animate-float" />
+      <div className="absolute top-[20%] right-1/4 w-[400px] h-[400px] bg-purple-500/5 blur-[100px] rounded-full pointer-events-none -z-10 animate-float" style={{ animationDelay: '2s' }} />
+      <div className="absolute bottom-[20%] left-1/3 w-[350px] h-[350px] bg-emerald-500/2 blur-[90px] rounded-full pointer-events-none -z-10" />
+
       {/* Glass Header */}
-      <div className="bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06] text-zinc-200 py-4 px-4 md:p-6 sticky top-0 z-50 shadow-xl shadow-black/40">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2.5">
-              <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
-              </div>
-              <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
-            </h1>
-            <p className="text-zinc-500 text-[10px] md:text-xs mt-1.5 font-medium tracking-widest uppercase">
-              Universal &bull; Auto-Saves &bull; Any College
-            </p>
-          </div>
+      <header className="bg-[#08080f]/70 backdrop-blur-2xl border-b border-white/[0.04] text-zinc-200 py-4 px-6 sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.3)]">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <GraduationCap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-black bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent tracking-tight">
+                PESU Calculator
+              </h1>
+              <p className="text-[9px] text-zinc-500 font-bold tracking-widest uppercase mt-0.5">
+                Universal &bull; Cloud Save Local &bull; 100% Offline
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
             <div className="text-right">
-              <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider font-semibold">SGPA</div>
-              <div className={`text-3xl md:text-4xl font-black tabular-nums tracking-tight ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-white'}`}>
+              <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider block">Estimated SGPA</span>
+              <span className="text-2xl font-black text-white text-glow-indigo tabular-nums leading-none tracking-tight">
                 {sgpa}
-              </div>
+              </span>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Desktop Navigation */}
-      <div className="hidden md:block sticky top-[72px] md:top-[89px] z-40 bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06]">
-        <div className="max-w-4xl mx-auto flex overflow-x-auto gap-1 px-2 py-1.5">
+      <main className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+        
+        {/* Floating pill navigation (Pill Segmented control) */}
+        <div className="glass-panel border border-white/[0.04] rounded-2xl p-1.5 flex overflow-x-auto gap-1.5 sticky top-[76px] z-40">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
-            { id: 'reverse', label: 'Reverse Calc', icon: Target, accent: 'emerald' },
+            { id: 'analysis', label: 'Analysis', icon: Activity, dot: 'indigo' },
+            { id: 'reverse', label: 'Reverse Calc', icon: Target, dot: 'emerald' },
             { id: 'attendance', label: 'Attendance', icon: CheckCircle2 },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
-            { id: 'guide', label: 'Guide', icon: HelpCircle },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
-                ? 'bg-white/[0.08] text-white shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]'
-                }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-              {tab.accent && activeTab !== tab.id && (
-                <span className={`w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-glow-pulse`} />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <motion.div
-        key={activeTab}
-        className="max-w-4xl mx-auto p-4 space-y-6"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-      >
-
-        {/* ==================== SUBJECTS TAB ==================== */}
-        {activeTab === 'subjects' && (
-          <>
-            {/* Helper Banner (Optimized for both Mobile & Desktop) */}
-            <div className={`${themeClasses.card} border rounded-xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
-
-              {/* LEFT SIDE: Text Content (Unified Collapsible for Desktop & Mobile) */}
-              <div className="flex-1">
-                <details className="group">
-                  <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-400 hover:text-blue-300 transition-colors">
-                    <Settings className="w-5 h-5 flex-shrink-0" />
-                    <span className="font-bold text-zinc-200">Universal Calculator</span>
-                    <span className="text-[10px] bg-blue-500/10 px-2 py-0.5 rounded-full text-blue-400 flex items-center">
-                      Info <ChevronDown className="w-3 h-3 ml-1 transition-transform group-open:rotate-180" />
-                    </span>
-                  </summary>
-
-                  <div className={`mt-3 text-sm ${themeClasses.muted} leading-relaxed pl-7 border-t border-white/[0.06] pt-3 space-y-2`}>
-                    <p>
-                      Works for all semesters. 5-credit courses scale from 120% to 100%.
-                    </p>
-                    <p>
-                      After entering ISA/Lab/Assignment marks, you can check the <strong>Analysis</strong> tab for predictions and how much to score in ESA to reach your target grade in each subject and <strong>Reverse Calc</strong> tab to know what to score in ESAs to reach your target SGPA.
-                    </p>
-                    <p>
-                      This calculator works for any college. Define your assessment pattern and grading scheme below, then click "Create Subject".
-                    </p>
-                  </div>
-                </details>
-              </div>
-
-              {/* RIGHT SIDE: Buttons (Always Visible) */}
-              <div className="flex flex-wrap gap-2 items-center justify-end border-t border-white/[0.06] pt-3 md:border-none md:pt-0">
-                <select
-                  onChange={(e) => loadPreset(e.target.value)}
-                  className={`${themeClasses.input} px-3 py-2 rounded-lg text-xs border max-w-[130px] md:max-w-none`}
-                  defaultValue=""
-                >
-                  <option value="">Load Preset...</option>
-                  {Object.keys(SemesterPresets).map(key => (
-                    <option key={key} value={key}>{key}</option>
-                  ))}
-                </select>
-
-                <div className="flex gap-1">
-                  <button onClick={undo} disabled={undoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${undoStack.length === 0 ? 'opacity-30' : 'hover:bg-white/[0.06]'}`}>
-                    <Undo2 className="w-4 h-4" />
-                  </button>
-                  <button onClick={redo} disabled={redoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${redoStack.length === 0 ? 'opacity-30' : 'hover:bg-white/[0.06]'}`}>
-                    <Redo2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <button onClick={exportData} className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs hover:bg-white/[0.06]`}>
-                  <Download className="w-3 h-3" /> <span className="hidden sm:inline">Export</span>
-                </button>
-
-                <label className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs cursor-pointer hover:bg-white/[0.06]`}>
-                  <Upload className="w-3 h-3" /> <span className="hidden sm:inline">Import</span>
-                  <input type="file" accept=".json" onChange={importData} className="hidden" />
-                </label>
-
-                <button onClick={clearAll} className="flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-2 rounded-lg border border-red-500/20 transition-colors text-xs">
-                  <Eraser className="w-3 h-3" />
-                </button>
-              </div>
-
-            </div>
-
-            {/* Grade Distribution Bar */}
-            <div className={`${themeClasses.card} border rounded-xl p-4`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-bold flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" /> Grade Distribution
-                </span>
-                <span className={`text-xs ${themeClasses.muted}`}>
-                  {subjects.length} subjects • {metrics.totalCredits} credits
-                </span>
-              </div>
-              <div className="flex gap-1 h-8 rounded-lg overflow-hidden">
-                {Object.entries(gradeDistribution).map(([grade, count]) => {
-                  if (count === 0) return null;
-                  const gradeInfo = GradeMap.find(g => g.grade === grade);
-                  return (
-                    <div
-                      key={grade}
-                      className={`flex items-center justify-center text-xs font-bold text-zinc-200 ${gradeInfo?.bg || 'bg-gray-500'}`}
-                      style={{ width: `${(count / subjects.length) * 100}%` }}
-                      title={`${grade}:  ${count} subject(s)`}
-                    >
-                      {grade} ({count})
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Subjects List */}
-            <div className="space-y-4">
-              {subjects.map((subject) => {
-                const m = marks[subject.id] || {};
-                const { finalScore, rawScore, totalWeight } = getSubjectMetrics(subject);
-                const gp = getGradePoint(finalScore, subject);
-                const gradeInfo = getGradeInfo(finalScore, subject);
-                const isExpanded = expandedSubject === subject.id;
-                const hasLabComponent = subject.hasLab || ((subject.customConfig?.weights.lab ?? 0) > 0);
-                const showTotalWeight = hasLabComponent && totalWeight > 100;
-                const totalWeightLabel = Number.isInteger(totalWeight) ? totalWeight : totalWeight.toFixed(1);
-                const rawScoreLabel = Number.isInteger(rawScore) ? rawScore : rawScore.toFixed(1);
-
-                return (
-                  <div key={subject.id} className={`${themeClasses.card} rounded-xl border transition-all duration-300 ease-out ${isExpanded ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.07)] ring-1 ring-blue-500/10' : themeClasses.cardHover}`}>
-                    {/* Subject Header */}
-                    <div
-                      className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer rounded-t-xl gap-4"
-                      onClick={() => setExpandedSubject(isExpanded ? null : subject.id)}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-lg">{subject.name}</h3>
-                          <span className="text-xs font-bold bg-white/[0.08] text-zinc-300 px-2 py-0.5 rounded-full border border-white/[0.06]">
-                            {subject.credits} Cr
-                          </span>
-                          {totalWeight > 100 && (
-                            <span className="text-xs font-bold bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20">
-                              Scaled ({totalWeight}%)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
-                        <div className="text-right">
-                          <div className={`text-xs ${themeClasses.muted} font-bold uppercase tracking-wider`}>Score</div>
-                          <div className={`font-bold text-xl leading-none ${gradeInfo.color}`}>
-                            {finalScore}
-                          </div>
-                          {showTotalWeight && (
-                            <div className={`text-[10px] ${themeClasses.muted} mt-0.5`}>
-                              actual: {rawScoreLabel}/{totalWeightLabel}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-lg ${gradeInfo.bg}`}>
-                            {gradeInfo.grade}
-                          </div>
-                          {isExpanded ? <ChevronUp className="w-5 h-5 text-zinc-400" /> : <ChevronDown className="w-5 h-5 text-zinc-400" />}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Expanded Content */}
-                    {isExpanded && (
-                      <div className={`p-4 border-t ${themeClasses.border} bg-black/20 rounded-b-xl`}>
-                        {/* DYNAMIC INPUTS GRID (Fixed: Allows 0 marks) */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
-
-                          {/* SLOT 1 */}
-                          {(subject.hasIsa1 !== false) && (
-                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
-                                  {subject.customConfig?.labels.isa1 || "ISA 1"}
-                                </span>
-                                <span className={`text-[10px] ${themeClasses.muted}`}>
-                                  {subject.customConfig ? subject.customConfig.weights.isa1 : subject.isaWeight}%
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  /* FIXED: Used ?? so 0 is treated as a real number */
-                                  value={marks[subject.id]?.isa1 ?? ''}
-                                  onChange={(e) => handleMarkChange(subject.id, 'isa1', e.target.value)}
-                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                                  placeholder="-"
-                                />
-                                <span className={themeClasses.muted}>/</span>
-                                <input
-                                  type="number"
-                                  value={marks[subject.id]?.isa1Max ?? 40}
-                                  onChange={(e) => handleMarkChange(subject.id, 'isa1Max', e.target.value)}
-                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* SLOT 2 */}
-                          {(subject.hasIsa2 !== false) && (
-                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
-                                  {subject.customConfig?.labels.isa2 || "ISA 2"}
-                                </span>
-                                <span className={`text-[10px] ${themeClasses.muted}`}>
-                                  {subject.customConfig ? subject.customConfig.weights.isa2 : subject.isaWeight}%
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  value={marks[subject.id]?.isa2 ?? ''}
-                                  onChange={(e) => handleMarkChange(subject.id, 'isa2', e.target.value)}
-                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                                  placeholder="-"
-                                />
-                                <span className={themeClasses.muted}>/</span>
-                                <input
-                                  type="number"
-                                  value={marks[subject.id]?.isa2Max ?? 40}
-                                  onChange={(e) => handleMarkChange(subject.id, 'isa2Max', e.target.value)}
-                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* SLOT 3 */}
-                          {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
-                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.assignment || "Assignment"}>
-                                  {subject.customConfig?.labels.assignment || "Assignment"}
-                                </span>
-                                <span className={`text-[10px] ${themeClasses.muted}`}>
-                                  {subject.customConfig ? subject.customConfig.weights.assignment : subject.assignmentWeight}%
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  value={marks[subject.id]?.assignment ?? ''}
-                                  onChange={(e) => handleMarkChange(subject.id, 'assignment', e.target.value)}
-                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                                  placeholder="-"
-                                />
-                                <span className={themeClasses.muted}>/</span>
-                                <input
-                                  type="number"
-                                  value={marks[subject.id]?.assignmentMax ?? 10}
-                                  onChange={(e) => handleMarkChange(subject.id, 'assignmentMax', e.target.value)}
-                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* SLOT 4 */}
-                          {(subject.hasLab || (subject.customConfig?.weights.lab > 0)) && (
-                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.lab || "Lab"}>
-                                  {subject.customConfig?.labels.lab || "Lab"}
-                                </span>
-                                <span className={`text-[10px] ${themeClasses.muted}`}>
-                                  {subject.customConfig ? subject.customConfig.weights.lab : subject.labWeight}%
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  value={marks[subject.id]?.lab ?? ''}
-                                  onChange={(e) => handleMarkChange(subject.id, 'lab', e.target.value)}
-                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                                  placeholder="-"
-                                />
-                                <span className={themeClasses.muted}>/</span>
-                                <input
-                                  type="number"
-                                  value={marks[subject.id]?.labMax ?? 20}
-                                  onChange={(e) => handleMarkChange(subject.id, 'labMax', e.target.value)}
-                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                                />
-                              </div>
-                            </div>
-                          )}
-
-                          {/* SLOT 5: ESA */}
-                          <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-500/20`}>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="font-bold text-xs text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
-                                {subject.customConfig?.labels.esa || "ESA"}
-                              </span>
-                              <span className={`text-[10px] ${themeClasses.muted}`}>
-                                {subject.customConfig ? subject.customConfig.weights.esa : subject.esaWeight}%
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={marks[subject.id]?.esa ?? ''}
-                                onChange={(e) => handleMarkChange(subject.id, 'esa', e.target.value)}
-                                className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
-                                placeholder="-"
-                              />
-                              <span className={themeClasses.muted}>/</span>
-                              <input
-                                type="number"
-                                value={marks[subject.id]?.esaMax ?? 100}
-                                onChange={(e) => handleMarkChange(subject.id, 'esaMax', e.target.value)}
-                                className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
-                              />
-                            </div>
-                          </div>
-
-                        </div>
-
-                        {/* Quick Config */}
-                        <div className={`mt-4 pt-4 border-t ${themeClasses.border}`}>
-                          <details className="group">
-                            <summary className={`flex items-center gap-2 text-xs font-bold ${themeClasses.muted} uppercase tracking-wide cursor-pointer hover:text-blue-400 select-none transition-colors`}>
-                              <Settings className="w-4 h-4" /> Edit Subject Details
-                            </summary>
-                            <div className={`mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 ${themeClasses.card} rounded-lg border`}>
-                              <div className="space-y-3">
-                                <div>
-                                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Name</label>
-                                  <input
-                                    type="text"
-                                    value={subject.name}
-                                    onChange={(e) => handleSubjectChange(subject.id, 'name', e.target.value)}
-                                    className={`w-full text-sm p-2 border rounded ${themeClasses.input}`}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Credits</label>
-                                  <input
-                                    type="number"
-                                    value={subject.credits}
-                                    onChange={(e) => handleSubjectChange(subject.id, 'credits', parseFloat(e.target.value) || 0)}
-                                    className={`w-full text-sm p-2 border rounded ${themeClasses.input}`}
-                                  />
-                                </div>
-                                <div className="flex gap-4">
-                                  <label className="flex items-center gap-2 text-xs cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      checked={subject.hasAssignment}
-                                      onChange={() => toggleAssignment(subject.id)}
-                                      className="rounded"
-                                    />
-                                    Has Assignment
-                                  </label>
-                                  <label className="flex items-center gap-2 text-xs cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      checked={subject.hasLab}
-                                      onChange={() => toggleLab(subject.id)}
-                                      className="rounded"
-                                    />
-                                    Has Lab
-                                  </label>
-                                </div>
-                              </div>
-                              <div className="space-y-3">
-                                <label className={`text-xs ${themeClasses.muted} block`}>Weight Configuration (%)</label>
-                                <div className="flex gap-2 flex-wrap">
-                                  <div className="flex-1 min-w-[60px]">
-                                    <span className={`text-[10px] ${themeClasses.muted} block`}>ISA (Each)</span>
-                                    <input
-                                      type="number"
-                                      value={subject.isaWeight}
-                                      onChange={(e) => handleSubjectChange(subject.id, 'isaWeight', parseFloat(e.target.value) || 0)}
-                                      className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-[60px]">
-                                    <span className={`text-[10px] ${themeClasses.muted} block`}>ESA</span>
-                                    <input
-                                      type="number"
-                                      value={subject.esaWeight}
-                                      onChange={(e) => handleSubjectChange(subject.id, 'esaWeight', parseFloat(e.target.value) || 0)}
-                                      className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
-                                    />
-                                  </div>
-                                  {subject.hasAssignment && (
-                                    <div className="flex-1 min-w-[60px]">
-                                      <span className={`text-[10px] ${themeClasses.muted} block`}>Assign</span>
-                                      <input
-                                        type="number"
-                                        value={subject.assignmentWeight}
-                                        onChange={(e) => handleSubjectChange(subject.id, 'assignmentWeight', parseFloat(e.target.value) || 0)}
-                                        className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
-                                      />
-                                    </div>
-                                  )}
-                                  {subject.hasLab && (
-                                    <div className="flex-1 min-w-[60px]">
-                                      <span className={`text-[10px] ${themeClasses.muted} block`}>Lab</span>
-                                      <input
-                                        type="number"
-                                        value={subject.labWeight}
-                                        onChange={(e) => handleSubjectChange(subject.id, 'labWeight', parseFloat(e.target.value) || 0)}
-                                        className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* --- Grade Cutoff Editor --- */}
-                                <div className="mt-4 pt-3 border-t border-white/[0.08] w-full">
-                                  <details>
-                                    <summary className="text-xs font-bold cursor-pointer hover:text-blue-500 flex items-center gap-1 select-none text-zinc-500">
-                                      <Target className="w-3 h-3" /> Advanced: Adjust Grade Cutoffs (Curve)
-                                    </summary>
-
-                                    <div className="mt-3 p-3 bg-yellow-500/5 rounded border border-yellow-500/15">
-                                      <p className="text-[10px] text-zinc-400 mb-2">
-                                        If the paper was hard and cutoffs were lowered, adjust them here.
-                                      </p>
-
-                                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                                        {(subject.customGradeMap || GradeMap).filter(g => g.gp > 0).map((g, idx) => (
-                                          <div key={g.grade} className="flex flex-col">
-                                            <label className={`text-[10px] font-bold text-center mb-1 ${g.color || 'text-zinc-500'}`}>
-                                              {g.grade} (&ge;)
-                                            </label>
-                                            <input
-                                              type="number"
-                                              value={g.min}
-                                              className={`w-full text-center text-xs p-1 border rounded ${themeClasses.input}`}
-                                              onChange={(e) => {
-                                                const val = parseFloat(e.target.value);
-                                                if (isNaN(val)) return;
-
-                                                // Create a copy of the current map (or default)
-                                                const currentMap = subject.customGradeMap
-                                                  ? JSON.parse(JSON.stringify(subject.customGradeMap))
-                                                  : JSON.parse(JSON.stringify(GradeMap));
-
-                                                // Update the specific grade
-                                                currentMap[idx].min = val;
-
-                                                // Save to subject
-                                                handleSubjectChange(subject.id, 'customGradeMap', currentMap);
-                                              }}
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
-
-                                      {subject.customGradeMap && (
-                                        <button
-                                          onClick={() => handleSubjectChange(subject.id, 'customGradeMap', null)}
-                                          className="mt-2 text-[10px] text-red-500 hover:underline flex items-center gap-1"
-                                        >
-                                          <RotateCcw className="w-3 h-3" /> Reset to Standards
-                                        </button>
-                                      )}
-                                    </div>
-                                  </details>
-                                </div>
-
-                                <button
-                                  onClick={() => removeSubject(subject.id)}
-                                  className="w-full text-red-400 text-xs border border-red-500/20 bg-red-500/10 hover:bg-red-500/15  p-2 rounded flex items-center justify-center gap-2 mt-2"
-                                >
-                                  <Trash2 className="w-3 h-3" /> Remove Subject
-                                </button>
-                              </div>
-                            </div>
-                          </details>
-                        </div>
-
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-
-            <button
-              onClick={addNewSubject}
-              className={`w-full py-3 border-2 border-dashed ${themeClasses.border} rounded-xl ${themeClasses.muted} hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200 flex items-center justify-center gap-2 font-bold text-sm`}
-            >
-              <Plus className="w-4 h-4" /> Add Custom Subject
-            </button>
-
-            {/* Subtle "Next Steps" Footer */}
-            <div className="mt-8 mb-2 flex justify-center">
-              <div className={`inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 p-1 sm:p-2 sm:px-4 rounded-xl border bg-[#0e0e18]/50 border-white/[0.06] transition-all`}>
-
-                <span className={`text-xs font-semibold ${themeClasses.muted} hidden sm:block`}>
-                  Done updating?
-                </span>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => setActiveTab('analysis')}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/15 rounded-lg transition-colors"
-                  >
-                    <Activity className="w-3.5 h-3.5" /> Check Analysis
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('reverse')}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-teal-300 bg-teal-500/10 hover:bg-teal-500/15 rounded-lg transition-colors"
-                  >
-                    <Target className="w-3.5 h-3.5" /> Plan Targets
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Alerts Banner - Inside subjects tab */}
-            {alerts.length > 0 && (
-              <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-                <details className="group">
-                  <summary className="p-3 text-xs font-semibold text-zinc-500 select-none list-none flex items-center gap-2 cursor-default">
-                    Subject Warnings ({alerts.length})
-                  </summary>
-                  <div className="p-3 border-t border-white/[0.06] space-y-2">
-                    {alerts.filter(a => a.type === 'critical').map((alert, i) => (
-                      <div key={i} className="bg-red-500/10 border-l-4 border-red-500 p-3 rounded-r-lg flex items-start gap-2">
-                        <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-bold text-red-300">{alert.subject}:  </span>
-                          <span className="text-red-400 text-sm">{alert.message}</span>
-                        </div>
-                      </div>
-                    ))}
-                    {alerts.filter(a => a.type === 'opportunity').slice(0, 2).map((alert, i) => (
-                      <div key={i} className="bg-blue-500/10 border-l-4 border-blue-500 p-3 rounded-r-lg flex items-start gap-2">
-                        <Lightbulb className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-bold text-blue-300">{alert.subject}:  </span>
-                          <span className="text-blue-400 text-sm">{alert.message}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </details>
-              </div>
-            )}
-
-            {/* ==================== QUICK SGPA ESTIMATOR (FROM GRADES) ==================== */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
-              <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-md">
-                      <span className="text-zinc-200 text-lg font-bold">✨</span>
-                    </div>
-                    <div className="text-left">
-                      <h3 className="font-bold text-sm text-zinc-200">Quick SGPA Estimator</h3>
-                      <p className={`text-xs ${themeClasses.muted}`}>Calculate SGPA by directly selecting grades</p>
-                    </div>
-                  </div>
-                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
-                </summary>
-
-                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
-
-                  {/* Results Header */}
-                  <div className="flex items-center justify-between mb-4 bg-[#0e0e18] p-3 rounded-lg border border-white/[0.06] shadow-sm">
-                    <span className="text-xs font-bold uppercase opacity-50">Hypothetical SGPA</span>
-                    <span className="text-2xl font-black text-teal-400">
-                      {(() => {
-                        let totalPoints = 0;
-                        let totalCredits = 0;
-                        subjects.forEach(sub => {
-                          const gradeLetter = manualGrades[sub.id];
-                          if (gradeLetter) {
-                            // Find GP for this specific subject (supports custom schemes!)
-                            const scheme = sub.customGradeMap || GradeMap;
-                            const gradeObj = scheme.find(g => g.grade === gradeLetter);
-                            if (gradeObj) {
-                              totalPoints += gradeObj.gp * sub.credits;
-                              totalCredits += sub.credits;
-                            }
-                          }
-                        });
-                        return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
-                      })()}
-                    </span>
-                  </div>
-
-                  {/* Subject List with Dropdowns */}
-                  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                    {subjects.length === 0 ? (
-                      <div className="text-center py-4 text-xs opacity-50">No subjects added yet.</div>
-                    ) : (
-                      subjects.map(sub => {
-                        // Determine which grading scheme to show in dropdown
-                        const scheme = sub.customGradeMap || GradeMap;
-
-                        return (
-                          <div key={sub.id} className="flex items-center justify-between gap-3 p-2 bg-[#0e0e18] rounded border border-white/[0.06]">
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs font-bold truncate" title={sub.name}>{sub.name}</div>
-                              <div className="text-[10px] opacity-50">{sub.credits} Credits</div>
-                            </div>
-
-                            <select
-                              value={manualGrades[sub.id] || ""}
-                              onChange={(e) => setManualGrades(prev => ({ ...prev, [sub.id]: e.target.value }))}
-                              className={`w-24 p-1.5 text-xs font-bold border rounded focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
-                            >
-                              <option value="">- Select -</option>
-                              {scheme.map(g => (
-                                <option key={g.grade} value={g.grade}>
-                                  {g.grade} ({g.gp})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  <div className="mt-3 flex justify-end">
-                    <button
-                      onClick={() => setManualGrades({})}
-                      className="text-xs text-red-500 hover:text-red-400 font-medium underline decoration-red-500/30 hover:decoration-red-500 underline-offset-2 transition-all"
-                    >
-                      Reset All
-                    </button>
-                  </div>
-
-                </div>
-              </details>
-            </div>
-
-            {/* ==================== NOT FROM PES? CUSTOM TEMPLATE BUILDER ==================== */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-8`}>
+            { id: 'guide', label: 'Help Guide', icon: HelpCircle },
+          ].map(tab => {
+            const IconComp = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
               <button
-                onClick={() => setShowTemplateBuilder(!showTemplateBuilder)}
-                className={`w-full p-4 flex items-center justify-between hover:bg-white/[0.03] hover:bg-white/[0.04] transition-colors`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 whitespace-nowrap flex-1 \${
+                  isActive 
+                    ? 'text-white' 
+                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.02]'
+                }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                    <Settings className="w-5 h-5 text-zinc-200" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-sm">Not from PES? 🎓</h3>
-                    <p className={`text-xs ${themeClasses.muted}`}>Configure for VTU, IIT, or Custom Colleges</p>
-                  </div>
-                </div>
-                {showTemplateBuilder ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                <IconComp className="w-4 h-4" />
+                <span>{tab.label}</span>
+                {tab.dot && !isActive && (
+                  <span className={`w-1.5 h-1.5 rounded-full absolute top-1.5 right-2 \${tab.dot === 'indigo' ? 'bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.6)]' : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)] animate-pulse'}`} />
+                )}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeTabIndicator"
+                    className="absolute inset-0 bg-white/[0.08] rounded-xl -z-10 border border-white/[0.04]"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
               </button>
+            );
+          })}
+        </div>
 
-              {showTemplateBuilder && (
-                <div className={`p-4 border-t ${themeClasses.border} space-y-6 animate-in slide-in-from-top-2`}>
-
-                  {/* Intro Text */}
-                  <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 from-purple-500/10 to-pink-500/10 p-4 rounded-lg border border-purple-500/20">
-                    <p className="text-sm text-purple-200">
-                      <strong>Universal Mode:</strong> This calculator works for any college. Define your assessment pattern and grading scheme below, then click "Create Subject".
-                    </p>
-                  </div>
-
-                  {/* Step 1: Basic Info */}
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-sm flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-purple-500 text-zinc-200 flex items-center justify-center text-xs">1</span>
-                      Basic Information
-                    </h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className={`text-xs ${themeClasses.muted} block mb-1`}>Subject Name</label>
-                        <input
-                          type="text"
-                          value={customTemplate.name}
-                          onChange={(e) => setCustomTemplate(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="e.g., Data Structures"
-                          className={`w-full p-2 border rounded-lg text-sm ${themeClasses.input}`}
-                        />
-                      </div>
-                      <div>
-                        <label className={`text-xs ${themeClasses.muted} block mb-1`}>Credits</label>
-                        <input
-                          type="number"
-                          value={customTemplate.credits}
-                          onChange={(e) => setCustomTemplate(prev => ({ ...prev, credits: parseFloat(e.target.value) || 0 }))}
-                          min="1"
-                          max="10"
-                          className={`w-full p-2 border rounded-lg text-sm ${themeClasses.input}`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Step 2: Assessment Components */}
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-sm flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-purple-500 text-zinc-200 flex items-center justify-center text-xs">2</span>
-                      Assessment Pattern
-                    </h4>
-
-                    <div className="space-y-2">
-                      {customTemplate.components.map((comp, idx) => (
-                        <div
-                          key={idx}
-                          /* CHANGED: 'flex-wrap' allows items to drop to next line on tiny screens */
-                          className={`flex flex-wrap sm:flex-nowrap items-center gap-2 p-2 rounded-lg border transition-all ${comp.enabled
-                            ? `${themeClasses.card} ${themeClasses.border}`
-                            : 'bg-white/[0.04] border-white/[0.08] opacity-50'
-                            }`}
-                        >
-                          <div className="flex items-center gap-2 flex-grow min-w-[120px]">
-                            <input
-                              type="checkbox"
-                              checked={comp.enabled}
-                              onChange={(e) => updateTemplateComponent(idx, 'enabled', e.target.checked)}
-                              className="rounded"
-                            />
-
-                            <input
-                              type="text"
-                              value={comp.name}
-                              onChange={(e) => updateTemplateComponent(idx, 'name', e.target.value)}
-                              disabled={!comp.enabled}
-                              /* CHANGED: reduced padding and font size for tightness */
-                              className={`flex-1 p-1 text-xs border-b border-transparent hover:border-white/[0.1] bg-transparent focus:outline-none ${!comp.enabled && 'opacity-50'}`}
-                            />
-                          </div>
-
-                          {/* Right Side Controls - Now grouped to stay together */}
-                          <div className="flex items-center gap-2 ml-auto">
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                value={comp.weight}
-                                onChange={(e) => updateTemplateComponent(idx, 'weight', parseFloat(e.target.value) || 0)}
-                                disabled={!comp.enabled}
-                                /* CHANGED: w-10 instead of w-12 or w-14 */
-                                className={`w-10 p-1 text-xs text-center border rounded ${themeClasses.input}`}
-                              />
-                              <span className={`text-[10px] ${themeClasses.muted}`}>%</span>
-                            </div>
-
-                            <div className="flex items-center gap-1">
-                              <span className={`text-[10px] ${themeClasses.muted}`}>Max:</span>
-                              <input
-                                type="number"
-                                value={comp.maxMarks}
-                                onChange={(e) => updateTemplateComponent(idx, 'maxMarks', parseFloat(e.target.value) || 0)}
-                                disabled={!comp.enabled}
-                                /* CHANGED: w-10 instead of w-12 */
-                                className={`w-10 p-1 text-xs text-center border rounded ${themeClasses.input}`}
-                              />
-                            </div>
-
-                            <button
-                              onClick={() => removeComponentFromTemplate(idx)}
-                              className="p-1 text-red-500 hover:bg-red-500/10 hover:bg-red-500/10 rounded"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
+        {/* Dashboard Split Column Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+          
+          {/* LEFT COLUMN: Main Scrollable Content */}
+          <div className="col-span-12 md:col-span-7 lg:col-span-8 space-y-6">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="space-y-6"
+            >
+              
+              {/* TAB: SUBJECTS */}
+              {activeTab === 'subjects' && (
+                <>
+                  {/* Info Collapsible card */}
+                  <div className="glass-panel rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <details className="group">
+                        <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-indigo-400 hover:text-indigo-300 font-bold text-xs transition-colors">
+                          <Settings className="w-4 h-4 animate-spin-slow text-indigo-400" />
+                          <span className="text-zinc-200 text-xs font-extrabold uppercase tracking-wider">Universal Calculator Mode</span>
+                          <span className="text-[9px] bg-indigo-500/10 px-2 py-0.5 rounded-full font-bold flex items-center">
+                            Info <ChevronDown className="w-3 h-3 ml-1 transition-transform group-open:rotate-180" />
+                          </span>
+                        </summary>
+                        <div className="mt-3 text-xs text-zinc-500 leading-relaxed border-t border-white/[0.04] pt-3 space-y-2">
+                          <p>Works flawlessly for all semesters. 5-credit courses scale automatically from 120% to 100%.</p>
+                          <p>Define custom assessment curves and cutoffs within each subject details folder. The entire app will adapt instantly!</p>
                         </div>
-                      ))}
+                      </details>
                     </div>
 
-                    <button
-                      onClick={addComponentToTemplate}
-                      className={`w-full py-2 border-2 border-dashed ${themeClasses.border} rounded-lg ${themeClasses.muted} hover:text-purple-400 hover:border-purple-500/40 transition-all flex items-center justify-center gap-2 text-xs font-bold`}
-                    >
-                      <Plus className="w-3 h-3" /> Add Component
-                    </button>
-
-                    {customTemplate.components.filter(c => c.enabled).reduce((sum, c) => sum + c.weight, 0) !== 100 && (
-                      <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3 flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-                        <div className="text-xs text-yellow-300">
-                          <strong>Note:</strong> Total weight is {customTemplate.components.filter(c => c.enabled).reduce((sum, c) => sum + c.weight, 0)}%. (PES uses 120%, but standard is 100%).
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Step 3: Grading Scheme */}
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-sm flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-purple-500 text-zinc-200 flex items-center justify-center text-xs">3</span>
-                      Grading Scheme
-                    </h4>
-
-                    <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1`}>Preset:</label>
+                    {/* Mobile preset loading selector */}
+                    <div className="flex sm:hidden w-full gap-2 pt-2 border-t border-white/[0.04]">
                       <select
-                        value={customTemplate.gradingScheme}
-                        onChange={(e) => {
-                          const scheme = e.target.value;
-                          setCustomTemplate(prev => ({
-                            ...prev,
-                            gradingScheme: scheme,
-                            customGrades: scheme === "Custom"
-                              ? prev.customGrades
-                              : JSON.parse(JSON.stringify(GradingSchemes[scheme]))
-                          }));
-                        }}
-                        className={`w-full p-2 border rounded-lg text-sm ${themeClasses.input}`}
+                        onChange={(e) => loadPreset(e.target.value)}
+                        className="w-full bg-black/40 border border-white/[0.06] rounded-xl px-3 py-2 text-xs text-white"
+                        defaultValue=""
                       >
-                        {Object.keys(GradingSchemes).map(key => (
+                        <option value="" disabled>Load Preset...</option>
+                        {Object.keys(SemesterPresets).map(key => (
                           <option key={key} value={key}>{key}</option>
                         ))}
                       </select>
                     </div>
+                  </div>
 
-                    <div className={`p-3 rounded-lg border ${themeClasses.border} bg-[#0e0e18]/50`}>
-                      <div className="space-y-2">
-                        <div className="grid grid-cols-12 gap-2 text-[10px] uppercase font-bold opacity-50 px-1">
-                          <div className="col-span-3">Grade</div>
-                          <div className="col-span-4">Min (≥)</div>
-                          <div className="col-span-4">Points</div>
-                          <div className="col-span-1"></div>
+                  {/* Mobile-only Quick Tools & Grade Distribution (RESTORED!) */}
+                  <div className="glass-panel rounded-2xl overflow-hidden mt-4 md:hidden">
+                    <details className="group">
+                      <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/10">
+                            <Activity className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="text-left">
+                            <h3 className="font-extrabold text-sm text-white">Quick Tools & Analytics</h3>
+                            <p className="text-[10px] text-zinc-500 mt-0.5">Undo, backup data, and grade distribution analysis</p>
+                          </div>
+                        </div>
+                        <ChevronDown className="w-4 h-4 opacity-50 transition-transform group-open:rotate-180" />
+                      </summary>
+
+                      <div className="p-4 border-t border-white/[0.04] bg-black/20 space-y-4">
+                        {/* 1. Colorful Segmented Horizontal Grade Distribution Bar */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-[10px] text-zinc-400 font-bold uppercase tracking-wider">
+                            <span>Grade Distribution</span>
+                            <span className="font-mono text-zinc-500 font-normal">{subjects.length} subjects</span>
+                          </div>
+                          
+                          {Object.values(gradeDistribution).every(count => count === 0) ? (
+                            <div className="text-center py-2.5 text-[10px] text-zinc-500 bg-black/35 rounded-xl border border-white/[0.02] font-semibold">
+                              No grades active yet. Input marks or use manual sandbox below!
+                            </div>
+                          ) : (
+                            <div className="flex gap-0.5 h-7 rounded-xl overflow-hidden border border-white/[0.04] shadow-inner p-0.5 bg-zinc-900/60">
+                              {Object.entries(gradeDistribution).map(([grade, count]) => {
+                                if (count === 0) return null;
+                                const gradeInfo = GradeMap.find(g => g.grade === grade);
+                                return (
+                                  <div
+                                    key={grade}
+                                    className={`flex items-center justify-center text-[9px] font-black text-white ${gradeInfo?.bg || 'bg-zinc-500'} rounded-lg transition-all first:ml-0`}
+                                    style={{ width: `${(count / subjects.length) * 100}%` }}
+                                    title={`${grade}: ${count} subject(s)`}
+                                  >
+                                    {grade} ({count})
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
 
-                        {customTemplate.customGrades.sort((a, b) => b.min - a.min).map((g, idx) => (
-                          <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                            <input
-                              type="text"
-                              value={g.grade}
-                              onChange={(e) => updateCustomGrade(idx, 'grade', e.target.value)}
-                              className={`col-span-3 p-1 text-xs text-center border rounded font-bold ${themeClasses.input}`}
-                            />
-                            <input
-                              type="number"
-                              value={g.min}
-                              onChange={(e) => updateCustomGrade(idx, 'min', e.target.value)}
-                              className={`col-span-4 p-1 text-xs text-center border rounded ${themeClasses.input}`}
-                            />
-                            <input
-                              type="number"
-                              value={g.gp}
-                              onChange={(e) => updateCustomGrade(idx, 'gp', e.target.value)}
-                              className={`col-span-4 p-1 text-xs text-center border rounded ${themeClasses.input}`}
-                            />
-                            <button onClick={() => removeCustomGrade(idx)} className="col-span-1 text-red-500 hover:bg-red-500/10 hover:bg-red-500/10 rounded flex justify-center">
-                              <Trash2 className="w-3 h-3" />
+                        {/* 2. Undo / Redo / Backup actions row */}
+                        <div className="space-y-2 pt-2 border-t border-white/[0.04]">
+                          <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1">Backup & Edit History</span>
+                          
+                          {/* Undo / Redo buttons */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={undo}
+                              disabled={undoStack.length === 0}
+                              className={`flex-1 py-2 rounded-xl border border-white/[0.06] flex items-center justify-center gap-1.5 text-xs font-bold transition-all ${
+                                undoStack.length === 0 
+                                  ? 'opacity-25 cursor-not-allowed text-zinc-600' 
+                                  : 'bg-white/[0.02] text-zinc-300 hover:bg-white/[0.06]'
+                              }`}
+                            >
+                              <Undo2 className="w-3.5 h-3.5" /> Undo
+                            </button>
+                            <button
+                              onClick={redo}
+                              disabled={redoStack.length === 0}
+                              className={`flex-1 py-2 rounded-xl border border-white/[0.06] flex items-center justify-center gap-1.5 text-xs font-bold transition-all ${
+                                redoStack.length === 0 
+                                  ? 'opacity-25 cursor-not-allowed text-zinc-600' 
+                                  : 'bg-white/[0.02] text-zinc-300 hover:bg-white/[0.06]'
+                              }`}
+                            >
+                              <Redo2 className="w-3.5 h-3.5" /> Redo
                             </button>
                           </div>
-                        ))}
-                      </div>
-                      <button
-                        onClick={addCustomGrade}
-                        className="mt-3 text-xs text-purple-400 hover:underline flex items-center gap-1 w-full justify-center"
-                      >
-                        <Plus className="w-3 h-3" /> Add Grade Row
-                      </button>
-                    </div>
 
-                    <button
-                      onClick={applyGradingSchemeToAll}
-                      className="w-full py-2 text-xs bg-indigo-500/10 text-indigo-300 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Zap className="w-3 h-3" /> Apply Scheme to ALL Subjects
-                    </button>
-                  </div>
+                          {/* Export / Import / Clear */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <button
+                              onClick={exportData}
+                              className="py-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300 text-[10px] font-bold flex flex-col items-center justify-center gap-1 transition-all"
+                            >
+                              <Download className="w-3.5 h-3.5 text-zinc-400" />
+                              <span>Export</span>
+                            </button>
+                            
+                            <label className="py-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300 text-[10px] font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer text-center">
+                              <Upload className="w-3.5 h-3.5 text-zinc-400 mx-auto" />
+                              <span>Import</span>
+                              <input type="file" accept=".json" onChange={importData} className="hidden" />
+                            </label>
 
-                  {/* Create Button */}
-                  <div className="flex gap-3 pt-4 border-t border-white/[0.06]">
-                    <button
-                      onClick={applyCustomTemplate}
-                      className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-zinc-200 rounded-lg font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" /> Create Subject
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-          </>
-        )}
-
-        {/* ==================== ANALYSIS TAB ==================== */}
-        {activeTab === 'analysis' && (
-          <div className="space-y-6">
-            {/* Target Analyzer (Top Cards) */}
-            <div className="bg-[#0c0c14]/90 backdrop-blur-sm rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 border border-white/[0.06]">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-lg font-bold flex items-center gap-2 text-yellow-400">
-                  <Activity className="w-5 h-5" /> Target Analysis
-                </h2>
-                <div className="flex items-center gap-2 bg-white/[0.08] px-3 py-2 rounded-lg">
-                  <span className="text-xs text-zinc-400 uppercase font-bold">Target SGPA</span>
-                  <input
-                    type="number"
-                    step="0.1"
-                    max="10"
-                    min="5"
-                    value={targetSgpa}
-                    onChange={(e) => setTargetSgpa(parseFloat(e.target.value) || 0)}
-                    className="w-16 p-1 bg-transparent text-right font-bold text-zinc-200 border-none focus:ring-0 text-lg"
-                  />
-                </div>
-              </div>
-
-              {/* Grid with Range */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                {/* Range Card */}
-                <div className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.06] col-span-2 relative overflow-hidden group">
-                  <div className="flex justify-between items-end mb-2">
-                    <div>
-                      <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">Achievable Range</div>
-                      <div className="text-2xl font-bold text-zinc-200 flex items-baseline gap-2">
-                        {sgpaRange.min} <span className="text-sm text-zinc-500 font-normal">to</span> {sgpaRange.max}
-                      </div>
-                    </div>
-                    <Activity className="w-8 h-8 text-slate-600 group-hover:text-blue-500/50 transition-colors" />
-                  </div>
-                  <div className="w-full bg-[#0e0e18] h-2 rounded-full mt-2 overflow-hidden relative">
-                    <div className="absolute h-full bg-blue-500/30" style={{ left: `${(sgpaRange.min / 10) * 100}%`, right: `${100 - (sgpaRange.max / 10) * 100}%` }} />
-                    <div className="absolute h-full w-1 bg-yellow-400 top-0 z-10" style={{ left: `${(Math.min(Math.max(sgpa, sgpaRange.min), sgpaRange.max) / 10) * 100}%` }} />
-                  </div>
-                  <div className="flex justify-between text-[9px] text-zinc-500 mt-1 font-mono">
-                    <span>{sgpaRange.min}</span>
-                    <span className="text-yellow-500 font-bold">Curr: {sgpa}</span>
-                    <span>{sgpaRange.max}</span>
-                  </div>
-                </div>
-
-                {/* Target Gap */}
-                <div className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.06] relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-2 opacity-10"><Target className="w-10 h-10" /></div>
-                  <div className="text-2xl font-bold">{metrics.allowableLoss.toFixed(1)}</div>
-                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">GP Budget</div>
-                  <p className="text-[10px] text-zinc-500 mt-1">Points you can lose to hit {targetSgpa}</p>
-                </div>
-
-                {/* Momentum */}
-                <div className="bg-indigo-900/40 rounded-lg p-4 border border-indigo-500/30 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-10 h-10" /></div>
-                  <div className="text-2xl font-bold text-indigo-300">{metrics.momentumSGPA}</div>
-                  <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">Momentum SGPA *</div>
-                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form, i.e ISA performance = ESA</p>
-                </div>
-              </div>
-
-              {/* Subject-wise Analysis List */}
-              <div className="space-y-3 md:space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
-
-                {/* Table Header (Desktop Only) */}
-                <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-zinc-500 uppercase font-bold pb-2 border-b border-white/[0.06] sticky top-0 bg-[#0c0c14] z-10">
-                  <div className="col-span-3">Subject</div>
-                  <div className="col-span-2 text-center">Momentum</div>
-                  <div className="col-span-2 text-center text-zinc-200/90">Pass (40)</div>
-                  <div className="col-span-2 text-center">For A (80)</div>
-                  <div className="col-span-2 text-center">For S (90)</div>
-                  <div className="col-span-1 text-center">GP</div>
-                </div>
-
-                {metrics.analysisData.map((d, i) => {
-                  // Calculate Requirements on the fly
-                  const sub = subjects.find(s => s.id === d.id);
-                  const reqPass = getRequiredESAForGrade(sub, 40, true, { useMomentumIsa2: true, useMomentumInternals: true });
-                  const isa2Label = sub?.customConfig?.labels?.isa2 || 'ISA2';
-                  const assignmentLabel = sub?.customConfig?.labels?.assignment || 'Assignment';
-                  const assignmentLabelShort = assignmentLabel === 'Assignment' ? 'Asg' : assignmentLabel;
-                  const labLabel = sub?.customConfig?.labels?.lab || 'Lab';
-                  const isa2PassInfo = getRequiredISA2ForPass(sub);
-                  const isa2AInfo = getRequiredISA2ForGrade(sub, 80, { assumeFullForEmptyInternals: true });
-                  const isa2SInfo = getRequiredISA2ForGrade(sub, 90, { assumeFullForEmptyInternals: true });
-                  const buildIsa2Line = (targetLabel, info) => {
-                    if (!info) return null;
-                    if (info.needed === null) {
-                      return <div className="text-[9px] text-red-400 leading-none mt-0.5">{isa2Label} {targetLabel}: impossible</div>;
-                    }
-                    return <div className="text-[9px] text-zinc-500 leading-none mt-0.5">{isa2Label} {targetLabel}: {info.needed}/{info.max}</div>;
-                  };
-                  const isa2PassLine = buildIsa2Line('pass', isa2PassInfo);
-                  const isa2ALine = buildIsa2Line('A', isa2AInfo);
-                  const isa2SLine = buildIsa2Line('S', isa2SInfo);
-
-                  return (
-                    <div
-                      key={i}
-                      className={`
-                        flex flex-col gap-3 p-3 rounded-xl border border-white/[0.04] bg-white/[0.02]
-                        md:grid md:grid-cols-12 md:gap-2 md:items-center md:py-2 md:border-b md:border-t-0 md:border-x-0 md:border-white/[0.04] md:bg-transparent md:rounded-none md:hover:bg-white/[0.03]
-                      `}
-                    >
-                      {/* Header: Name & GP */}
-                      <div className="flex items-center justify-between md:contents">
-                        <div className="md:col-span-3 truncate text-zinc-200 font-bold md:font-medium text-sm">
-                          {d.name}
+                            <button
+                              onClick={clearAll}
+                              className="py-2.5 rounded-xl border border-red-500/10 bg-red-500/5 hover:bg-red-500/10 text-red-400 text-[10px] font-bold flex flex-col items-center justify-center gap-1 transition-all"
+                            >
+                              <Eraser className="w-3.5 h-3.5 text-red-400" />
+                              <span>Reset All</span>
+                            </button>
+                          </div>
                         </div>
-                        <div className="md:hidden flex items-center gap-2">
-                          <span className="text-[10px] uppercase text-zinc-500 font-bold">Curr GP</span>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/[0.1] text-zinc-300'}`}>
-                            {d.currentGP}
+
+                      </div>
+                    </details>
+                  </div>
+
+                  {/* Roster of active subjects */}
+                  <div className="space-y-4">
+                    {subjects.map((subject) => (
+                      <SubjectCard
+                        key={subject.id}
+                        subject={subject}
+                        m={marks[subject.id]}
+                        handleMarkChange={handleMarkChange}
+                        handleSubjectChange={handleSubjectChange}
+                        toggleLab={toggleLab}
+                        toggleAssignment={toggleAssignment}
+                        removeSubject={removeSubject}
+                        isExpanded={expandedSubject === subject.id}
+                        setExpandedSubject={setExpandedSubject}
+                        getSubjectMetrics={getSubjectMetrics}
+                        getGradePoint={getGradePoint}
+                        getGradeInfo={getGradeInfo}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Add Subject trigger button */}
+                  <button
+                    onClick={addNewSubject}
+                    className="w-full py-4 border-2 border-dashed border-white/[0.08] hover:border-indigo-500/40 hover:bg-indigo-500/[0.03] hover:text-indigo-400 rounded-2xl text-zinc-400 font-extrabold text-sm flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Plus className="w-4 h-4" /> Add Custom Subject
+                  </button>
+
+                  {/* Collapsible Sandbox Grade SGPA Estimator */}
+                  <div className="glass-panel rounded-2xl overflow-hidden mt-6">
+                    <details className="group">
+                      <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-md shadow-emerald-500/10">
+                            <span className="text-zinc-200 text-sm font-bold">✨</span>
+                          </div>
+                          <div>
+                            <h3 className="font-extrabold text-sm text-white">Quick SGPA Sandbox</h3>
+                            <p className="text-[10px] text-zinc-500 mt-0.5">Directly select hypothetical letter grades to estimate SGPA</p>
+                          </div>
+                        </div>
+                        <ChevronDown className="w-4 h-4 opacity-50 transition-transform group-open:rotate-180" />
+                      </summary>
+
+                      <div className="p-4 border-t border-white/[0.04] bg-black/20 space-y-4">
+                        <div className="flex items-center justify-between bg-black/40 p-3.5 rounded-xl border border-white/[0.04] shadow-sm">
+                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Hypothetical Sandbox SGPA</span>
+                          <span className="text-xl font-black text-teal-400 text-glow-emerald">
+                            {(() => {
+                              let totalPoints = 0;
+                              let totalCredits = 0;
+                              subjects.forEach(sub => {
+                                const gradeLetter = manualGrades[sub.id];
+                                if (gradeLetter) {
+                                  const scheme = sub.customGradeMap || GradeMap;
+                                  const gradeObj = scheme.find(g => g.grade === gradeLetter);
+                                  if (gradeObj) {
+                                    totalPoints += gradeObj.gp * sub.credits;
+                                    totalCredits += sub.credits;
+                                  }
+                                }
+                              });
+                              return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+                            })()}
                           </span>
                         </div>
-                      </div>
 
-                      {/* Stats Grid (2x2 on Mobile, Flat on Desktop) */}
-                      <div className="grid grid-cols-2 gap-2 md:contents">
-
-                        {/* 1. Momentum */}
-                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">Momentum</span>
-                          <span className={`font-bold text-lg md:text-sm ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-zinc-300' : 'text-red-400'}`}>
-                            {d.momentumScore}
-                          </span>
-                          {d.momentumIsa2Marks !== null && (
-                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
-                              {isa2Label} est: {d.momentumIsa2Marks}/{d.isa2Max}
-                            </span>
-                          )}
-                          {d.momentumAssignmentMarks !== null && (
-                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
-                              {assignmentLabelShort} est: {d.momentumAssignmentMarks}/{d.assignmentMax}
-                            </span>
-                          )}
-                          {d.momentumLabMarks !== null && (
-                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
-                              {labLabel} est: {d.momentumLabMarks}/{d.labMax}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* 2. Pass Requirement (Fixed Logic) */}
-                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">To Pass</span>
-                          {reqPass.safe === null ? (
-                            <div className="flex flex-col items-center">
-                              <span className="text-red-500 text-xs font-bold">Impossible</span>
-                              {isa2PassLine}
-                            </div>
-                          ) : reqPass.safe === 0 ? (
-                            <div className="flex flex-col items-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                <span className="text-green-500 text-xs font-bold md:hidden">Passed</span>
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                          {subjects.map(sub => (
+                            <div key={sub.id} className="flex items-center justify-between p-2.5 bg-black/30 rounded-xl border border-white/[0.03]">
+                              <div>
+                                <span className="text-xs font-bold text-zinc-200 block">{sub.name}</span>
+                                <span className="text-[9px] text-zinc-500 font-mono mt-0.5">{sub.credits} Credits</span>
                               </div>
-                              {isa2PassLine}
+                              <select
+                                value={manualGrades[sub.id] || ""}
+                                onChange={(e) => setManualGrades(prev => ({ ...prev, [sub.id]: e.target.value }))}
+                                className="w-28 p-1.5 text-xs font-bold bg-black/50 border border-white/[0.06] rounded-lg text-white"
+                              >
+                                <option value="">Select...</option>
+                                {(sub.customGradeMap || GradeMap).map(g => (
+                                  <option key={g.grade} value={g.grade}>{g.grade} (GP: {g.gp})</option>
+                                ))}
+                              </select>
                             </div>
-                          ) : (
-                            <div className="flex flex-col items-center">
-                              <span className={`font-mono font-bold text-base md:text-sm ${reqPass.requiresRounding ? 'text-orange-300' : 'text-zinc-200'}`}>
-                                {reqPass.safe}
-                              </span>
-                              {/* Show Min Value if it differs */}
-                              {reqPass.minimum !== null && reqPass.minimum < reqPass.safe && (
-                                <div className="text-[9px] text-zinc-500 leading-none">min: {reqPass.minimum}</div>
-                              )}
-                              {reqPass.requiresRounding && (
-                                <div className="text-[9px] text-orange-400 leading-none">*rounding</div>
-                              )}
-                              {isa2PassLine}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 3. Target A */}
-                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For A (80)</span>
-                          {d.reqA === null ? (
-                            <div className="flex flex-col items-center">
-                              <span className="text-red-500 text-xs font-bold">Impossible</span>
-                              {isa2ALine}
-                            </div>
-                          ) : d.reqA === 0 ? (
-                            <div className="flex flex-col items-center">
-                              <span className="text-green-500 text-xs font-bold">✓ Done</span>
-                              {isa2ALine}
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center">
-                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqARequiresRounding ? 'text-orange-300' : 'text-blue-300'}`}>{d.reqA}</span>
-                              {d.reqAMin !== null && d.reqAMin < d.reqA && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqAMin}</div>}
-                              {isa2ALine}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 4. Target S */}
-                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For S (90)</span>
-                          {d.reqS === null ? (
-                            <div className="flex flex-col items-center">
-                              <span className="text-red-500 text-xs font-bold">Impossible</span>
-                              {isa2SLine}
-                            </div>
-                          ) : d.reqS === 0 ? (
-                            <div className="flex flex-col items-center">
-                              <span className="text-green-500 text-xs font-bold">✓ Done</span>
-                              {isa2SLine}
-                            </div>
-                          ) : (
-                            <div className="flex flex-col items-center">
-                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqSRequiresRounding ? 'text-orange-300' : 'text-yellow-300'}`}>{d.reqS}</span>
-                              {d.reqSMin !== null && d.reqSMin < d.reqS && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqSMin}</div>}
-                              {isa2SLine}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Desktop GP (Hidden on Mobile) */}
-                      <div className="hidden md:block col-span-1 text-center">
-                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/[0.1] text-zinc-300'}`}>
-                          {d.currentGP}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Footer Notes */}
-              <div className="mt-4 p-3 bg-white/[0.04] rounded-lg border border-white/[0.06]">
-                <div className="flex items-start gap-2 text-xs text-zinc-400">
-                  <Lightbulb className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-zinc-300">Safe vs Minimum scores:</strong> The main number is the <strong>safe</strong> ESA score that guarantees the grade.
-                    The "min" value (when shown) is the absolute minimum that <em>might</em> work due to rounding up, but scoring the safe value is recommended.
-                  </div>
-                </div>
-              </div>
-
-              {/* Momentum Disclaimer (Collapsible) */}
-              <div className="mt-3 mx-1 bg-indigo-900/20 rounded-lg border border-indigo-500/20">
-                <details className="group p-3">
-                  <summary className="flex items-center gap-2 cursor-pointer list-none text-xs text-indigo-200 font-bold select-none">
-                    <span className="text-lg leading-none">*️⃣</span>
-                    <span>Momentum Disclaimer</span>
-                    <ChevronDown className="w-3 h-3 ml-auto opacity-50 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="mt-2 text-xs text-indigo-200/70 leading-relaxed pl-7 border-t border-indigo-500/10 pt-2">
-                    The momentum score assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong> If ISA2 is empty, the Pass/A/S ESA requirements use a momentum-projected ISA2 score and are estimates. When Assignment or Lab is empty, momentum assumes full marks for those components. ISA2 target lines (Pass/A/S) show how much ISA2 you need for that grade, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
-                  </div>
-                </details>
-              </div>
-            </div>
-
-            {/* Smart Strategy Panel (Collapsible on Mobile to save space) */}
-            <div className="bg-[#0c0c14]/90 backdrop-blur-sm rounded-xl shadow-2xl shadow-black/20 p-4 md:p-6 text-zinc-200 border border-white/[0.06]">
-              <details className="group" open>
-                <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-                  <div className="text-lg font-bold flex items-center gap-2 text-green-400">
-                    <Lightbulb className="w-5 h-5" /> Path to Target ({targetSgpa} SGPA)
-                  </div>
-                  <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
-                </summary>
-
-                <div className="mt-4">
-                  {strategy.plan.length === 0 && !strategy.impossible && parseFloat(metrics.momentumSGPA) >= targetSgpa ? (
-                    <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 flex items-center gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
-                      <div>
-                        <div className="font-bold text-green-300">You're on track!</div>
-                        <div className="text-xs text-green-200/60">Your current momentum meets your target.</div>
-                      </div>
-                    </div>
-                  ) : strategy.impossible ? (
-                    <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 flex items-center gap-3">
-                      <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0" />
-                      <div>
-                        <div className="font-bold text-red-300">Target Unreachable</div>
-                        <div className="text-xs text-red-200/60">Mathematically impossible given your internals.</div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <p className="text-xs text-zinc-400 mb-2">Most efficient upgrades:</p>
-                      {strategy.plan.map((step, idx) => (
-                        <div key={idx} className="bg-white/[0.04] p-3 rounded-lg border border-white/[0.06] flex items-start gap-3">
-                          <div className="bg-[#0e0e18] w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-zinc-400 flex-shrink-0 mt-0.5">
-                            {idx + 1}
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-sm font-bold text-zinc-200 flex justify-between items-center">
-                              <span>{step.name}</span>
-                              <span className="text-[10px] bg-indigo-900 text-indigo-200 px-1.5 py-0.5 rounded">+{step.gpGain.toFixed(1)} GP</span>
-                            </div>
-                            <div className="text-xs text-zinc-400 mt-1 flex items-center gap-1 flex-wrap">
-                              <span className="text-zinc-200 font-bold bg-white/[0.1] px-1.5 rounded">{step.esaNeeded}/{step.esaMax}</span>
-                              <span>ESA for</span>
-                              <span className={`font-bold ${step.toGrade === 'S' ? 'text-green-400' : 'text-blue-400'}`}>{step.toGrade}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </details>
-            </div>
-          </div>
-        )}
-
-        {/* ==================== REVERSE CALCULATOR TAB ==================== */}
-        {activeTab === 'reverse' && (
-          <div className="space-y-4">
-            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-emerald-500/10 rounded-xl shadow-2xl shadow-black/20 p-4 text-zinc-200 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/[0.07] blur-[60px] rounded-full pointer-events-none"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/[0.04] blur-[50px] rounded-full pointer-events-none"></div>
-              <h2 className="text-lg font-bold flex items-center gap-2 mb-2">
-                <Target className="w-5 h-5" /> Reverse Calculator
-              </h2>
-
-              {/* ESA Marks Detected Warning (Collapsible) */}
-              {subjects.some(sub => (marks[sub.id]?.esa && parseFloat(marks[sub.id]?.esa) > 0)) && (
-                <div className="rounded-xl border border-amber-200 bg-amber-500/10 border-amber-500/20 overflow-hidden mb-6">
-                  <details className="group">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-amber-500/10 hover:bg-amber-500/15 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
-                        <h4 className="font-bold text-sm text-amber-300">
-                          ESA Marks Detected (Subject Locked)
-                        </h4>
-                      </div>
-                      <ChevronDown className="w-5 h-5 text-amber-400 opacity-70 transition-transform group-open:rotate-180" />
-                    </summary>
-
-                    <div className="px-4 pb-4 pt-0">
-                      <div className="text-xs text-amber-400 mt-1 space-y-2 border-t border-amber-500/20/50 pt-3">
-                        <p>
-                          You have entered ESA marks for some subjects. These subjects will be treated as <strong>Fixed/Locked</strong> and will NOT be reverse-calculated.
-                        </p>
-                        <p>
-                          If you want to <strong>predict</strong> marks for a specific subject, please go back and <strong>clear its ESA score</strong>.
-                        </p>
-                        <button
-                          onClick={() => setActiveTab('subjects')}
-                          className="mt-2 text-xs bg-amber-600 hover:bg-amber-700 text-zinc-200 px-3 py-1.5 rounded-lg font-bold transition-colors"
-                        >
-                          Manage Subjects
-                        </button>
-                      </div>
-                    </div>
-                  </details>
-                </div>
-              )}
-
-              {/* ORIGINAL TEXT: Description */}
-              <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
-                Set your desired SGPA and see exactly what you need to score in each ESA. Lock subjects where you're confident about your score.
-              </p>
-
-              {/* Controls: Input & Buttons (Compacted layout) */}
-              <div className="flex flex-col gap-3 mb-4">
-                <div className="flex items-center gap-3 bg-white/[0.08] px-3 py-2 rounded-lg w-full sm:w-auto">
-                  <label className="text-sm font-semibold whitespace-nowrap">I want SGPA: </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="5"
-                    max="10"
-                    value={reverseTargetSgpa}
-                    onChange={(e) => setReverseTargetSgpa(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-white/[0.08] border border-white/[0.12] rounded-lg px-2 py-1 text-zinc-200 font-bold text-center text-lg focus:outline-none focus:border-white"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <div className="flex items-center gap-2 bg-white/[0.08] px-3 py-2 rounded-lg w-full sm:w-auto">
-                    <span className="text-[10px] text-zinc-400 uppercase font-bold">ESA Mode</span>
-                    <div className="flex bg-white/[0.06] rounded-lg p-1">
-                      <button
-                        onClick={() => setReverseEsaMode('safe')}
-                        className={`px-2 py-1 text-[10px] font-bold rounded ${reverseEsaMode === 'safe'
-                          ? 'bg-white/[0.15] text-zinc-200'
-                          : 'text-zinc-500 hover:text-zinc-300'
-                          }`}
-                      >
-                        Safe
-                      </button>
-                      <button
-                        onClick={() => setReverseEsaMode('min')}
-                        className={`px-2 py-1 text-[10px] font-bold rounded ${reverseEsaMode === 'min'
-                          ? 'bg-white/[0.15] text-zinc-200'
-                          : 'text-zinc-500 hover:text-zinc-300'
-                          }`}
-                      >
-                        Min
-                      </button>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-zinc-500">Min relies on rounding luck.</span>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setShuffledResults(calculateRandomPath())}
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-zinc-200 p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
-                    title="Shuffle: Find a different combination of grades"
-                  >
-                    <Dice5 className="w-4 h-4" /> Shuffle
-                  </button>
-
-                  <button
-                    onClick={() => setShuffledResults(calculateBalancedPath())}
-                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-zinc-200 p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
-                    title="Balanced: Keeps scores even across subjects"
-                  >
-                    <Scale className="w-4 h-4" /> Balanced
-                  </button>
-
-                  {shuffledResults && (
-                    <button
-                      onClick={() => setShuffledResults(null)}
-                      className="px-3 text-xs text-zinc-200/70 hover:text-zinc-200 underline"
-                    >
-                      Reset
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* ORIGINAL TEXT: Blue Help Box (Accordion for mobile) */}
-              <div className="bg-blue-900/30 border-l-4 border-blue-400 rounded-r shadow-md">
-                <details className="group p-3">
-                  <summary className="flex items-center gap-2 cursor-pointer list-none text-sm font-bold text-blue-100 select-none">
-                    <HelpCircle className="w-5 h-5 text-blue-400" />
-                    <span>Why are some scores high/low?(and fix)</span>
-                    <ChevronDown className="w-4 h-4 ml-auto opacity-70 transition-transform group-open:rotate-180" />
-                  </summary>
-                  <div className="mt-3 text-sm text-blue-100 space-y-2 border-t border-blue-400/30 pt-2">
-                    <p className="opacity-80">
-                      This calculator finds the <strong>absolute cheapest path</strong>.
-                      It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
-                    </p>
-                    <p className="text-yellow-300 font-bold text-xs">
-                      💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon
-                      to set a limit (e.g., 85 that you are confident that you will score at least that much).
-                      The app will recalculate the rest!
-                    </p>
-                    <p className="font-medium text-zinc-200/90 text-xs">
-                      Alternatively you can Click <span className="font-bold text-zinc-200">Balanced</span> for a realistic, balanced path.
-                    </p>
-                    <p className="font-medium text-zinc-200/90 text-xs">
-                      Scores look unrealistic? Click <span className="font-bold text-zinc-200">Shuffle</span> for a different path. Click <span className="font-bold text-zinc-200">Reset</span> to go back to the most efficient way.
-                    </p>
-                  </div>
-                </details>
-              </div>
-
-              {!reverseResults.isTargetAchievable && (
-                <div className="flex items-center gap-2 bg-red-500/30 px-3 py-2 rounded-lg text-sm mt-3 border border-red-500/30">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>Max achievable: <strong>{reverseResults.achievableSGPA}</strong></span>
-                </div>
-              )}
-            </div>
-
-            {/* Subject List - COMPACT ROW LAYOUT */}
-            <div className="space-y-2">
-              {(shuffledResults || reverseResults.results).map((sub, i) => {
-                const baseSubject = subjects.find(s => s.id === sub.id);
-                const baseMetrics = baseSubject ? getSubjectMetrics(baseSubject) : null;
-                const m = marks[sub.id] || {};
-                const hasEsa = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
-                const isManualLock = lockedSubjects[sub.id] !== undefined && !sub.isHardLocked;
-
-                const isa2Label = baseSubject?.customConfig?.labels?.isa2 || 'ISA2';
-                const assignmentLabel = baseSubject?.customConfig?.labels?.assignment || 'Assignment';
-                const assignmentLabelShort = assignmentLabel === 'Assignment' ? 'Asg' : assignmentLabel;
-                const labLabel = baseSubject?.customConfig?.labels?.lab || 'Lab';
-
-                const assumptions = [];
-                if (!hasEsa && !isManualLock) assumptions.push('ESA est');
-                if (baseMetrics?.momentumIsa2Marks !== null) assumptions.push(`${isa2Label} proj`);
-                if (baseMetrics?.momentumAssignmentMarks !== null) assumptions.push(`${assignmentLabelShort} full`);
-                if (baseMetrics?.momentumLabMarks !== null) assumptions.push(`${labLabel} full`);
-
-                const activeMap = baseSubject?.customGradeMap || GradeMap;
-                const targetScore = sub.projectedScore ?? activeMap.find(g => g.grade === sub.projectedGrade)?.min ?? null;
-                const esaInfo = baseSubject && targetScore !== null
-                  ? getRequiredESAForGrade(baseSubject, targetScore, true, { useMomentumIsa2: true, useMomentumInternals: true })
-                  : null;
-                const isa2TargetInfo = baseSubject && targetScore !== null
-                  ? getRequiredISA2ForGrade(baseSubject, targetScore, { assumeFullForEmptyInternals: true })
-                  : null;
-                const safeEsa = esaInfo?.safe ?? null;
-                const minEsa = esaInfo?.minimum ?? null;
-                const minDiffers = safeEsa !== null && minEsa !== null && minEsa < safeEsa;
-                const useMin = reverseEsaMode === 'min' && minEsa !== null;
-                const primaryEsa = useMin ? minEsa : safeEsa;
-                const secondaryEsa = useMin ? safeEsa : minEsa;
-                const secondaryLabel = useMin ? 'safe' : 'min';
-                const showSecondary = secondaryEsa !== null && primaryEsa !== null && secondaryEsa !== primaryEsa;
-                const showRounding = useMin && minDiffers;
-
-                return (
-                  <div
-                    key={i}
-                    className={`relative flex items-center justify-between p-3 rounded-lg border transition-all gap-2 ${sub.isImpossible ? 'bg-red-500/10 border-red-500/30' :
-                      sub.alreadyAchieved ? 'bg-green-500/10 border-green-500/30' :
-                        sub.locked ? 'bg-yellow-500/10 border-yellow-500/30' :
-                          `${themeClasses.card} shadow-sm`
-                      }`}
-                  >
-                    {/* Left Side: Name & Info */}
-                    <div className="flex-1 min-w-0 pr-2">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        {sub.locked && <Lock className="w-3 h-3 text-yellow-500 flex-shrink-0" />}
-                        <span className="text-sm font-bold truncate block">
-                          {sub.name}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] opacity-70">
-                        <span className={`px-1.5 rounded bg-white/[0.08]`}>{sub.credits} Cr</span>
-                        {sub.isImpossible ? (
-                          <span className="text-red-500 font-bold">Impossible</span>
-                        ) : (
-                          <span>Target: <strong className="opacity-100">{sub.projectedGrade}</strong></span>
-                        )}
-                      </div>
-                      {assumptions.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <span className="text-[8px] px-1.5 py-0.5 rounded bg-white/[0.06] text-zinc-500 uppercase tracking-wider">
-                            Assumptions used
-                          </span>
-                          {assumptions.map((item, idx) => (
-                            <span key={idx} className="text-[8px] px-1.5 py-0.5 rounded bg-white/[0.04] text-zinc-400">
-                              {item}
-                            </span>
                           ))}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Right Side: Score & Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className="text-right">
-                        {sub.locked ? (
-                          /* Locked Input */
-                          <div className="flex flex-col items-end">
-                            <div className="flex items-center gap-1">
+                        <div className="flex justify-end pt-1">
+                          <button
+                            onClick={() => setManualGrades({})}
+                            className="text-[10px] text-red-400 hover:text-red-300 font-extrabold underline"
+                          >
+                            Reset Sandbox
+                          </button>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+
+                  {/* Custom Template builder curves */}
+                  <div className="glass-panel rounded-2xl overflow-hidden mt-6">
+                    <button
+                      onClick={() => setShowTemplateBuilder(!showTemplateBuilder)}
+                      className="w-full p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/10">
+                          <Settings className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="text-left">
+                          <h3 className="font-extrabold text-sm text-white">Not from PES? 🎓</h3>
+                          <p className="text-[10px] text-zinc-500 mt-0.5 font-medium">Configure custom grading systems for IIT, VTU, or other colleges</p>
+                        </div>
+                      </div>
+                      {showTemplateBuilder ? <ChevronUp className="w-4 h-4 opacity-50" /> : <ChevronDown className="w-4 h-4 opacity-50" />}
+                    </button>
+
+                    {showTemplateBuilder && (
+                      <div className="p-5 border-t border-white/[0.04] space-y-6">
+                        <div className="bg-purple-500/5 p-4 rounded-xl border border-purple-500/10">
+                          <p className="text-xs text-purple-300 leading-normal">
+                            <strong>Custom Curriculum Settings:</strong> Choose pre-configured grading schemes or define custom weights. Click <strong>Create Subject</strong> to compile.
+                          </p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h4 className="font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px]">1</span>
+                            Subject Metadata
+                          </h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-[9px] text-zinc-500 font-bold block mb-1">Subject Name</label>
+                              <input
+                                type="text"
+                                value={customTemplate.name}
+                                onChange={(e) => setCustomTemplate(prev => ({ ...prev, name: e.target.value }))}
+                                placeholder="e.g. Computer Architecture"
+                                className="w-full glass-input px-3 py-2 text-xs focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-zinc-500 font-bold block mb-1">Credits</label>
                               <input
                                 type="number"
-                                min="0"
-                                max={sub.esaMax}
-                                disabled={sub.isHardLocked}
-                                value={sub.isHardLocked ? (marks[sub.id]?.esa || 0) : lockedSubjects[sub.id]}
-                                onChange={(e) => {
-                                  if (sub.isHardLocked) return;
-                                  const val = e.target.value === '' ? '' : parseFloat(e.target.value);
-                                  setLockedSubjects(prev => ({ ...prev, [sub.id]: val }));
-                                }}
-                                className={`w-12 p-1 text-center text-sm font-bold border rounded focus:outline-none ${sub.isHardLocked
-                                  ? 'bg-white/[0.04] text-zinc-500 cursor-not-allowed border-transparent'
-                                  : 'bg-yellow-500/10 bg-yellow-500/15 border-yellow-400 text-yellow-300'
-                                  }`}
+                                value={customTemplate.credits}
+                                onChange={(e) => setCustomTemplate(prev => ({ ...prev, credits: parseFloat(e.target.value) || 0 }))}
+                                className="w-full glass-input px-3 py-2 text-xs focus:outline-none"
                               />
-                              <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
                             </div>
-                            <span className="text-[9px] text-yellow-500 mt-0.5">
-                              {sub.isHardLocked ? 'Set in subjects tab' : 'Manual'}
-                            </span>
                           </div>
-                        ) : sub.alreadyAchieved ? (
-                          /* Done State */
-                          <div className="flex flex-col items-end">
-                            <span className="text-lg font-bold text-green-500">0</span>
-                            <span className="text-[9px] text-green-500/70">Safe</span>
-                          </div>
-                        ) : sub.isImpossible ? (
-                          <span className="text-xs font-bold text-red-500">---</span>
-                        ) : (
-                          /* Score Needed */
-                          <div className="flex flex-col items-end">
-                            <span className="text-lg font-bold">
-                              {primaryEsa !== null ? primaryEsa : sub.requiredEsa}<span className="text-xs font-normal opacity-50">/{sub.esaMax}</span>
-                            </span>
-                            {showSecondary && (
-                              <span className="text-[9px] opacity-60">{secondaryLabel}: {secondaryEsa}</span>
-                            )}
-                            {showRounding && (
-                              <span className="text-[9px] text-orange-400">*rounding</span>
-                            )}
-                            <span className="text-[9px] opacity-50">Needed</span>
-                          </div>
-                        )}
-                        {isa2TargetInfo && (
-                          <div className={`text-[9px] leading-none mt-1 text-right ${isa2TargetInfo.needed === null ? 'text-red-400' : 'text-zinc-500'}`}>
-                            {isa2Label} {sub.projectedGrade || 'target'}: {isa2TargetInfo.needed === null ? 'impossible' : `${isa2TargetInfo.needed}/${isa2TargetInfo.max}`}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Lock Button */}
-                      <button
-                        onClick={() => {
-                          if (sub.isHardLocked) return;
-                          if (lockedSubjects[sub.id] !== undefined) {
-                            const newLocked = { ...lockedSubjects };
-                            delete newLocked[sub.id];
-                            setLockedSubjects(newLocked);
-                          } else {
-                            setLockedSubjects({ ...lockedSubjects, [sub.id]: sub.requiredEsa });
-                          }
-                        }}
-                        disabled={sub.isHardLocked}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
-                          sub.locked
-                            ? 'bg-yellow-500/10 bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
-                            : 'bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-blue-500 hover:border-blue-300'
-                          }`}
-                      >
-                        {sub.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* ORIGINAL TEXT: Bottom Info */}
-            <div className="mt-6 p-4 bg-white/[0.04] bg-white/[0.03] rounded-lg border border-white/[0.06]">
-              <div className="flex items-start gap-2 text-sm">
-                <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                <div className="space-y-2">
-                  <p>
-                    <strong>How to use:</strong> Lock subjects where you're confident about your ESA score.
-                    The calculator will then adjust the requirements for other subjects to compensate.
-                  </p>
-                  <p className="opacity-60 text-xs italic border-t border-white/[0.08] pt-2">
-                    <strong>Note:</strong> There are many combinations of grades that can achieve your target.
-                    This result is just the most efficient path (requiring the least amount of total marks).
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* ORIGINAL TEXT: Momentum Warning */}
-            {reverseResults.usingMomentum && (
-              <div className="mt-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
-                <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
-                  <strong className="text-yellow-200">Using Momentum Scores</strong>
-                  <p className="text-yellow-700 text-yellow-100/70 text-xs mt-1 leading-relaxed">
-                    Some internals (like Lab, ISA2, or Assignment) are empty. We project ISA2 from ISA1, assume full marks for empty Assignment or Lab, and estimate ESA using your current internal ratio so the calculator does not crash early in the semester. This is optimistic, so the max achievable SGPA can be higher than reality until you enter actual marks.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Minimum Passing Table (Restored & Scrollable for Mobile) */}
-            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 mt-8">
-              <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
-                <Calculator className="w-5 h-5 text-blue-500" /> Minimum ESA Scores Needed
-              </h2>
-              <p className={`${themeClasses.muted} text-sm mb-4`}>
-                Quick reference: minimum ESA marks required for each grade in each subject.
-              </p>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className={`border-b ${themeClasses.border}`}>
-                      <th className="text-left py-3 px-2 font-bold whitespace-nowrap">Subject</th>
-                      <th className="text-center py-3 px-2 font-bold text-red-400">E (40)</th>
-                      <th className="text-center py-3 px-2 font-bold text-orange-400">D (50)</th>
-                      <th className="text-center py-3 px-2 font-bold text-yellow-500">C (60)</th>
-                      <th className="text-center py-3 px-2 font-bold text-indigo-400">B (70)</th>
-                      <th className="text-center py-3 px-2 font-bold text-blue-400">A (80)</th>
-                      <th className="text-center py-3 px-2 font-bold text-green-400">S (90)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {minimumPassingTable.map(sub => (
-                      <tr key={sub.id} className={`border-b ${themeClasses.border} hover:bg-white/[0.04]`}>
-
-                        {/* CHANGED: Increased max-w to 150px for better readability on mobile */}
-                        <td className="py-3 px-2 font-medium max-w-[150px] sm:max-w-none">
-                          <div className="truncate font-bold text-zinc-200" title={sub.name}>
-                            {sub.name}
-                          </div>
-                          <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max: {sub.esaMax}</div>
-                        </td>
-
-                        {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
-                          const req = sub.gradeRequirements.find(g => g.grade === grade);
-                          const isa2MiniLine = req?.showIsa2Needed ? (
-                            req.isa2Needed === null ? (
-                              <div className="text-[9px] text-red-400 leading-none mt-0.5">I2: ✗</div>
-                            ) : (
-                              <div className="text-[9px] text-zinc-500 leading-none mt-0.5">I2: {req.isa2Needed}/{req.isa2Max}</div>
-                            )
-                          ) : null;
-                          return (
-                            <td key={grade} className="text-center py-3 px-2">
-                              {!req?.possible ? (
-                                <div>
-                                  <span className="text-red-500 text-xs font-bold">✗</span>
-                                  {isa2MiniLine}
-                                </div>
-                              ) : req.alreadyAchieved ? (
-                                <div>
-                                  <span className="text-green-400 font-bold">✓</span>
-                                  {isa2MiniLine}
-                                </div>
-                              ) : (
-                                <div>
-                                  <span className={`font-mono font-bold ${req.requiresRounding ? 'text-orange-400' :
-                                    req.easy ? 'text-green-400' :
-                                      req.moderate ? 'text-blue-400' :
-                                        'text-orange-400'
-                                    }`}>
-                                    {req.requiredEsa}
-                                    {req.requiresRounding && '*'}
-                                  </span>
-                                  {req.minimumEsa !== null && req.minimumEsa < req.requiredEsa && (
-                                    <div className={`text-[9px] ${themeClasses.muted}`}>
-                                      ({req.minimumEsa})
-                                    </div>
-                                  )}
-                                  {isa2MiniLine}
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className={`flex flex-wrap gap-4 mt-4 text-xs ${themeClasses.muted} pt-4 border-t ${themeClasses.border}`}>
-                <span><span className="text-green-400 font-bold">✓</span> Already achieved</span>
-                <span><span className="text-green-400">Green</span> Easy (≤50)</span>
-                <span><span className="text-blue-400">Blue</span> Moderate (51-75)</span>
-                <span><span className="text-orange-400">Orange</span> Hard (&gt;75)</span>
-                <span><span className="text-red-500 font-bold">✗</span> Not possible</span>
-                <span><span className={themeClasses.muted}>(xx)</span> Best case (with rounding)</span>
-                <span><span className="text-orange-400">*</span> Requires rounding luck</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ==================== ATTENDANCE TAB ==================== */}
-        {activeTab === 'attendance' && (
-          <div className="space-y-6">
-            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Overall Attendance
-              </h2>
-              <p className={`text-xs ${themeClasses.muted} mt-1`}>
-                One subject at a time. Mode 1 is the base, and all planning modes use it automatically.
-              </p>
-            </div>
-
-            <details className={`${themeClasses.card} border rounded-xl group`} open>
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span className="text-sm font-bold">Mode 1 — Current Attendance and Shared Baseline</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] ${themeClasses.muted}`}>Saved locally</span>
-                  <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
-                </div>
-              </summary>
-
-              <div className="p-4 pt-0 space-y-4">
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Held So Far</label>
-                  <input
-                    type="number"
-                    value={attendanceStatusMode.total}
-                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, total: e.target.value }))}
-                    placeholder="e.g. 51"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-                <div>
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Attended</label>
-                  <input
-                    type="number"
-                    value={attendanceStatusMode.attended}
-                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, attended: e.target.value }))}
-                    placeholder="e.g. 48"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-              </div>
-
-              {statusStats.invalid && (
-                <div className="text-xs text-red-400">
-                  Attended classes cannot be greater than classes held.
-                </div>
-              )}
-
-              {statusStats.ready ? (
-                <div className="space-y-3">
-                  <div className={`p-3 rounded-lg ${statusStats.isAboveMinimum ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className={`text-xs font-bold ${statusStats.isAboveMinimum ? 'text-green-300' : 'text-red-300'}`}>
-                        Current Attendance
-                      </span>
-                      <span className={`text-lg font-bold ${statusStats.isAboveMinimum ? 'text-green-400' : 'text-red-400'}`}>
-                        {statusStats.currentPercentage.toFixed(2)}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full transition-all ${statusStats.isAboveMinimum ? 'bg-green-500' : 'bg-red-500'}`}
-                        style={{ width: `${Math.min(100, statusStats.currentPercentage)}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-[10px] mt-1">
-                      <span className={themeClasses.muted}>0%</span>
-                      <span className={`font-bold ${statusStats.isAboveMinimum ? 'text-green-400' : 'text-red-400'}`}>{ATTENDANCE_MIN_PERCENT}% Minimum</span>
-                      <span className={themeClasses.muted}>100%</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                      <div className="text-[10px] uppercase font-bold opacity-60">Attendance Entered (Attended / Held)</div>
-                      <div className="text-sm font-bold mt-1">{statusStats.attended}/{statusStats.total}</div>
-                    </div>
-                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                      <div className="text-[10px] uppercase font-bold opacity-60">Maximum Consecutive Classes You Can Miss Right Now</div>
-                      <div className="text-sm font-bold mt-1">{statusStats.maxConsecutiveSkipsNow}</div>
-                    </div>
-                    {!statusStats.isAboveMinimum && (
-                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                        <div className="text-[10px] uppercase font-bold opacity-60">Consecutive Classes You Must Attend to Reach 75%</div>
-                        <div className="text-sm font-bold mt-1">{statusStats.classesToAttendNow}</div>
-                      </div>
-                    )}
-                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                      <div className="text-[10px] uppercase font-bold opacity-60">Difference From the 75% Minimum</div>
-                      <div className="text-sm font-bold mt-1">
-                        {(statusStats.currentPercentage >= ATTENDANCE_MIN_PERCENT ? '+' : '')}
-                        {(statusStats.currentPercentage - ATTENDANCE_MIN_PERCENT).toFixed(2)}%
-                      </div>
-                    </div>
-                    {statusStats.isAboveMinimum && statusStats.maxConsecutiveSkipsNow > 0 && (
-                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                        <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing Max Allowed (75%)</div>
-                        <div className="text-sm font-bold mt-1">
-                          {((statusStats.attended / (statusStats.total + statusStats.maxConsecutiveSkipsNow)) * 100).toFixed(2)}%
                         </div>
+
+                        <div className="space-y-4">
+                          <h4 className="font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px]">2</span>
+                            Assessment Pattern
+                          </h4>
+                          <div className="space-y-2">
+                            {customTemplate.components.map((comp, idx) => (
+                              <div
+                                key={idx}
+                                className={`flex flex-wrap sm:flex-nowrap items-center gap-3 p-2.5 rounded-xl border transition-all \${
+                                  comp.enabled 
+                                    ? 'bg-black/45 border-white/[0.04]' 
+                                    : 'bg-white/[0.02] border-white/[0.02] opacity-40'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 flex-grow min-w-[120px]">
+                                  <input
+                                    type="checkbox"
+                                    checked={comp.enabled}
+                                    onChange={(e) => updateTemplateComponent(idx, 'enabled', e.target.checked)}
+                                    className="rounded border-white/[0.08] bg-black/40 accent-purple-500"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={comp.name}
+                                    onChange={(e) => updateTemplateComponent(idx, 'name', e.target.value)}
+                                    disabled={!comp.enabled}
+                                    className="flex-1 p-1 text-xs border-b border-transparent bg-transparent focus:outline-none font-bold text-white"
+                                  />
+                                </div>
+
+                                <div className="flex items-center gap-3 ml-auto text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="number"
+                                      value={comp.weight}
+                                      onChange={(e) => updateTemplateComponent(idx, 'weight', parseFloat(e.target.value) || 0)}
+                                      disabled={!comp.enabled}
+                                      className="w-10 p-1 text-center bg-black border border-white/[0.06] rounded text-white"
+                                    />
+                                    <span className="text-[10px] text-zinc-500">%</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-zinc-500">Max:</span>
+                                    <input
+                                      type="number"
+                                      value={comp.maxMarks}
+                                      onChange={(e) => updateTemplateComponent(idx, 'maxMarks', parseFloat(e.target.value) || 0)}
+                                      disabled={!comp.enabled}
+                                      className="w-10 p-1 text-center bg-black border border-white/[0.06] rounded text-white"
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={() => removeComponentFromTemplate(idx)}
+                                    className="p-1 text-red-500 hover:bg-red-500/10 rounded"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          <button
+                            onClick={addComponentToTemplate}
+                            className="w-full py-2 border border-dashed border-white/[0.08] hover:border-purple-500/30 hover:text-purple-400 rounded-xl text-zinc-500 text-xs font-bold flex items-center justify-center gap-2"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add custom component
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <h4 className="font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px]">3</span>
+                            Grading Threshold System
+                          </h4>
+                          <div>
+                            <label className="text-[9px] text-zinc-500 font-bold block mb-1">Pick Preset</label>
+                            <select
+                              value={customTemplate.gradingScheme}
+                              onChange={(e) => {
+                                const scheme = e.target.value;
+                                setCustomTemplate(prev => ({
+                                  ...prev,
+                                  gradingScheme: scheme,
+                                  customGrades: scheme === "Custom"
+                                    ? prev.customGrades
+                                    : JSON.parse(JSON.stringify(GradingSchemes[scheme]))
+                                }));
+                              }}
+                              className="w-full bg-black/40 border border-white/[0.06] rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                            >
+                              {Object.keys(GradingSchemes).map(key => (
+                                <option key={key} value={key}>{key}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="p-4 bg-black/30 rounded-xl border border-white/[0.04] space-y-2">
+                            <div className="grid grid-cols-12 gap-2 text-[8px] uppercase font-bold text-zinc-500 px-1 pb-1 border-b border-white/[0.04]">
+                              <div className="col-span-3">Letter Grade</div>
+                              <div className="col-span-4 text-center">Minimum Score (&ge;)</div>
+                              <div className="col-span-4 text-center">Grade Points</div>
+                              <div className="col-span-1"></div>
+                            </div>
+                            
+                            {customTemplate.customGrades.sort((a, b) => b.min - a.min).map((g, idx) => (
+                              <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                                <input
+                                  type="text"
+                                  value={g.grade}
+                                  onChange={(e) => updateCustomGrade(idx, 'grade', e.target.value)}
+                                  className="col-span-3 p-1.5 text-center text-xs font-bold bg-black border border-white/[0.06] rounded-lg text-white"
+                                />
+                                <input
+                                  type="number"
+                                  value={g.min}
+                                  onChange={(e) => updateCustomGrade(idx, 'min', e.target.value)}
+                                  className="col-span-4 p-1.5 text-center text-xs bg-black border border-white/[0.06] rounded-lg text-white"
+                                />
+                                <input
+                                  type="number"
+                                  value={g.gp}
+                                  onChange={(e) => updateCustomGrade(idx, 'gp', e.target.value)}
+                                  className="col-span-4 p-1.5 text-center text-xs bg-black border border-white/[0.06] rounded-lg text-white"
+                                />
+                                <button
+                                  onClick={() => removeCustomGrade(idx)}
+                                  className="col-span-1 text-red-500 hover:bg-red-500/10 rounded flex justify-center py-1"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+
+                            <button
+                              onClick={addCustomGrade}
+                              className="w-full text-center text-xs text-purple-400 hover:underline pt-2 font-bold"
+                            >
+                              + Add Grade Row
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={applyGradingSchemeToAll}
+                            className="w-full py-2.5 bg-indigo-500/10 border border-indigo-500/20 hover:bg-indigo-500/20 text-indigo-300 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                          >
+                            <Zap className="w-3.5 h-3.5" /> Apply Curve System to ALL Subjects
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={applyCustomTemplate}
+                          className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-purple-500/10"
+                        >
+                          Create Custom Subject
+                        </button>
                       </div>
                     )}
                   </div>
-
-                  <div className={`text-xs ${themeClasses.muted}`}>
-                    {statusStats.isAboveMinimum
-                      ? `You are above ${ATTENDANCE_MIN_PERCENT}%. You can miss ${statusStats.maxConsecutiveSkipsNow} consecutive classes before you need to attend again.`
-                      : `You are below ${ATTENDANCE_MIN_PERCENT}%. Attend the next ${statusStats.classesToAttendNow} classes continuously to recover above the minimum.`}
-                  </div>
-                </div>
-              ) : (
-                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                  Enter classes held and attended to view this mode.
-                </div>
+                </>
               )}
 
-              <div className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.08] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-bold">Separate Target Planner (Buffer)</div>
-                  <div className={`text-[10px] ${themeClasses.muted}`}>Used in Mode 2/3/4</div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div>
-                    <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Target Attendance %</label>
-                    <input
-                      type="number"
-                      value={attendanceStatusMode.bufferPercent}
-                      onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: e.target.value }))}
-                      placeholder="e.g. 80"
-                      className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
-                    />
-                  </div>
-                </div>
-
-                {targetStatusStats ? (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                        <div className="text-[10px] uppercase font-bold opacity-60">
-                          Maximum Consecutive Classes You Can Miss (Target {targetStatusStats.targetPercent.toFixed(2)}%)
-                        </div>
-                        <div className="text-sm font-bold mt-1">{targetStatusStats.maxConsecutiveSkipsForTarget}</div>
-                      </div>
-                      {!targetStatusStats.isAboveTarget && (
-                        <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                          <div className="text-[10px] uppercase font-bold opacity-60">
-                            Consecutive Classes You Must Attend to Reach {targetStatusStats.targetPercent.toFixed(2)}%
-                          </div>
-                          <div className="text-sm font-bold mt-1">{targetStatusStats.classesToAttendForTarget}</div>
-                        </div>
-                      )}
-                    </div>
-                    <div className={`text-xs ${themeClasses.muted}`}>
-                      {targetStatusStats.isAboveTarget
-                        ? `You are already above ${targetStatusStats.targetPercent.toFixed(2)}%.`
-                        : `You are below ${targetStatusStats.targetPercent.toFixed(2)}%. Attend ${targetStatusStats.classesToAttendForTarget} consecutive classes to recover.`}
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`text-xs ${themeClasses.muted}`}>
-                    Fill classes held and attended above to activate this target planner.
-                  </div>
-                )}
-              </div>
-              </div>
-            </details>
-
-            <details className={`${themeClasses.card} border rounded-xl group`}>
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm font-bold">Mode 2 — Plan Using Classes Remaining</span>
-                </div>
-                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
-              </summary>
-
-              <div className="p-4 pt-0 space-y-4">
-              <div className={`text-[10px] ${themeClasses.muted}`}>
-                {statusStats.ready
-                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
-                  : 'Fill Mode 1 first to unlock this planner.'}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div>
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Left</label>
-                  <input
-                    type="number"
-                    value={attendanceClassesLeftMode.classesLeft}
-                    onChange={(e) => setAttendanceClassesLeftMode(prev => ({ ...prev, classesLeft: e.target.value }))}
-                    placeholder="e.g. 24"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-              </div>
-
-              {classesLeftPlan && statusStats.ready ? (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
-                    <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMisses75}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
-                    <div className="text-sm font-bold mt-1">{classesLeftPlan.mustAttendFor75}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
-                    <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMissesBuffer}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
-                    <div className="text-sm font-bold mt-1">{classesLeftPlan.worstFinalPercentage.toFixed(2)}% - {classesLeftPlan.bestFinalPercentage.toFixed(2)}%</div>
-                  </div>
-                </div>
-              ) : (
-                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                  {statusStats.ready ? 'Enter classes left to see the result.' : 'Complete Mode 1 first to use this planner.'}
-                </div>
+              {/* TAB: ANALYSIS & REVERSE */}
+              {(activeTab === 'analysis' || activeTab === 'reverse') && (
+                <StrategyEngine
+                  activeTab={activeTab}
+                  subjects={subjects}
+                  marks={marks}
+                  lockedSubjects={lockedSubjects}
+                  setLockedSubjects={setLockedSubjects}
+                  reverseTargetSgpa={reverseTargetSgpa}
+                  setReverseTargetSgpa={setReverseTargetSgpa}
+                  reverseEsaMode={reverseEsaMode}
+                  setReverseEsaMode={setReverseEsaMode}
+                  shuffledResults={shuffledResults}
+                  setShuffledResults={setShuffledResults}
+                  calculateRandomPath={calculateRandomPath}
+                  calculateBalancedPath={calculateBalancedPath}
+                  reverseResults={reverseResults}
+                  getMinimumPassingTable={getMinimumPassingTable}
+                  getSubjectMetrics={getSubjectMetrics}
+                  getGradePoint={getGradePoint}
+                  getGradeInfo={getGradeInfo}
+                  getRequiredESAForGrade={getRequiredESAForGrade}
+                  getRequiredISA2ForGrade={getRequiredISA2ForGrade}
+                  getRequiredISA2ForPass={getRequiredISA2ForPass}
+                  metrics={metrics}
+                  strategy={strategy}
+                  setActiveTab={setActiveTab}
+                  sgpa={sgpa}
+                  sgpaRange={sgpaRange}
+                  targetSgpa={targetSgpa}
+                  setTargetSgpa={setTargetSgpa}
+                />
               )}
-              </div>
-            </details>
 
-            <details className={`${themeClasses.card} border rounded-xl group`}>
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                  <span className="text-sm font-bold">Mode 3 — Plan Using Total Semester Classes</span>
-                </div>
-                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
-              </summary>
-
-              <div className="p-4 pt-0 space-y-4">
-              <div className={`text-[10px] ${themeClasses.muted}`}>
-                {statusStats.ready
-                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
-                  : 'Fill Mode 1 first to unlock this planner.'}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div>
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Total Classes in Semester</label>
-                  <input
-                    type="number"
-                    value={attendanceSemesterMode.semesterTotal}
-                    onChange={(e) => setAttendanceSemesterMode(prev => ({ ...prev, semesterTotal: e.target.value }))}
-                    placeholder="e.g. 90"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-              </div>
-
-              {semesterPlan?.invalid ? (
-                <div className="text-xs text-red-400">
-                  Semester total cannot be less than classes already held.
-                </div>
-              ) : semesterPlan && statusStats.ready ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Classes Remaining in Semester</div>
-                    <div className="text-sm font-bold mt-1">{semesterPlan.classesLeft}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Total Semester Miss Limit (75%)</div>
-                    <div className="text-sm font-bold mt-1">{semesterPlan.maxTotalMissesWhole75}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Additional Misses Allowed From Now (75%)</div>
-                    <div className="text-sm font-bold mt-1">{semesterPlan.safeMisses75}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
-                    <div className="text-sm font-bold mt-1">{semesterPlan.mustAttendFor75}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
-                    <div className="text-sm font-bold mt-1">{semesterPlan.safeMissesBuffer}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
-                    <div className="text-sm font-bold mt-1">{semesterPlan.worstFinalPercentage.toFixed(2)}% - {semesterPlan.bestFinalPercentage.toFixed(2)}%</div>
-                  </div>
-                </div>
-              ) : (
-                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                  {statusStats.ready ? 'Enter total semester classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
-                </div>
+              {/* TAB: ATTENDANCE */}
+              {activeTab === 'attendance' && (
+                <AttendanceTracker
+                  attendanceStatusMode={attendanceStatusMode}
+                  setAttendanceStatusMode={setAttendanceStatusMode}
+                  attendanceClassesLeftMode={attendanceClassesLeftMode}
+                  setAttendanceClassesLeftMode={setAttendanceClassesLeftMode}
+                  attendanceSemesterMode={attendanceSemesterMode}
+                  setAttendanceSemesterMode={setAttendanceSemesterMode}
+                  attendanceWeeklyMode={attendanceWeeklyMode}
+                  setAttendanceWeeklyMode={setAttendanceWeeklyMode}
+                  attendanceMissPlannerMode={attendanceMissPlannerMode}
+                  setAttendanceMissPlannerMode={setAttendanceMissPlannerMode}
+                  statusStats={statusStats}
+                  sharedBufferPercent={sharedBufferPercent}
+                  targetStatusStats={targetStatusStats}
+                  classesLeftPlan={classesLeftPlan}
+                  semesterPlan={semesterPlan}
+                  weeklyPlan={weeklyPlan}
+                  missImpactPlan={missImpactPlan}
+                />
               )}
-              </div>
-            </details>
 
-            <details className={`${themeClasses.card} border rounded-xl group`}>
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-violet-400" />
-                  <span className="text-sm font-bold">Mode 4 — Weekly Class Range Planner</span>
-                </div>
-                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
-              </summary>
-
-              <div className="p-4 pt-0 space-y-4">
-
-              <div className={`text-[10px] ${themeClasses.muted}`}>
-                {statusStats.ready
-                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
-                  : 'Fill Mode 1 first to unlock this planner.'}
-              </div>
-
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                <div>
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Weeks Left</label>
-                  <input
-                    type="number"
-                    value={attendanceWeeklyMode.weeksLeft}
-                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, weeksLeft: e.target.value }))}
-                    placeholder="e.g. 6"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-                <div>
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Min Classes / Week</label>
-                  <input
-                    type="number"
-                    value={attendanceWeeklyMode.minPerWeek}
-                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, minPerWeek: e.target.value }))}
-                    placeholder="e.g. 4"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-                <div className="col-span-2 lg:col-span-1">
-                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Max Classes / Week</label>
-                  <input
-                    type="number"
-                    value={attendanceWeeklyMode.maxPerWeek}
-                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, maxPerWeek: e.target.value }))}
-                    placeholder="e.g. 6"
-                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
-                  />
-                </div>
-              </div>
-
-              <div className={`text-[10px] ${themeClasses.muted}`}>
-                Use the same number for minimum and maximum if every week has the same class count.
-              </div>
-
-              {weeklyPlan?.minPlan && weeklyPlan?.maxPlan && statusStats.ready ? (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Estimated Remaining Classes</div>
-                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.remaining}{weeklyPlan.maxPlan.remaining !== weeklyPlan.minPlan.remaining && <span className="opacity-60"> - {weeklyPlan.maxPlan.remaining}</span>}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
-                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMisses75}{weeklyPlan.maxPlan.safeMisses75 !== weeklyPlan.minPlan.safeMisses75 && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMisses75}</span>}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
-                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMissesBuffer}{weeklyPlan.maxPlan.safeMissesBuffer !== weeklyPlan.minPlan.safeMissesBuffer && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMissesBuffer}</span>}</div>
-                  </div>
-                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
-                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.worstFinalPercentage.toFixed(2)}% - {weeklyPlan.maxPlan.bestFinalPercentage.toFixed(2)}%</div>
-                  </div>
-                </div>
-              ) : (
-                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                  {statusStats.ready ? 'Enter weekly range values to see the result.' : 'Complete Mode 1 first to use this planner.'}
-                </div>
+              {/* TAB: CGPA */}
+              {activeTab === 'cgpa' && (
+                <CGPAChart
+                  semesterData={semesterData}
+                  updateSemester={updateSemester}
+                  resetCGPA={resetCGPA}
+                  finalCgpa={finalCgpa}
+                  sgpa={sgpa}
+                  metrics={metrics}
+                  simpleCgpa={simpleCgpa}
+                  setSimpleCgpa={setSimpleCgpa}
+                />
               )}
-              </div>
-            </details>
 
-            <details className={`${themeClasses.card} border rounded-xl group`}>
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-amber-400" />
-                  <span className="text-sm font-bold">Mode 5 — Miss Impact Planner</span>
-                </div>
-                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
-              </summary>
+              {/* TAB: HELP GUIDE */}
+              {activeTab === 'guide' && (
+                <GuideSection setShowToffeeModal={setShowToffeeModal} />
+              )}
 
-              <div className="p-4 pt-0 space-y-4">
-                <div className={`text-[10px] ${themeClasses.muted}`}>
-                  {statusStats.ready
-                    ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%).`
-                    : 'Fill Mode 1 first to unlock this planner.'}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <div>
-                    <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>How many classes do you want to miss?</label>
-                    <input
-                      type="number"
-                      value={attendanceMissPlannerMode.misses}
-                      onChange={(e) => setAttendanceMissPlannerMode(prev => ({ ...prev, misses: e.target.value }))}
-                      placeholder="e.g. 3"
-                      className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none ${themeClasses.input}`}
-                    />
-                  </div>
-                </div>
-
-                {missImpactPlan && statusStats.ready ? (
-                  <div className="space-y-2">
-                    <div className={`grid ${missImpactPlan.isBelowAfterMisses ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-2`}>
-                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                        <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing {missImpactPlan.plannedMisses} Class(es)</div>
-                        <div className={`text-sm font-bold mt-1 ${missImpactPlan.isBelowAfterMisses ? 'text-red-400' : ''}`}>{missImpactPlan.attendanceAfterPlannedMisses.toFixed(2)}%</div>
-                      </div>
-                      {missImpactPlan.isBelowAfterMisses && (
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 sm:p-3">
-                          <div className="text-[10px] uppercase font-bold opacity-60 text-red-300">Classes You Must Then Attend to Recover 75%</div>
-                          <div className="text-sm font-bold mt-1 text-red-400">{missImpactPlan.classesToRecoverAfterMisses}</div>
-                        </div>
-                      )}
-                    </div>
-                    {missImpactPlan.isBelowAfterMisses && (
-                      <div className="text-xs text-red-400/80">
-                        Missing {missImpactPlan.plannedMisses} class(es) will drop you below 75%. You would need to attend {missImpactPlan.classesToRecoverAfterMisses} consecutive classes after that to recover.
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-                    {statusStats.ready ? 'Enter planned missed classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
-                  </div>
-                )}
-              </div>
-            </details>
+            </motion.div>
           </div>
-        )}
 
-        {/* ==================== CGPA TAB ==================== */}
-        {activeTab === 'cgpa' && (
-          <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
-
-            {/* Header & Result Card */}
-            <div className={`${themeClasses.card} p-6 rounded-2xl shadow-2xl border ${themeClasses.border} text-center relative overflow-hidden`}>
-              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-teal-400 via-blue-500 to-violet-500"></div>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-teal-500/[0.06] blur-[40px] pointer-events-none"></div>
-
-              <h2 className={`text-sm font-bold uppercase tracking-wider ${themeClasses.muted} mb-2`}>Cumulative GPA</h2>
-
-              <div className="flex items-center justify-center gap-1">
-                <span className="text-5xl md:text-6xl font-black text-teal-400">
-                  {(() => {
-                    const filledSems = semesterData.filter(s => s.sgpa && s.credits);
-                    if (filledSems.length === 0) return "0.00";
-
-                    const totalPoints = filledSems.reduce((sum, s) => sum + (parseFloat(s.sgpa) * parseFloat(s.credits)), 0);
-                    const totalCredits = filledSems.reduce((sum, s) => sum + parseFloat(s.credits), 0);
-
-                    return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
-                  })()}
-                </span>
-              </div>
-
-              <p className={`text-xs ${themeClasses.muted} mt-2`}>
-                Based on {semesterData.filter(s => s.sgpa && s.credits).length} semesters of data
-              </p>
-            </div>
-
-            {/* Helper Info */}
-            <div className="flex items-center gap-2 text-xs opacity-70 px-2">
-              <Info className="w-4 h-4" />
-              <span>Enter SGPA and Credits for completed semesters. Leave future ones blank.</span>
-            </div>
-
-            {/* Semesters Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {semesterData.map((sem) => (
-                <div
-                  key={sem.id}
-                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${(sem.sgpa && sem.credits)
-                    ? `${themeClasses.card} border-teal-500/30 shadow-sm`
-                    : 'bg-white/[0.03] border-transparent opacity-75 hover:opacity-100'
-                    }`}
-                >
-                  {/* Semester Label */}
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${(sem.sgpa && sem.credits)
-                    ? 'bg-teal-500/10 text-teal-300'
-                    : 'bg-white/[0.06] text-zinc-500'
-                    }`}>
-                    S{sem.id}
-                  </div>
-
-                  {/* Inputs */}
-                  <div className="flex-1 grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-bold opacity-50 mb-1 ml-1">SGPA</label>
-                      <input
-                        type="number"
-                        value={sem.sgpa}
-                        onChange={(e) => updateSemester(sem.id, 'sgpa', e.target.value)}
-                        placeholder="-"
-                        className={`w-full p-2 text-sm font-bold text-center border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
-                        min="0" max="10" step="0.01"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold opacity-50 mb-1 ml-1">Credits</label>
-                      <input
-                        type="number"
-                        value={sem.credits}
-                        onChange={(e) => updateSemester(sem.id, 'credits', e.target.value)}
-                        placeholder="-"
-                        className={`w-full p-2 text-sm text-center border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
-                        min="0" max="30"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={resetCGPA}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 hover:bg-red-500/10 rounded-lg transition-colors"
-              >
-                <Trash2 className="w-4 h-4" /> Clear History
-              </button>
-            </div>
-
-            {/* Disclaimer */}
-            <div className="text-center text-[10px] opacity-40 mt-8">
-              Calculated using: Σ (SGPA × Credits) / Σ Credits
-            </div>
-
-            {/* ==================== QUICK PREVIOUS CGPA CALCULATOR (Fully Manual) ==================== */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
-              <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shadow-sm">
-                      <span className="text-lg">⚡</span>
-                    </div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm text-zinc-200">Quick CGPA Estimator</h3>
-                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-white/[0.04] border`}>Isolated</span>
-                      </div>
-                      <p className={`text-xs ${themeClasses.muted} mt-0.5`}>
-                        Calculate new CGPA by combining previous history + current sem results
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
-                </summary>
-
-                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
-
-                  {/* Row 1: Previous Stats */}
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold`}>Previous CGPA</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 8.5"
-                        value={simpleCgpa.prevCgpa}
-                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, prevCgpa: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
-                      />
-                    </div>
-                    <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold`}>Prev Credits</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 80"
-                        value={simpleCgpa.prevCredits}
-                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, prevCredits: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Row 2: Current Stats */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-400`}>Current Sem SGPA</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 9.2"
-                        value={simpleCgpa.currSgpa}
-                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currSgpa: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-500/20 bg-teal-500/5`}
-                      />
-                    </div>
-                    <div>
-                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-400`}>Sem Credits</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 24"
-                        value={simpleCgpa.currCredits}
-                        onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currCredits: e.target.value }))}
-                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-500/20 bg-teal-500/5`}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Calculation Result */}
-                  <div className="bg-[#0e0e18] rounded-lg p-3 border shadow-sm flex items-center justify-between">
-                    {(() => {
-                      const pCgpa = parseFloat(simpleCgpa.prevCgpa) || 0;
-                      const pCreds = parseFloat(simpleCgpa.prevCredits) || 0;
-                      const cSgpa = parseFloat(simpleCgpa.currSgpa) || 0;
-                      const cCreds = parseFloat(simpleCgpa.currCredits) || 0;
-
-                      let newCGPA = "0.00";
-                      if (pCreds + cCreds > 0) {
-                        const totalPoints = (pCgpa * pCreds) + (cSgpa * cCreds);
-                        const totalCreds = pCreds + cCreds;
-                        newCGPA = (totalPoints / totalCreds).toFixed(2);
-                      }
-
-                      return (
-                        <>
-                          <div className="text-xs opacity-70">
-                            <div>Total Credits: <strong>{pCreds + cCreds}</strong></div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-[10px] uppercase font-bold opacity-50">Predicted CGPA</div>
-                            <div className="text-3xl font-black text-indigo-400">{newCGPA}</div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-
-                </div>
-              </details>
-            </div>
-
+          {/* RIGHT COLUMN: Sticky Visual Summary Panel (Desktop Only) */}
+          <div className="hidden md:block md:col-span-5 lg:col-span-4 sticky top-[100px]">
+            <SGPASidebar
+              sgpa={sgpa}
+              targetSgpa={targetSgpa}
+              setTargetSgpa={setTargetSgpa}
+              sgpaRange={sgpaRange}
+              gradeDistribution={gradeDistribution}
+              subjects={subjects}
+              undo={undo}
+              redo={redo}
+              undoStack={undoStack}
+              redoStack={redoStack}
+              exportData={exportData}
+              importData={importData}
+              clearAll={clearAll}
+              loadPreset={loadPreset}
+              SemesterPresets={SemesterPresets}
+            />
           </div>
-        )}
 
-        {/* ==================== GUIDE TAB ==================== */}
-        {activeTab === 'guide' && (
-          <div className="space-y-6">
+        </div>
 
-            {/* Intro Banner */}
-            <div className="bg-gradient-to-br from-[#0e0e18] to-[#0a0a12] border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 relative overflow-hidden">
-              <div className="relative z-10">
-                <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
-                  <BookOpen className="w-6 h-6 text-yellow-300" /> User Guide & Pro Features
-                </h2>
-                <p className="text-violet-100 opacity-90 max-w-2xl">
-                  Everything you need to know: from keyboard shortcuts to the "Momentum" logic.
-                </p>
-              </div>
-              <HelpCircle className="absolute right-[-20px] bottom-[-40px] w-40 h-40 text-zinc-200 opacity-10 rotate-12" />
-            </div>
-
-            <div className="text-[10px] opacity-30 text-right pr-1">
-              AI assistance was used to some extent.
-            </div>
-
-            {/* 1. POWER USER FEATURES (Grid) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-              {/* Feature A: Local Storage */}
-              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
-                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mb-3">
-                  <Download className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-sm mb-1">Auto-Save & Privacy</h3>
-                <p className={`text-xs ${themeClasses.muted}`}>
-                  Your data is <strong>saved locally</strong> in your browser. Close the tab, restart your laptop—your marks will still be here. No login required. This data is not collected or sent anywhere.
-                </p>
-              </div>
-
-              {/* Feature B: Presets */}
-              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
-                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 mb-3">
-                  <BookOpen className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-sm mb-1">One-Click Presets</h3>
-                <p className={`text-xs ${themeClasses.muted}`}>
-                  Don't type subjects manually! In the <strong>Subjects Tab</strong>, use the dropdown at the top to instantly load the "Physics Cycle" or "Chemistry Cycle".
-                </p>
-              </div>
-
-              {/* Feature C: Shortcuts */}
-              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
-                <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 mb-3 font-mono text-xs font-bold">
-                  CTRL
-                </div>
-                <h3 className="font-bold text-sm mb-1">Keyboard Shortcuts</h3>
-                <div className={`text-xs ${themeClasses.muted} space-y-1`}>
-                  <div className="flex justify-between"><span>Undo</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+Z</kbd></div>
-                  <div className="flex justify-between"><span>Redo</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+Y</kbd></div>
-                  <div className="flex justify-between"><span>Export</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+S</kbd></div>
-                  <div className="flex justify-between"><span>Close</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Esc</kbd></div>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. THE MOMENTUM LOGIC */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-500" />
-                <h3 className="font-bold text-lg">How "Momentum" Works</h3>
-              </div>
-              <div className="p-5">
-                <p className={`text-sm ${themeClasses.muted} mb-3`}>
-                  Usually, if you leave a field blank (like ISA 2), calculators treat it as a <strong>0</strong>. This crashes your predicted SGPA.
-                </p>
-                <div className="bg-yellow-500/5 p-4 rounded-lg border border-yellow-500/15">
-                  <strong className="text-sm text-yellow-200 block mb-2">The Solution: Smart Projection</strong>
-                  <p className="text-xs text-yellow-300/80 leading-relaxed">
-                    If you have marks for ISA 1 but <strong>not</strong> ISA 2, we assume you will perform <em>similarly</em> in ISA 2.
-                    This "Momentum Score" is used to give you realistic predictions before you've even written the exam.
-                  </p>
-                  <p className="text-xs text-yellow-300/80 leading-relaxed mt-2">
-                    If Assignment or Lab is empty, momentum assumes full marks for those components. If ESA is empty, momentum estimates it using your current internal performance ratio.
-                  </p>
-                  <p className="text-[10px] mt-2 text-yellow-400 font-mono">
-                    *Look for the "Using Momentum" warning in the Reverse tab if you have empty fields.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. THE HIDDEN GEM: Reverse Calculator */}
-            <div className="bg-gradient-to-br from-emerald-900/10 to-teal-900/10 border border-emerald-500/30 rounded-xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Target className="w-24 h-24 text-emerald-500" />
-              </div>
-              <div className="p-4 border-b border-emerald-500/20 bg-emerald-500/10 flex items-center gap-2">
-                <Target className="w-5 h-5 text-emerald-400" />
-                <h3 className="font-bold text-lg text-emerald-300">The Hidden Gem: Reverse Calculator</h3>
-              </div>
-              <div className="p-5">
-                <p className="text-sm font-medium mb-4 text-emerald-200">
-                  You set the SGPA (e.g., 9.0), we tell you exactly what marks you need.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* The 3 Buttons Explained */}
-                  <div>
-                    <h4 className="font-bold text-sm text-emerald-400 mb-2">The 3 Magic Buttons</h4>
-                    <ul className="space-y-3">
-                      <li className="flex gap-3 items-start">
-                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
-                          <Target className="w-4 h-4 text-blue-500" />
-                        </div>
-                        <div>
-                          <strong className="text-xs block text-zinc-200">Default (Efficient)</strong>
-                          <p className={`text-[10px] ${themeClasses.muted}`}>
-                            The "Lazy" path. It finds the <strong>absolute cheapest way</strong> to hit your target, even if it means getting 99 in one subject and 40 in another.
-                          </p>
-                        </div>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
-                          <Dice5 className="w-4 h-4 text-purple-500" />
-                        </div>
-                        <div>
-                          <strong className="text-xs block text-zinc-200">Shuffle</strong>
-                          <p className={`text-[10px] ${themeClasses.muted}`}>
-                            Don't like the plan? Click Shuffle to get a <strong>random valid combination</strong>. It's like re-rolling the dice on your semester.
-                          </p>
-                        </div>
-                      </li>
-                      <li className="flex gap-3 items-start">
-                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
-                          <Scale className="w-4 h-4 text-teal-500" />
-                        </div>
-                        <div>
-                          <strong className="text-xs block text-zinc-200">Balanced</strong>
-                          <p className={`text-[10px] ${themeClasses.muted}`}>
-                            The "Smart" path. It penalizes extremely high scores, trying to keep effort <strong>spread evenly</strong> across all subjects.
-                          </p>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-
-                  {/* Locking & Logic */}
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-bold text-sm text-emerald-400 mb-2">Locking Scores</h4>
-                      <p className={`text-xs ${themeClasses.muted} mb-2`}>
-                        Confident you'll get exactly 85 in Math?
-                      </p>
-                      <div className="bg-white/[0.04] p-2 rounded border border-emerald-500/20 flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-yellow-500" />
-                        <span className="text-xs">Click the <strong>Lock Icon</strong>. Enter the score you are confident you will at least get. The app freezes that score and recalculates the rest of the subjects around it.</span>
-                      </div>
-                    </div>
-                    <div className="text-[10px] opacity-70 italic">
-                      *Tip: If a target is "Impossible", check if you have entered marks correctly or if you need to lower the target SGPA.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. THE BASICS: Subjects Tab (Detailed) */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-blue-500" />
-                <h3 className="font-bold text-lg">The Basics: Subjects Tab</h3>
-              </div>
-              <div className="p-5">
-                <p className={`text-sm ${themeClasses.muted} mb-4`}>
-                  The control center of the app. This is where you enter marks, but there are hidden settings inside every subject card.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.06]">
-                    <strong className="text-blue-400 text-sm mb-2 block">1. Configuration & Weights</strong>
-                    <p className={`text-xs ${themeClasses.muted} leading-relaxed`}>
-                      Expand any subject and click <strong>"Edit Subject Details"</strong>.
-                      <br />• <strong>Weights:</strong> Default is 50/50, but you can change it to anything (e.g. 40/60).
-                      <br />• <strong>Credits:</strong> Change the credit value (e.g. 2 Cr for Labs) to ensure accurate SGPA calculation.
-                    </p>
-                  </div>
-                  <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.06]">
-                    <strong className="text-blue-400 text-sm mb-2 block">2. Advanced: Custom Cutoffs</strong>
-                    <p className={`text-xs ${themeClasses.muted} leading-relaxed`}>
-                      Found inside the "Edit" menu.
-                      <br />If a subject is notoriously hard and the college lowers the S-Grade cutoff to 85, you can enter that here. The <strong>entire app</strong> (Analysis, Reverse Calc) will respect this new rule!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 5. THE ANALYST: Analysis Tab (Detailed) */}
-            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
-              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
-                <Activity className="w-5 h-5 text-purple-500" />
-                <h3 className="font-bold text-lg">The Analyst: Analysis Tab</h3>
-              </div>
-              <div className="p-5">
-                <p className={`text-sm ${themeClasses.muted} mb-4`}>
-                  This tab gives you a reality check on your standing and shows the best path forward.
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                  <div className="p-3 border rounded-lg border-white/[0.06]">
-                    <strong className="block text-sm mb-1">Safe vs Minimum</strong>
-                    <p className={`${themeClasses.muted}`}>
-                      • <strong>Safe Score:</strong> The marks you need to in ESA based on your current ISA marks(and momentum is some fields are empty) to <em>guarantee</em> the grade(A/S) (e.g. 90).
-                      <br />• <strong>Min Score:</strong> A lower score (e.g. 89.5) that <em>might</em> work because the college rounds up decimals.
-                      <br />• <strong>Momentum Score:</strong> Shows your momentum score in ESA based on ISA if applicable.
-                      <br />• <strong>Pass/A/S + ISA2 target lines:</strong> Pass/A/S show ESA needed using momentum internals. If ISA2 is empty, ISA2 lines show marks needed for Pass/A/S, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
-                    </p>
-                  </div>
-                  <div className="p-3 border rounded-lg border-white/[0.06]">
-                    <strong className="block text-sm mb-1">Achievable Range</strong>
-                    <p className={`${themeClasses.muted}`}>
-                      The slider at the top shows your mathematically <strong>Best Case SGPA</strong> (if you ace everything) and <strong>Worst Case SGPA</strong> (if you fail everything).
-                    </p>
-                  </div>
-                  <div className="p-3 border rounded-lg border-white/[0.06] bg-purple-500/5 border-purple-500/20">
-                    <strong className="block text-sm mb-1 text-purple-300 flex items-center gap-1">
-                      <Lightbulb className="w-3 h-3" /> Path to Target
-                    </strong>
-                    <p className={`${themeClasses.muted} leading-relaxed`}>
-                      A smart algorithm that generates a <strong>step-by-step plan</strong>. It identifies exactly which subjects are the easiest to upgrade (e.g., "Score 45 in Chem to get A") to hit your target SGPA with the least effort.
-                    </p>
-                  </div>
-                  <div className="p-3 border rounded-lg border-white/[0.06]">
-                    <strong className="block text-sm mb-1">GP Budget</strong>
-                    <p className={`${themeClasses.muted}`}>
-                      Shows exactly how many Grade Points you can afford to "lose" while still hitting your target.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 6. STRATEGY & FUTURE: CGPA (Detailed) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              {/* Quick SGPA Estimator (Static) */}
-              <div className={`${themeClasses.card} border rounded-xl p-4`}>
-                <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
-                  <span className="bg-teal-500/10 text-teal-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">✨</span>
-                  <span>Quick SGPA Estimator</span>
-                </div>
-                <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
-                  <p>
-                    Want to check your SGPA without entering specific marks?
-                  </p>
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>Located at the bottom of the <strong>Subjects Tab</strong>.</li>
-                    <li>Select hypothetical grades (S, A, B...) for each subject directly.</li>
-                    <li>Instantly see what your SGPA would be if you scored those grades.</li>
-                    <li>This is a "sandbox" mode—it does not affect your actual mark data.</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* UPDATED: CGPA Guide (Static) */}
-              <div className={`${themeClasses.card} border rounded-xl p-4`}>
-                <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
-                  <span className="bg-indigo-500/10 text-indigo-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
-                  <span>Cumulative GPA (CGPA)</span>
-                </div>
-                <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
-                  <p>
-                    Track your performance across your entire degree.
-                  </p>
-                  <ul className="list-disc pl-5 mt-2 space-y-1">
-                    <li>Enter the <strong>SGPA</strong> and <strong>Total Credits</strong> for every semester you have completed.</li>
-                    <li>The calculator uses the weighted average formula (Σ SGPA×Credits / Σ Credits) for 100% accuracy.</li>
-                    <li>You can clear the history at any time using the "Clear History" button.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* UPDATED: Attendance Guide (Static) */}
-            <div className={`${themeClasses.card} border rounded-xl p-4`}>
-              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
-                <span className="bg-green-500/10 text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
-                <span>How does the Attendance Calculator work?</span>
-              </div>
-              <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
-                <p>
-                  The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
-                </p>
-                <ul className="list-disc pl-5 mt-2 space-y-1">
-                  <li><strong>Mode 1 First:</strong> Enter current held and attended classes once, and the planners reuse it automatically.</li>
-                  <li><strong>Clear Results:</strong> Every mode explains how many classes you can miss and how many you must attend to stay above your target.</li>
-                  <li><strong>Buffer Target:</strong> Set a stricter target (like 80%) in Mode 1, and all planning modes use it.</li>
-                </ul>
-                <p className="mt-2 text-xs italic opacity-70">
-                  Attendance inputs are saved locally in your browser.
-                </p>
-              </div>
-            </div>
-
-            {/* UPDATED: Universal Mode Guide (Static) */}
-            <div className={`${themeClasses.card} border rounded-xl p-4`}>
-              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
-                <span className="bg-purple-500/10 text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
-                <span>I'm not from PES / Custom Curriculum</span>
-              </div>
-              <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
-                <p>
-                  You can use this calculator for <strong>VTU, IIT, Manipal, or any other college</strong>.
-                </p>
-                <ol className="list-decimal pl-5 mt-2 space-y-1">
-                  <li>Go to the <strong>Subjects Tab</strong>.</li>
-                  <li>Click the button <strong>"Not from PES? 🎓"</strong>.</li>
-                  <li><strong>Define Components:</strong> Add your own exams (e.g., "Midterm 1", "Quiz", "Finals") and set their weights.</li>
-                  <li><strong>Set Grading:</strong> Choose a preset (like VTU 10-point, US 4.0 GPA) or define your own grade cutoffs (e.g., A = 85+).</li>
-                  <li>Click <strong>Create Subject</strong>.</li>
-                </ol>
-                <p className="mt-2">
-                  Your custom grading scheme will be saved for that subject and used in all calculations (SGPA, Reverse, Analysis).
-                </p>
-              </div>
-            </div>
-
-            {/* Footer Note */}
-            <div className="text-center text-xs opacity-50 py-4">
-              Built for PESU / PES / PESIT.
-            </div>
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v4.5.3 © 2026</p>
-          <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
+        {/* Footer info brand */}
+        <footer className="text-center text-[10px] text-zinc-600 mt-12 pb-8 space-y-1">
+          <p>PES SGPA Calculator v4.6.0 &bull; Local Auto-Saves Active</p>
+          <p>Hand-crafted with visual excellence in 2026</p>
           <p
-            className="mt-1 text-[12px] opacity-45 cursor-pointer hover:opacity-60 transition-opacity select-none inline-block translate-x-[9px]"
+            className="mt-1 text-[12px] opacity-45 cursor-pointer hover:opacity-100 hover:text-indigo-400 transition-all select-none inline-block translate-x-[9px]"
             onClick={() => setShowToffeeModal(true)}
           >
             buy me a toffee 🍬
           </p>
+        </footer>
+
+      </main>
+
+      {/* Mobile Floating SGPA Average Pill Drawer (Fixed sticky bottom) */}
+      <div className="fixed bottom-22 left-4 right-4 bg-[#0c0c16]/85 backdrop-blur-2xl border border-indigo-500/20 rounded-2xl p-3 flex justify-between items-center shadow-2xl md:hidden z-40 flex">
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping" />
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Live Average</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xl font-black text-white text-glow-indigo tabular-nums">{sgpa}</span>
+          <span className="text-[9px] text-zinc-500 font-bold bg-white/[0.04] px-2 py-0.5 rounded-full">GPA</span>
+        </div>
+      </div>
 
-        {/* Toffee Support Modal */}
-        {showToffeeModal && (
-          <div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowToffeeModal(false)}
-          >
-            <div
-              className="relative bg-[#111118] border border-white/[0.08] rounded-2xl p-6 max-w-xs w-full mx-4 shadow-2xl text-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setShowToffeeModal(false)}
-                className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <div className="text-2xl mb-2">🍬</div>
-              <h3 className="text-sm font-semibold text-zinc-300 mb-1">Buy me a toffee</h3>
-              <p className="text-[11px] text-zinc-500 mb-4 leading-relaxed">
-                If this tool helped you out, feel free to support whatever you feel like. Totally optional, no pressure.
-              </p>
-              <div className="bg-white rounded-xl p-3 inline-block mb-3">
-                <img
-                  src="/upi-qr.png"
-                  alt="UPI QR Code"
-                  className="w-48 h-48 object-contain"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
-                  }}
-                />
-                <p className="text-[10px] text-zinc-400 hidden">QR code not found — add upi-qr.png to /public</p>
-              </div>
-              <p className="text-[10px] text-zinc-600">Scan with any UPI app</p>
-            </div>
-          </div>
-        )}
-
-      </motion.div>
-
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#08080e]/95 backdrop-blur-2xl border-t border-white/[0.06] md:hidden z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
-        <div className="flex justify-around items-end pt-1.5">
+      {/* Mobile Sticky Tab Bar navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#08080f]/95 backdrop-blur-2xl border-t border-white/[0.04] md:hidden z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.6)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+        <div className="flex justify-around items-end pt-2">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
-            { id: 'reverse', label: 'Reverse', icon: Target, accent: 'emerald' },
+            { id: 'analysis', label: 'Analysis', icon: Activity, dot: 'indigo' },
+            { id: 'reverse', label: 'Reverse', icon: Target, dot: 'emerald' },
             { id: 'attendance', label: 'Attend', icon: CheckCircle2 },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 ${activeTab === tab.id
-                ? 'text-white'
-                : 'text-zinc-600 active:text-zinc-400'
+          ].map(tab => {
+            const IconComp = tab.icon;
+            const isTabActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 \${
+                  isTabActive ? 'text-white' : 'text-zinc-600 active:text-zinc-400'
                 }`}
-            >
-              <div className={`relative ${activeTab === tab.id ? 'scale-110' : ''} transition-transform duration-200`}>
-                <tab.icon className="w-5 h-5" />
-                {activeTab === tab.id && (
-                  <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md -z-10" />
-                )}
-              </div>
-              <span className={`text-[10px] mt-1 font-medium ${activeTab === tab.id ? 'text-white' : ''}`}>{tab.label}</span>
-              {tab.accent && activeTab !== tab.id && (
-                <span className={`absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
-              )}
-            </button>
-          ))}
+              >
+                <div className={`relative \${isTabActive ? 'scale-110' : ''} transition-transform duration-200`}>
+                  <IconComp className="w-5 h-5" />
+                  {isTabActive && (
+                    <div className="absolute -inset-2 bg-indigo-500/20 rounded-full blur-md -z-10" />
+                  )}
+                  {tab.dot && !isTabActive && (
+                    <span className={`absolute top-0.5 right-0 w-1.5 h-1.5 rounded-full \${tab.dot === 'indigo' ? 'bg-indigo-500' : 'bg-emerald-500 animate-pulse'}`} />
+                  )}
+                </div>
+                <span className="text-[9px] mt-1 font-bold tracking-tight">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </nav>
+
+      {/* Toffee modal QR code wrapper */}
+      {showToffeeModal && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowToffeeModal(false)}
+        >
+          <div
+            className="relative bg-[#0c0c16]/90 border border-white/[0.08] rounded-3xl p-6 max-w-xs w-full mx-4 shadow-2xl text-center backdrop-blur-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowToffeeModal(false)}
+              className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="text-3xl mb-2">🍬</div>
+            <h3 className="text-sm font-extrabold text-white mb-1 uppercase tracking-wider">Buy me a toffee</h3>
+            <p className="text-[10px] text-zinc-500 mb-4 leading-normal">
+              If this tool helped you secure your academic standing, support the project! Totally optional.
+            </p>
+            <div className="bg-white rounded-2xl p-3 inline-block mb-3 shadow-xl">
+              <img
+                src="/upi-qr.png"
+                alt="UPI QR Code"
+                className="w-44 h-44 object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <p className="text-[9px] text-zinc-500 hidden font-bold">QR code not found — add upi-qr.png to /public</p>
+            </div>
+            <p className="text-[9px] text-zinc-400 font-semibold">Scan QR with any UPI app</p>
+          </div>
+        </div>
+      )}
+
       <Analytics />
       <SpeedInsights />
     </div>
