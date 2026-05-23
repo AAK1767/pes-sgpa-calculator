@@ -2020,38 +2020,38 @@ export default function PES_Universal_Calculator() {
 
   const finalCgpa = calculateCGPA();
 
-  // --- Theme Classes (Premium Obsidian Glass) ---
+  // --- Theme Classes (Premium Dark) ---
   const themeClasses = {
-    bg: 'bg-transparent',
-    text: 'text-[#c5c6d0]',
-    card: 'glass-card rounded-2xl',
-    cardHover: 'glass-card-hover',
-    input: 'glass-input focus:ring-4 focus:ring-indigo-500/10 placeholder:text-zinc-700',
-    inputBg: 'bg-black/40',
+    bg: 'bg-[#06060a]',
+    text: 'text-zinc-300',
+    card: 'bg-[#0c0c14]/90 backdrop-blur-sm border-white/[0.06]',
+    cardHover: 'hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20',
+    input: 'bg-[#0e0e18] border-white/[0.08] text-zinc-200 placeholder:text-zinc-600 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all',
+    inputBg: 'bg-[#0e0e18]',
     muted: 'text-zinc-500',
-    border: 'border-white/[0.05]',
+    border: 'border-white/[0.06]',
   };
 
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24`}>
       {/* Glass Header */}
-      <div className="bg-[#030307]/60 backdrop-blur-xl border-b border-white/[0.04] text-zinc-200 py-3 px-3.5 md:py-5 md:px-6 sticky top-0 z-50 shadow-2xl shadow-black/35">
+      <div className="bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06] text-zinc-200 py-4 px-4 md:p-6 sticky top-0 z-50 shadow-xl shadow-black/40">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-lg md:text-2xl font-extrabold font-display flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2.5">
+              <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
                 <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
               </div>
-              <span className="text-zinc-100 tracking-tight font-black">PESU Calculator</span>
+              <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
             </h1>
-            <p className="text-zinc-500 text-[9px] md:text-[10px] mt-1 font-medium tracking-widest uppercase pl-[40px] md:pl-[52px] hidden sm:block">
+            <p className="text-zinc-500 text-[10px] md:text-xs mt-1.5 font-medium tracking-widest uppercase">
               Universal &bull; Auto-Saves &bull; Any College
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">Current SGPA</div>
-              <div className={`text-2xl md:text-4xl font-extrabold font-display tabular-nums tracking-tight ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-white'}`}>
+              <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider font-semibold">SGPA</div>
+              <div className={`text-3xl md:text-4xl font-black tabular-nums tracking-tight ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-white'}`}>
                 {sgpa}
               </div>
             </div>
@@ -2060,8 +2060,8 @@ export default function PES_Universal_Calculator() {
       </div>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:block sticky top-[72px] md:top-[81px] z-40 bg-[#030307]/50 backdrop-blur-xl border-b border-white/[0.04]">
-        <div className="max-w-4xl mx-auto flex overflow-x-auto gap-2 px-4 py-2">
+      <div className="hidden md:block sticky top-[72px] md:top-[89px] z-40 bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06]">
+        <div className="max-w-4xl mx-auto flex overflow-x-auto gap-1 px-2 py-1.5">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
@@ -2073,22 +2073,15 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-300 whitespace-nowrap ${activeTab === tab.id
-                ? 'text-white'
-                : 'text-zinc-500 hover:text-zinc-300'
+              className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+                ? 'bg-white/[0.08] text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]'
                 }`}
             >
-              {activeTab === tab.id && (
-                <motion.div
-                  layoutId="activeTabBg"
-                  className="absolute inset-0 bg-white/[0.04] border border-white/[0.06] rounded-xl -z-10 shadow-sm"
-                  transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                />
-              )}
-              <tab.icon className="w-3.5 h-3.5" />
+              <tab.icon className="w-4 h-4" />
               {tab.label}
               {tab.accent && activeTab !== tab.id && (
-                <span className={`w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-indigo-500' : 'bg-emerald-500'} animate-pulse`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-glow-pulse`} />
               )}
             </button>
           ))}
@@ -2097,34 +2090,35 @@ export default function PES_Universal_Calculator() {
 
       <motion.div
         key={activeTab}
-        className="max-w-4xl mx-auto p-3 md:p-4 space-y-4 md:space-y-6"
+        className="max-w-4xl mx-auto p-4 space-y-6"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
+
         {/* ==================== SUBJECTS TAB ==================== */}
         {activeTab === 'subjects' && (
           <>
             {/* Helper Banner (Optimized for both Mobile & Desktop) */}
-            <div className={`glass-card border border-white/[0.04] rounded-2xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 shadow-xl`}>
+            <div className={`${themeClasses.card} border rounded-xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
 
               {/* LEFT SIDE: Text Content (Unified Collapsible for Desktop & Mobile) */}
               <div className="flex-1">
                 <details className="group">
-                  <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-indigo-400 hover:text-indigo-300 transition-colors font-semibold">
-                    <Settings className="w-4 h-4 flex-shrink-0" />
-                    <span className="font-bold text-zinc-100 font-display">Universal Calculator</span>
-                    <span className="text-[9px] bg-indigo-500/10 px-2 py-0.5 rounded-full text-indigo-400 font-bold flex items-center gap-0.5 border border-indigo-500/15">
-                      Info <ChevronDown className="w-2.5 h-2.5 transition-transform group-open:rotate-180" />
+                  <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-400 hover:text-blue-300 transition-colors">
+                    <Settings className="w-5 h-5 flex-shrink-0" />
+                    <span className="font-bold text-zinc-200">Universal Calculator</span>
+                    <span className="text-[10px] bg-blue-500/10 px-2 py-0.5 rounded-full text-blue-400 flex items-center">
+                      Info <ChevronDown className="w-3 h-3 ml-1 transition-transform group-open:rotate-180" />
                     </span>
                   </summary>
 
-                  <div className={`mt-3 text-xs text-zinc-500 leading-relaxed pl-6 border-t border-white/[0.04] pt-3 space-y-2`}>
+                  <div className={`mt-3 text-sm ${themeClasses.muted} leading-relaxed pl-7 border-t border-white/[0.06] pt-3 space-y-2`}>
                     <p>
                       Works for all semesters. 5-credit courses scale from 120% to 100%.
                     </p>
                     <p>
-                      After entering ISA/Lab/Assignment marks, you can check the <strong className="text-zinc-400 font-semibold">Analysis</strong> tab for predictions and how much to score in ESA to reach your target grade in each subject and <strong className="text-zinc-400 font-semibold">Reverse Calc</strong> tab to know what to score in ESAs to reach your target SGPA.
+                      After entering ISA/Lab/Assignment marks, you can check the <strong>Analysis</strong> tab for predictions and how much to score in ESA to reach your target grade in each subject and <strong>Reverse Calc</strong> tab to know what to score in ESAs to reach your target SGPA.
                     </p>
                     <p>
                       This calculator works for any college. Define your assessment pattern and grading scheme below, then click "Create Subject".
@@ -2134,10 +2128,10 @@ export default function PES_Universal_Calculator() {
               </div>
 
               {/* RIGHT SIDE: Buttons (Always Visible) */}
-              <div className="flex flex-wrap gap-2 items-center justify-end border-t border-white/[0.04] pt-3 md:border-none md:pt-0">
+              <div className="flex flex-wrap gap-2 items-center justify-end border-t border-white/[0.06] pt-3 md:border-none md:pt-0">
                 <select
                   onChange={(e) => loadPreset(e.target.value)}
-                  className="glass-input px-3 py-1.5 rounded-xl text-xs border max-w-[130px] md:max-w-none font-bold bg-black/50"
+                  className={`${themeClasses.input} px-3 py-2 rounded-lg text-xs border max-w-[130px] md:max-w-none`}
                   defaultValue=""
                 >
                   <option value="">Load Preset...</option>
@@ -2146,51 +2140,51 @@ export default function PES_Universal_Calculator() {
                   ))}
                 </select>
 
-                <div className="flex gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.04]">
-                  <button onClick={undo} disabled={undoStack.length === 0} className={`p-1.5 rounded-lg transition-colors ${undoStack.length === 0 ? 'opacity-25 cursor-not-allowed' : 'text-zinc-300 hover:bg-white/[0.05]'}`}>
-                    <Undo2 className="w-3.5 h-3.5" />
+                <div className="flex gap-1">
+                  <button onClick={undo} disabled={undoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${undoStack.length === 0 ? 'opacity-30' : 'hover:bg-white/[0.06]'}`}>
+                    <Undo2 className="w-4 h-4" />
                   </button>
-                  <button onClick={redo} disabled={redoStack.length === 0} className={`p-1.5 rounded-lg transition-colors ${redoStack.length === 0 ? 'opacity-25 cursor-not-allowed' : 'text-zinc-300 hover:bg-white/[0.05]'}`}>
-                    <Redo2 className="w-3.5 h-3.5" />
+                  <button onClick={redo} disabled={redoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${redoStack.length === 0 ? 'opacity-30' : 'hover:bg-white/[0.06]'}`}>
+                    <Redo2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <button onClick={exportData} className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] text-zinc-300 px-3 py-1.5 rounded-xl transition-all text-xs font-semibold">
-                  <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
+                <button onClick={exportData} className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs hover:bg-white/[0.06]`}>
+                  <Download className="w-3 h-3" /> <span className="hidden sm:inline">Export</span>
                 </button>
 
-                <label className="flex items-center gap-1.5 bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.06] text-zinc-300 px-3 py-1.5 rounded-xl transition-all text-xs font-semibold cursor-pointer font-sans">
-                  <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline font-sans font-semibold">Import</span>
+                <label className={`flex items-center gap-1 ${themeClasses.card} border px-3 py-2 rounded-lg transition-colors text-xs cursor-pointer hover:bg-white/[0.06]`}>
+                  <Upload className="w-3 h-3" /> <span className="hidden sm:inline">Import</span>
                   <input type="file" accept=".json" onChange={importData} className="hidden" />
                 </label>
 
-                <button onClick={clearAll} className="flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-xl border border-red-500/20 transition-colors text-xs font-bold" title="Reset All Data">
-                  <Eraser className="w-3.5 h-3.5" />
+                <button onClick={clearAll} className="flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-2 rounded-lg border border-red-500/20 transition-colors text-xs">
+                  <Eraser className="w-3 h-3" />
                 </button>
               </div>
 
             </div>
 
             {/* Grade Distribution Bar */}
-            <div className="glass-card border border-white/[0.04] rounded-2xl p-4 shadow-lg">
+            <div className={`${themeClasses.card} border rounded-xl p-4`}>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-bold flex items-center gap-2 font-display text-zinc-100">
-                  <BarChart3 className="w-4 h-4 text-indigo-400" /> Grade Distribution
+                <span className="text-sm font-bold flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" /> Grade Distribution
                 </span>
-                <span className="text-xs text-zinc-500 font-medium">
-                  {subjects.length} subjects &bull; {metrics.totalCredits} credits
+                <span className={`text-xs ${themeClasses.muted}`}>
+                  {subjects.length} subjects • {metrics.totalCredits} credits
                 </span>
               </div>
-              <div className="flex gap-1 h-5 rounded-xl overflow-hidden bg-black/40 p-0.5 border border-white/[0.03]">
+              <div className="flex gap-1 h-8 rounded-lg overflow-hidden">
                 {Object.entries(gradeDistribution).map(([grade, count]) => {
                   if (count === 0) return null;
                   const gradeInfo = GradeMap.find(g => g.grade === grade);
                   return (
                     <div
                       key={grade}
-                      className={`flex items-center justify-center text-[10px] font-extrabold text-white rounded-lg transition-all duration-300 ${gradeInfo?.bg || 'bg-gray-500'} shadow-sm`}
+                      className={`flex items-center justify-center text-xs font-bold text-zinc-200 ${gradeInfo?.bg || 'bg-gray-500'}`}
                       style={{ width: `${(count / subjects.length) * 100}%` }}
-                      title={`${grade}: ${count} subject(s)`}
+                      title={`${grade}:  ${count} subject(s)`}
                     >
                       {grade} ({count})
                     </div>
@@ -2213,80 +2207,80 @@ export default function PES_Universal_Calculator() {
                 const rawScoreLabel = Number.isInteger(rawScore) ? rawScore : rawScore.toFixed(1);
 
                 return (
-                  <div key={subject.id} className={`glass-card rounded-2xl border transition-all duration-300 ease-out ${isExpanded ? 'border-indigo-500/30 shadow-[0_0_30px_rgba(99,102,241,0.06)] ring-1 ring-indigo-500/10' : 'glass-card-hover border-white/[0.04]'}`}>
+                  <div key={subject.id} className={`${themeClasses.card} rounded-xl border transition-all duration-300 ease-out ${isExpanded ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.07)] ring-1 ring-blue-500/10' : themeClasses.cardHover}`}>
                     {/* Subject Header */}
                     <div
-                      className="p-3 md:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer rounded-t-2xl gap-3 md:gap-4 select-none"
+                      className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer rounded-t-xl gap-4"
                       onClick={() => setExpandedSubject(isExpanded ? null : subject.id)}
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold font-display text-zinc-100 text-base md:text-lg tracking-tight">{subject.name}</h3>
-                          <span className="text-[9px] md:text-[10px] font-extrabold bg-white/[0.03] text-zinc-300 px-2 md:px-2.5 py-0.5 rounded-xl border border-white/[0.05] tracking-wider uppercase">
-                            {subject.credits} Credits
+                          <h3 className="font-bold text-lg">{subject.name}</h3>
+                          <span className="text-xs font-bold bg-white/[0.08] text-zinc-300 px-2 py-0.5 rounded-full border border-white/[0.06]">
+                            {subject.credits} Cr
                           </span>
                           {totalWeight > 100 && (
-                            <span className="text-[8px] md:text-[9px] font-extrabold bg-indigo-500/10 text-indigo-300 px-1.5 md:px-2 py-0.5 rounded-full border border-indigo-500/15 tracking-wide uppercase">
-                              Scaled ({totalWeight})
+                            <span className="text-xs font-bold bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                              Scaled ({totalWeight}%)
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                      <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
                         <div className="text-right">
-                          <div className={`text-[9px] md:text-[10px] ${themeClasses.muted} font-bold uppercase tracking-wider`}>Score</div>
-                          <div className={`font-black font-display text-lg md:text-xl leading-none ${gradeInfo.color} tracking-tight`}>
+                          <div className={`text-xs ${themeClasses.muted} font-bold uppercase tracking-wider`}>Score</div>
+                          <div className={`font-bold text-xl leading-none ${gradeInfo.color}`}>
                             {finalScore}
                           </div>
                           {showTotalWeight && (
-                            <div className={`text-[8px] md:text-[9px] ${themeClasses.muted} mt-0.5 font-medium`}>
+                            <div className={`text-[10px] ${themeClasses.muted} mt-0.5`}>
                               actual: {rawScoreLabel}/{totalWeightLabel}
                             </div>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-2 md:gap-3">
-                          <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex flex-col items-center justify-center font-extrabold text-xs md:text-sm border shadow-md transition-all duration-300 bg-white/[0.01] ${gradeInfo.color} ${isExpanded ? 'scale-105 border-white/10' : 'border-white/[0.04]'}`}>
-                            <span className="text-[7px] md:text-[8px] text-zinc-500 uppercase tracking-widest font-extrabold leading-none mb-0.5">Grade</span>
-                            <span className="text-sm md:text-base leading-none font-display font-black">{gradeInfo.grade}</span>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-lg ${gradeInfo.bg}`}>
+                            {gradeInfo.grade}
                           </div>
-                          {isExpanded ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
+                          {isExpanded ? <ChevronUp className="w-5 h-5 text-zinc-400" /> : <ChevronDown className="w-5 h-5 text-zinc-400" />}
                         </div>
                       </div>
                     </div>
 
                     {/* Expanded Content */}
                     {isExpanded && (
-                      <div className="p-3 md:p-4 border-t border-white/[0.04] bg-[#030307]/30 rounded-b-2xl">
+                      <div className={`p-4 border-t ${themeClasses.border} bg-black/20 rounded-b-xl`}>
                         {/* DYNAMIC INPUTS GRID (Fixed: Allows 0 marks) */}
-                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 md:gap-3 mb-3 md:mb-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
 
                           {/* SLOT 1 */}
                           {(subject.hasIsa1 !== false) && (
-                            <div className="glass-card bg-black/25 p-2.5 md:p-3 rounded-xl border border-white/[0.03] shadow-sm hover:border-white/[0.06] transition-all duration-300">
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
                               <div className="flex justify-between items-center mb-1">
-                                <span className="font-extrabold text-[11px] truncate pr-1 text-zinc-300" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
                                   {subject.customConfig?.labels.isa1 || "ISA 1"}
                                 </span>
-                                <span className="text-[9px] text-zinc-500 font-bold bg-white/[0.02] px-1.5 py-0.5 rounded border border-white/[0.03]">
-                                  {subject.customConfig ? subject.customConfig.weights.isa1 : subject.isaWeight}
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.isa1 : subject.isaWeight}%
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1 mt-1.5 bg-black/30 px-2 md:px-2.5 py-1 md:py-1.5 rounded-xl border border-white/[0.04] focus-within:border-indigo-500/50 transition-all duration-300">
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="number"
+                                  /* FIXED: Used ?? so 0 is treated as a real number */
                                   value={marks[subject.id]?.isa1 ?? ''}
                                   onChange={(e) => handleMarkChange(subject.id, 'isa1', e.target.value)}
-                                  className="w-full bg-transparent text-sm font-extrabold focus:outline-none text-center text-white"
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                                   placeholder="-"
                                 />
-                                <span className="text-zinc-600 font-bold">/</span>
+                                <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
                                   value={marks[subject.id]?.isa1Max ?? 40}
                                   onChange={(e) => handleMarkChange(subject.id, 'isa1Max', e.target.value)}
-                                  className="w-8 bg-transparent text-xs text-center text-zinc-500 focus:outline-none font-bold focus:text-zinc-300 transition-colors"
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
                               </div>
                             </div>
@@ -2294,29 +2288,29 @@ export default function PES_Universal_Calculator() {
 
                           {/* SLOT 2 */}
                           {(subject.hasIsa2 !== false) && (
-                            <div className="glass-card bg-black/25 p-2.5 md:p-3 rounded-xl border border-white/[0.03] shadow-sm hover:border-white/[0.06] transition-all duration-300">
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
                               <div className="flex justify-between items-center mb-1">
-                                <span className="font-extrabold text-[11px] truncate pr-1 text-zinc-300" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
                                   {subject.customConfig?.labels.isa2 || "ISA 2"}
                                 </span>
-                                <span className="text-[9px] text-zinc-500 font-bold bg-white/[0.02] px-1.5 py-0.5 rounded border border-white/[0.03]">
-                                  {subject.customConfig ? subject.customConfig.weights.isa2 : subject.isaWeight}
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.isa2 : subject.isaWeight}%
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1 mt-1.5 bg-black/30 px-2 md:px-2.5 py-1 md:py-1.5 rounded-xl border border-white/[0.04] focus-within:border-indigo-500/50 transition-all duration-300">
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="number"
                                   value={marks[subject.id]?.isa2 ?? ''}
                                   onChange={(e) => handleMarkChange(subject.id, 'isa2', e.target.value)}
-                                  className="w-full bg-transparent text-sm font-extrabold focus:outline-none text-center text-white"
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                                   placeholder="-"
                                 />
-                                <span className="text-zinc-600 font-bold">/</span>
+                                <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
                                   value={marks[subject.id]?.isa2Max ?? 40}
                                   onChange={(e) => handleMarkChange(subject.id, 'isa2Max', e.target.value)}
-                                  className="w-8 bg-transparent text-xs text-center text-zinc-500 focus:outline-none font-bold focus:text-zinc-300 transition-colors"
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
                               </div>
                             </div>
@@ -2324,29 +2318,29 @@ export default function PES_Universal_Calculator() {
 
                           {/* SLOT 3 */}
                           {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
-                            <div className="glass-card bg-black/25 p-2.5 md:p-3 rounded-xl border border-white/[0.03] shadow-sm hover:border-white/[0.06] transition-all duration-300">
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
                               <div className="flex justify-between items-center mb-1">
-                                <span className="font-extrabold text-[11px] truncate pr-1 text-zinc-300" title={subject.customConfig?.labels.assignment || "Assignment"}>
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.assignment || "Assignment"}>
                                   {subject.customConfig?.labels.assignment || "Assignment"}
                                 </span>
-                                <span className="text-[9px] text-zinc-500 font-bold bg-white/[0.02] px-1.5 py-0.5 rounded border border-white/[0.03]">
-                                  {subject.customConfig ? subject.customConfig.weights.assignment : subject.assignmentWeight}
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.assignment : subject.assignmentWeight}%
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1 mt-1.5 bg-black/30 px-2 md:px-2.5 py-1 md:py-1.5 rounded-xl border border-white/[0.04] focus-within:border-indigo-500/50 transition-all duration-300">
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="number"
                                   value={marks[subject.id]?.assignment ?? ''}
                                   onChange={(e) => handleMarkChange(subject.id, 'assignment', e.target.value)}
-                                  className="w-full bg-transparent text-sm font-extrabold focus:outline-none text-center text-white"
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                                   placeholder="-"
                                 />
-                                <span className="text-zinc-600 font-bold">/</span>
+                                <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
                                   value={marks[subject.id]?.assignmentMax ?? 10}
                                   onChange={(e) => handleMarkChange(subject.id, 'assignmentMax', e.target.value)}
-                                  className="w-8 bg-transparent text-xs text-center text-zinc-500 focus:outline-none font-bold focus:text-zinc-300 transition-colors"
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
                               </div>
                             </div>
@@ -2354,58 +2348,58 @@ export default function PES_Universal_Calculator() {
 
                           {/* SLOT 4 */}
                           {(subject.hasLab || (subject.customConfig?.weights.lab > 0)) && (
-                            <div className="glass-card bg-black/25 p-2.5 md:p-3 rounded-xl border border-white/[0.03] shadow-sm hover:border-white/[0.06] transition-all duration-300">
+                            <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
                               <div className="flex justify-between items-center mb-1">
-                                <span className="font-extrabold text-[11px] truncate pr-1 text-zinc-300" title={subject.customConfig?.labels.lab || "Lab"}>
+                                <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.lab || "Lab"}>
                                   {subject.customConfig?.labels.lab || "Lab"}
                                 </span>
-                                <span className="text-[9px] text-zinc-500 font-bold bg-white/[0.02] px-1.5 py-0.5 rounded border border-white/[0.03]">
-                                  {subject.customConfig ? subject.customConfig.weights.lab : subject.labWeight}
+                                <span className={`text-[10px] ${themeClasses.muted}`}>
+                                  {subject.customConfig ? subject.customConfig.weights.lab : subject.labWeight}%
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1 mt-1.5 bg-black/30 px-2 md:px-2.5 py-1 md:py-1.5 rounded-xl border border-white/[0.04] focus-within:border-indigo-500/50 transition-all duration-300">
+                              <div className="flex items-center gap-2">
                                 <input
                                   type="number"
                                   value={marks[subject.id]?.lab ?? ''}
                                   onChange={(e) => handleMarkChange(subject.id, 'lab', e.target.value)}
-                                  className="w-full bg-transparent text-sm font-extrabold focus:outline-none text-center text-white"
+                                  className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                                   placeholder="-"
                                 />
-                                <span className="text-zinc-600 font-bold">/</span>
+                                <span className={themeClasses.muted}>/</span>
                                 <input
                                   type="number"
                                   value={marks[subject.id]?.labMax ?? 20}
                                   onChange={(e) => handleMarkChange(subject.id, 'labMax', e.target.value)}
-                                  className="w-8 bg-transparent text-xs text-center text-zinc-500 focus:outline-none font-bold focus:text-zinc-300 transition-colors"
+                                  className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                                 />
                               </div>
                             </div>
                           )}
 
                           {/* SLOT 5: ESA */}
-                          <div className="glass-card bg-black/25 p-2.5 md:p-3 rounded-xl border border-indigo-500/20 shadow-sm hover:border-indigo-500/40 transition-all duration-300">
+                          <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-500/20`}>
                             <div className="flex justify-between items-center mb-1">
-                              <span className="font-extrabold text-[11px] text-indigo-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
+                              <span className="font-bold text-xs text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
                                 {subject.customConfig?.labels.esa || "ESA"}
                               </span>
-                              <span className="text-[9px] text-indigo-400 font-bold bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/15">
-                                {subject.customConfig ? subject.customConfig.weights.esa : subject.esaWeight}
+                              <span className={`text-[10px] ${themeClasses.muted}`}>
+                                {subject.customConfig ? subject.customConfig.weights.esa : subject.esaWeight}%
                               </span>
                             </div>
-                            <div className="flex items-center gap-1 mt-1.5 bg-indigo-950/20 px-2 md:px-2.5 py-1 md:py-1.5 rounded-xl border border-indigo-500/25 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all duration-300">
+                            <div className="flex items-center gap-2">
                               <input
                                 type="number"
                                 value={marks[subject.id]?.esa ?? ''}
                                 onChange={(e) => handleMarkChange(subject.id, 'esa', e.target.value)}
-                                className="w-full bg-transparent text-sm font-extrabold focus:outline-none text-center text-indigo-200"
+                                className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                                 placeholder="-"
                               />
-                              <span className="text-indigo-700/60 font-bold">/</span>
+                              <span className={themeClasses.muted}>/</span>
                               <input
                                 type="number"
                                 value={marks[subject.id]?.esaMax ?? 100}
                                 onChange={(e) => handleMarkChange(subject.id, 'esaMax', e.target.value)}
-                                className="w-8 bg-transparent text-xs text-center text-indigo-500/70 focus:outline-none font-bold focus:text-indigo-300 transition-colors"
+                                className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                               />
                             </div>
                           </div>
@@ -2413,121 +2407,119 @@ export default function PES_Universal_Calculator() {
                         </div>
 
                         {/* Quick Config */}
-                        <div className="mt-4 pt-4 border-t border-white/[0.04]">
+                        <div className={`mt-4 pt-4 border-t ${themeClasses.border}`}>
                           <details className="group">
-                            <summary className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider cursor-pointer hover:text-indigo-400 select-none transition-colors">
-                              <Settings className="w-3.5 h-3.5" /> Edit Subject Details
+                            <summary className={`flex items-center gap-2 text-xs font-bold ${themeClasses.muted} uppercase tracking-wide cursor-pointer hover:text-blue-400 select-none transition-colors`}>
+                              <Settings className="w-4 h-4" /> Edit Subject Details
                             </summary>
-                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 glass-card bg-black/30 rounded-xl border border-white/[0.04]">
-                              <div className="space-y-4">
+                            <div className={`mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 ${themeClasses.card} rounded-lg border`}>
+                              <div className="space-y-3">
                                 <div>
-                                  <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider block mb-1">Subject Name</label>
+                                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Name</label>
                                   <input
                                     type="text"
                                     value={subject.name}
                                     onChange={(e) => handleSubjectChange(subject.id, 'name', e.target.value)}
-                                    className="w-full text-xs font-semibold p-2.5 glass-input font-sans"
+                                    className={`w-full text-sm p-2 border rounded ${themeClasses.input}`}
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider block mb-1">Credits</label>
+                                  <label className={`text-xs ${themeClasses.muted} block mb-1`}>Credits</label>
                                   <input
                                     type="number"
                                     value={subject.credits}
                                     onChange={(e) => handleSubjectChange(subject.id, 'credits', parseFloat(e.target.value) || 0)}
-                                    className="w-full text-xs font-semibold p-2.5 glass-input"
+                                    className={`w-full text-sm p-2 border rounded ${themeClasses.input}`}
                                   />
                                 </div>
-                                <div className="flex gap-4 pt-1">
-                                  <label className="flex items-center gap-2 text-xs font-semibold text-zinc-400 cursor-pointer select-none">
+                                <div className="flex gap-4">
+                                  <label className="flex items-center gap-2 text-xs cursor-pointer">
                                     <input
                                       type="checkbox"
                                       checked={subject.hasAssignment}
                                       onChange={() => toggleAssignment(subject.id)}
-                                      className="rounded border-white/10 bg-black/40 text-indigo-600 focus:ring-indigo-500/30 w-4 h-4 transition-all"
+                                      className="rounded"
                                     />
                                     Has Assignment
                                   </label>
-                                  <label className="flex items-center gap-2 text-xs font-semibold text-zinc-400 cursor-pointer select-none">
+                                  <label className="flex items-center gap-2 text-xs cursor-pointer">
                                     <input
                                       type="checkbox"
                                       checked={subject.hasLab}
                                       onChange={() => toggleLab(subject.id)}
-                                      className="rounded border-white/10 bg-black/40 text-indigo-600 focus:ring-indigo-500/30 w-4 h-4 transition-all"
+                                      className="rounded"
                                     />
                                     Has Lab
                                   </label>
                                 </div>
                               </div>
-                              <div className="space-y-4">
-                                <div>
-                                  <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider block mb-1.5">Weight Configuration</label>
-                                  <div className="flex gap-2 flex-wrap">
-                                    <div className="flex-1 min-w-[70px]">
-                                      <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider block mb-1">ISA (Each)</span>
-                                      <input
-                                        type="number"
-                                        value={subject.isaWeight}
-                                        onChange={(e) => handleSubjectChange(subject.id, 'isaWeight', parseFloat(e.target.value) || 0)}
-                                        className="w-full text-xs font-bold p-2 glass-input text-center"
-                                      />
-                                    </div>
-                                    <div className="flex-1 min-w-[70px]">
-                                      <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider block mb-1">ESA</span>
-                                      <input
-                                        type="number"
-                                        value={subject.esaWeight}
-                                        onChange={(e) => handleSubjectChange(subject.id, 'esaWeight', parseFloat(e.target.value) || 0)}
-                                        className="w-full text-xs font-bold p-2 glass-input text-center"
-                                      />
-                                    </div>
-                                    {subject.hasAssignment && (
-                                      <div className="flex-1 min-w-[70px]">
-                                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider block mb-1">Assign</span>
-                                        <input
-                                          type="number"
-                                          value={subject.assignmentWeight}
-                                          onChange={(e) => handleSubjectChange(subject.id, 'assignmentWeight', parseFloat(e.target.value) || 0)}
-                                          className="w-full text-xs font-bold p-2 glass-input text-center"
-                                        />
-                                      </div>
-                                    )}
-                                    {subject.hasLab && (
-                                      <div className="flex-1 min-w-[70px]">
-                                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-wider block mb-1">Lab</span>
-                                        <input
-                                          type="number"
-                                          value={subject.labWeight}
-                                          onChange={(e) => handleSubjectChange(subject.id, 'labWeight', parseFloat(e.target.value) || 0)}
-                                          className="w-full text-xs font-bold p-2 glass-input text-center"
-                                        />
-                                      </div>
-                                    )}
+                              <div className="space-y-3">
+                                <label className={`text-xs ${themeClasses.muted} block`}>Weight Configuration (%)</label>
+                                <div className="flex gap-2 flex-wrap">
+                                  <div className="flex-1 min-w-[60px]">
+                                    <span className={`text-[10px] ${themeClasses.muted} block`}>ISA (Each)</span>
+                                    <input
+                                      type="number"
+                                      value={subject.isaWeight}
+                                      onChange={(e) => handleSubjectChange(subject.id, 'isaWeight', parseFloat(e.target.value) || 0)}
+                                      className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
+                                    />
                                   </div>
+                                  <div className="flex-1 min-w-[60px]">
+                                    <span className={`text-[10px] ${themeClasses.muted} block`}>ESA</span>
+                                    <input
+                                      type="number"
+                                      value={subject.esaWeight}
+                                      onChange={(e) => handleSubjectChange(subject.id, 'esaWeight', parseFloat(e.target.value) || 0)}
+                                      className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
+                                    />
+                                  </div>
+                                  {subject.hasAssignment && (
+                                    <div className="flex-1 min-w-[60px]">
+                                      <span className={`text-[10px] ${themeClasses.muted} block`}>Assign</span>
+                                      <input
+                                        type="number"
+                                        value={subject.assignmentWeight}
+                                        onChange={(e) => handleSubjectChange(subject.id, 'assignmentWeight', parseFloat(e.target.value) || 0)}
+                                        className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
+                                      />
+                                    </div>
+                                  )}
+                                  {subject.hasLab && (
+                                    <div className="flex-1 min-w-[60px]">
+                                      <span className={`text-[10px] ${themeClasses.muted} block`}>Lab</span>
+                                      <input
+                                        type="number"
+                                        value={subject.labWeight}
+                                        onChange={(e) => handleSubjectChange(subject.id, 'labWeight', parseFloat(e.target.value) || 0)}
+                                        className={`w-full text-sm p-1 border rounded ${themeClasses.input}`}
+                                      />
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* --- Grade Cutoff Editor --- */}
-                                <div className="mt-4 pt-3 border-t border-white/[0.04] w-full">
+                                <div className="mt-4 pt-3 border-t border-white/[0.08] w-full">
                                   <details>
-                                    <summary className="text-[10px] font-bold cursor-pointer hover:text-indigo-400 flex items-center gap-1 select-none text-zinc-500 uppercase tracking-wider">
-                                      <Target className="w-3.5 h-3.5" /> Adjust Grade Cutoffs (Curve)
+                                    <summary className="text-xs font-bold cursor-pointer hover:text-blue-500 flex items-center gap-1 select-none text-zinc-500">
+                                      <Target className="w-3 h-3" /> Advanced: Adjust Grade Cutoffs (Curve)
                                     </summary>
 
-                                    <div className="mt-3 p-3 bg-amber-500/[0.02] rounded-xl border border-amber-500/10">
-                                      <p className="text-[9px] text-amber-300/70 mb-3 font-medium">
+                                    <div className="mt-3 p-3 bg-yellow-500/5 rounded border border-yellow-500/15">
+                                      <p className="text-[10px] text-zinc-400 mb-2">
                                         If the paper was hard and cutoffs were lowered, adjust them here.
                                       </p>
 
                                       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                         {(subject.customGradeMap || GradeMap).filter(g => g.gp > 0).map((g, idx) => (
                                           <div key={g.grade} className="flex flex-col">
-                                            <label className={`text-[9px] font-extrabold text-center mb-1 ${g.color || 'text-zinc-500'}`}>
+                                            <label className={`text-[10px] font-bold text-center mb-1 ${g.color || 'text-zinc-500'}`}>
                                               {g.grade} (&ge;)
                                             </label>
                                             <input
                                               type="number"
                                               value={g.min}
-                                              className="w-full text-center text-xs font-bold p-1 glass-input bg-black/50 border-white/[0.04]"
+                                              className={`w-full text-center text-xs p-1 border rounded ${themeClasses.input}`}
                                               onChange={(e) => {
                                                 const val = parseFloat(e.target.value);
                                                 if (isNaN(val)) return;
@@ -2551,9 +2543,9 @@ export default function PES_Universal_Calculator() {
                                       {subject.customGradeMap && (
                                         <button
                                           onClick={() => handleSubjectChange(subject.id, 'customGradeMap', null)}
-                                          className="mt-3 text-[9px] text-red-400 hover:text-red-300 hover:underline flex items-center gap-1 font-bold tracking-wide uppercase"
+                                          className="mt-2 text-[10px] text-red-500 hover:underline flex items-center gap-1"
                                         >
-                                          <RotateCcw className="w-2.5 h-2.5" /> Reset to Standards
+                                          <RotateCcw className="w-3 h-3" /> Reset to Standards
                                         </button>
                                       )}
                                     </div>
@@ -2562,9 +2554,9 @@ export default function PES_Universal_Calculator() {
 
                                 <button
                                   onClick={() => removeSubject(subject.id)}
-                                  className="w-full text-red-400 text-xs border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 p-2.5 rounded-xl flex items-center justify-center gap-2 mt-4 font-bold transition-all duration-300"
+                                  className="w-full text-red-400 text-xs border border-red-500/20 bg-red-500/10 hover:bg-red-500/15  p-2 rounded flex items-center justify-center gap-2 mt-2"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" /> Remove Subject
+                                  <Trash2 className="w-3 h-3" /> Remove Subject
                                 </button>
                               </div>
                             </div>
@@ -2581,29 +2573,30 @@ export default function PES_Universal_Calculator() {
 
             <button
               onClick={addNewSubject}
-              className="w-full py-4 border-2 border-dashed border-white/[0.08] hover:border-indigo-500/40 hover:text-indigo-400 bg-white/[0.01] hover:bg-indigo-500/[0.03] rounded-2xl text-zinc-500 transition-all duration-300 flex items-center justify-center gap-2 font-bold text-sm shadow-sm font-display"
+              className={`w-full py-3 border-2 border-dashed ${themeClasses.border} rounded-xl ${themeClasses.muted} hover:text-blue-400 hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200 flex items-center justify-center gap-2 font-bold text-sm`}
             >
               <Plus className="w-4 h-4" /> Add Custom Subject
             </button>
 
             {/* Subtle "Next Steps" Footer */}
-            <div className="mt-8 mb-2 flex justify-center select-none">
-              <div className="inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 p-1.5 sm:p-2 sm:px-4 rounded-2xl border border-white/[0.04] bg-[#030307]/40 backdrop-blur-md shadow-lg">
-                <span className="text-xs font-semibold text-zinc-500 hidden sm:block">
-                  Done updating marks?
+            <div className="mt-8 mb-2 flex justify-center">
+              <div className={`inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-6 p-1 sm:p-2 sm:px-4 rounded-xl border bg-[#0e0e18]/50 border-white/[0.06] transition-all`}>
+
+                <span className={`text-xs font-semibold ${themeClasses.muted} hidden sm:block`}>
+                  Done updating?
                 </span>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => setActiveTab('analysis')}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-extrabold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/15 rounded-xl border border-indigo-500/15 transition-all"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-blue-300 bg-blue-500/10 hover:bg-blue-500/15 rounded-lg transition-colors"
                   >
                     <Activity className="w-3.5 h-3.5" /> Check Analysis
                   </button>
 
                   <button
                     onClick={() => setActiveTab('reverse')}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-extrabold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/15 rounded-xl border border-emerald-500/15 transition-all"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-teal-300 bg-teal-500/10 hover:bg-teal-500/15 rounded-lg transition-colors"
                   >
                     <Target className="w-3.5 h-3.5" /> Plan Targets
                   </button>
@@ -2613,29 +2606,27 @@ export default function PES_Universal_Calculator() {
 
             {/* Alerts Banner - Inside subjects tab */}
             {alerts.length > 0 && (
-              <div className="glass-card border border-white/[0.04] rounded-2xl overflow-hidden shadow-lg">
+              <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
                 <details className="group">
-                  <summary className="p-3.5 text-xs font-bold text-zinc-400 select-none list-none flex items-center gap-2 cursor-pointer hover:bg-white/[0.01]">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" />
-                    <span>Subject Warnings ({alerts.length})</span>
-                    <ChevronDown className="w-4 h-4 ml-auto opacity-50 transition-transform group-open:rotate-180" />
+                  <summary className="p-3 text-xs font-semibold text-zinc-500 select-none list-none flex items-center gap-2 cursor-default">
+                    Subject Warnings ({alerts.length})
                   </summary>
-                  <div className="p-4 border-t border-white/[0.04] bg-black/10 space-y-3">
+                  <div className="p-3 border-t border-white/[0.06] space-y-2">
                     {alerts.filter(a => a.type === 'critical').map((alert, i) => (
-                      <div key={i} className="bg-red-500/[0.02] border-l-4 border-red-500/60 p-3.5 rounded-r-2xl flex items-start gap-2.5 border border-white/[0.03]">
+                      <div key={i} className="bg-red-500/10 border-l-4 border-red-500 p-3 rounded-r-lg flex items-start gap-2">
                         <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <span className="font-bold text-red-200 block text-xs mb-0.5">{alert.subject}</span>
-                          <span className="text-red-400/80 text-xs">{alert.message}</span>
+                          <span className="font-bold text-red-300">{alert.subject}:  </span>
+                          <span className="text-red-400 text-sm">{alert.message}</span>
                         </div>
                       </div>
                     ))}
                     {alerts.filter(a => a.type === 'opportunity').slice(0, 2).map((alert, i) => (
-                      <div key={i} className="bg-indigo-500/[0.02] border-l-4 border-indigo-500/60 p-3.5 rounded-r-2xl flex items-start gap-2.5 border border-white/[0.03]">
-                        <Lightbulb className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-0.5" />
+                      <div key={i} className="bg-blue-500/10 border-l-4 border-blue-500 p-3 rounded-r-lg flex items-start gap-2">
+                        <Lightbulb className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <span className="font-bold text-indigo-200 block text-xs mb-0.5">{alert.subject}</span>
-                          <span className="text-indigo-400/80 text-xs">{alert.message}</span>
+                          <span className="font-bold text-blue-300">{alert.subject}:  </span>
+                          <span className="text-blue-400 text-sm">{alert.message}</span>
                         </div>
                       </div>
                     ))}
@@ -2645,27 +2636,27 @@ export default function PES_Universal_Calculator() {
             )}
 
             {/* ==================== QUICK SGPA ESTIMATOR (FROM GRADES) ==================== */}
-            <div className="glass-card border border-white/[0.04] rounded-2xl overflow-hidden shadow-lg mt-6">
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
               <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400/20 to-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shadow-md">
-                      <span className="text-indigo-400 text-lg font-bold">✨</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-md">
+                      <span className="text-zinc-200 text-lg font-bold">✨</span>
                     </div>
                     <div className="text-left">
-                      <h3 className="font-bold font-display text-sm text-zinc-100">Quick SGPA Estimator</h3>
-                      <p className="text-[11px] text-zinc-500 font-medium">Calculate SGPA by directly selecting grades</p>
+                      <h3 className="font-bold text-sm text-zinc-200">Quick SGPA Estimator</h3>
+                      <p className={`text-xs ${themeClasses.muted}`}>Calculate SGPA by directly selecting grades</p>
                     </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 opacity-50 transition-transform group-open:rotate-180" />
+                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
                 </summary>
 
-                <div className="p-4 border-t border-white/[0.04] bg-black/10">
+                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
 
                   {/* Results Header */}
-                  <div className="flex items-center justify-between mb-4 bg-black/35 p-3.5 rounded-2xl border border-white/[0.03] shadow-inner">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Hypothetical SGPA</span>
-                    <span className="text-2xl font-black font-display text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.25)]">
+                  <div className="flex items-center justify-between mb-4 bg-[#0e0e18] p-3 rounded-lg border border-white/[0.06] shadow-sm">
+                    <span className="text-xs font-bold uppercase opacity-50">Hypothetical SGPA</span>
+                    <span className="text-2xl font-black text-teal-400">
                       {(() => {
                         let totalPoints = 0;
                         let totalCredits = 0;
@@ -2689,23 +2680,23 @@ export default function PES_Universal_Calculator() {
                   {/* Subject List with Dropdowns */}
                   <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                     {subjects.length === 0 ? (
-                      <div className="text-center py-6 text-xs text-zinc-600 font-medium">No subjects added yet.</div>
+                      <div className="text-center py-4 text-xs opacity-50">No subjects added yet.</div>
                     ) : (
                       subjects.map(sub => {
                         // Determine which grading scheme to show in dropdown
                         const scheme = sub.customGradeMap || GradeMap;
 
                         return (
-                          <div key={sub.id} className="flex items-center justify-between gap-3 p-2 px-3 bg-black/25 rounded-xl border border-white/[0.03]">
+                          <div key={sub.id} className="flex items-center justify-between gap-3 p-2 bg-[#0e0e18] rounded border border-white/[0.06]">
                             <div className="flex-1 min-w-0">
-                              <div className="text-xs font-bold text-zinc-200 truncate" title={sub.name}>{sub.name}</div>
-                              <div className="text-[9px] text-zinc-500 font-semibold mt-0.5">{sub.credits} Credits</div>
+                              <div className="text-xs font-bold truncate" title={sub.name}>{sub.name}</div>
+                              <div className="text-[10px] opacity-50">{sub.credits} Credits</div>
                             </div>
 
                             <select
                               value={manualGrades[sub.id] || ""}
                               onChange={(e) => setManualGrades(prev => ({ ...prev, [sub.id]: e.target.value }))}
-                              className="w-24 p-1.5 glass-input text-xs font-extrabold text-center bg-black/50 border-white/[0.04]"
+                              className={`w-24 p-1.5 text-xs font-bold border rounded focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
                             >
                               <option value="">- Select -</option>
                               {scheme.map(g => (
@@ -2720,10 +2711,10 @@ export default function PES_Universal_Calculator() {
                     )}
                   </div>
 
-                  <div className="mt-3.5 flex justify-end">
+                  <div className="mt-3 flex justify-end">
                     <button
                       onClick={() => setManualGrades({})}
-                      className="text-xs text-red-500 hover:text-red-400 font-bold tracking-wide uppercase"
+                      className="text-xs text-red-500 hover:text-red-400 font-medium underline decoration-red-500/30 hover:decoration-red-500 underline-offset-2 transition-all"
                     >
                       Reset All
                     </button>
@@ -2734,21 +2725,21 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* ==================== NOT FROM PES? CUSTOM TEMPLATE BUILDER ==================== */}
-            <div className="glass-card border border-white/[0.04] rounded-2xl overflow-hidden mt-6 shadow-lg">
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-8`}>
               <button
                 onClick={() => setShowTemplateBuilder(!showTemplateBuilder)}
-                className="w-full p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
+                className={`w-full p-4 flex items-center justify-between hover:bg-white/[0.03] hover:bg-white/[0.04] transition-colors`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/25 flex items-center justify-center shadow-md">
-                    <Settings className="w-5 h-5 text-indigo-400" />
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md">
+                    <Settings className="w-5 h-5 text-zinc-200" />
                   </div>
                   <div className="text-left">
-                    <h3 className="font-bold font-display text-sm text-zinc-100">Not from PES? 🎓</h3>
-                    <p className="text-[11px] text-zinc-500 font-medium">Configure for VTU, IIT, or Custom Colleges</p>
+                    <h3 className="font-bold text-sm">Not from PES? 🎓</h3>
+                    <p className={`text-xs ${themeClasses.muted}`}>Configure for VTU, IIT, or Custom Colleges</p>
                   </div>
                 </div>
-                {showTemplateBuilder ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showTemplateBuilder ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </button>
 
               {showTemplateBuilder && (
@@ -2838,6 +2829,7 @@ export default function PES_Universal_Calculator() {
                                 /* CHANGED: w-10 instead of w-12 or w-14 */
                                 className={`w-10 p-1 text-xs text-center border rounded ${themeClasses.input}`}
                               />
+                              <span className={`text-[10px] ${themeClasses.muted}`}>%</span>
                             </div>
 
                             <div className="flex items-center gap-1">
@@ -2874,7 +2866,7 @@ export default function PES_Universal_Calculator() {
                       <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3 flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
                         <div className="text-xs text-yellow-300">
-                          <strong>Note:</strong> Total weight is {customTemplate.components.filter(c => c.enabled).reduce((sum, c) => sum + c.weight, 0)}. (PES uses 120, but standard is 100).
+                          <strong>Note:</strong> Total weight is {customTemplate.components.filter(c => c.enabled).reduce((sum, c) => sum + c.weight, 0)}%. (PES uses 120%, but standard is 100%).
                         </div>
                       </div>
                     )}
@@ -2976,17 +2968,17 @@ export default function PES_Universal_Calculator() {
           </>
         )}
 
-               {/* ==================== ANALYSIS TAB ==================== */}
+        {/* ==================== ANALYSIS TAB ==================== */}
         {activeTab === 'analysis' && (
-          <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+          <div className="space-y-6">
             {/* Target Analyzer (Top Cards) */}
-            <div className="glass-card bg-[#08080f]/60 backdrop-blur-xl border border-white/[0.04] rounded-2xl shadow-2xl p-6 text-[#c5c6d0]">
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 border border-white/[0.06]">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                <h2 className="text-lg font-bold font-display flex items-center gap-2.5 text-zinc-100">
-                  <Activity className="w-5 h-5 text-indigo-400" /> Target Analysis
+                <h2 className="text-lg font-bold flex items-center gap-2 text-yellow-400">
+                  <Activity className="w-5 h-5" /> Target Analysis
                 </h2>
-                <div className="flex items-center gap-2.5 bg-white/[0.03] px-3.5 py-1.5 rounded-xl border border-white/[0.05]">
-                  <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider font-sans">Target SGPA</span>
+                <div className="flex items-center gap-2 bg-white/[0.08] px-3 py-2 rounded-lg">
+                  <span className="text-xs text-zinc-400 uppercase font-bold">Target SGPA</span>
                   <input
                     type="number"
                     step="0.1"
@@ -2994,7 +2986,7 @@ export default function PES_Universal_Calculator() {
                     min="5"
                     value={targetSgpa}
                     onChange={(e) => setTargetSgpa(parseFloat(e.target.value) || 0)}
-                    className="w-14 p-0 bg-transparent text-right font-black text-zinc-100 border-none focus:ring-0 text-lg font-display"
+                    className="w-16 p-1 bg-transparent text-right font-bold text-zinc-200 border-none focus:ring-0 text-lg"
                   />
                 </div>
               </div>
@@ -3002,55 +2994,55 @@ export default function PES_Universal_Calculator() {
               {/* Grid with Range */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {/* Range Card */}
-                <div className="glass-card bg-indigo-950/[0.02] border-indigo-500/10 rounded-2xl p-4 col-span-2 relative overflow-hidden group">
-                  <div className="flex justify-between items-end mb-2 relative z-10">
+                <div className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.06] col-span-2 relative overflow-hidden group">
+                  <div className="flex justify-between items-end mb-2">
                     <div>
-                      <div className="text-[9px] text-zinc-500 uppercase tracking-widest font-extrabold">Achievable Range</div>
-                      <div className="text-2xl font-black font-display text-zinc-100 flex items-baseline gap-2 mt-1 tracking-tight">
-                        {sgpaRange.min} <span className="text-xs text-zinc-500 font-medium">to</span> {sgpaRange.max}
+                      <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-bold">Achievable Range</div>
+                      <div className="text-2xl font-bold text-zinc-200 flex items-baseline gap-2">
+                        {sgpaRange.min} <span className="text-sm text-zinc-500 font-normal">to</span> {sgpaRange.max}
                       </div>
                     </div>
-                    <Activity className="w-8 h-8 text-indigo-500/10 group-hover:text-indigo-500/25 transition-colors duration-300" />
+                    <Activity className="w-8 h-8 text-slate-600 group-hover:text-blue-500/50 transition-colors" />
                   </div>
-                  <div className="w-full bg-black/40 h-2 rounded-full mt-3.5 overflow-hidden relative border border-white/[0.02]">
-                    <div className="absolute h-full bg-indigo-500/20" style={{ left: `${(sgpaRange.min / 10) * 100}%`, right: `${100 - (sgpaRange.max / 10) * 100}%` }} />
-                    <div className="absolute h-full w-1 bg-indigo-400 top-0 z-10 drop-shadow-[0_0_8px_rgba(129,140,248,0.7)]" style={{ left: `${(Math.min(Math.max(sgpa, sgpaRange.min), sgpaRange.max) / 10) * 100}%` }} />
+                  <div className="w-full bg-[#0e0e18] h-2 rounded-full mt-2 overflow-hidden relative">
+                    <div className="absolute h-full bg-blue-500/30" style={{ left: `${(sgpaRange.min / 10) * 100}%`, right: `${100 - (sgpaRange.max / 10) * 100}%` }} />
+                    <div className="absolute h-full w-1 bg-yellow-400 top-0 z-10" style={{ left: `${(Math.min(Math.max(sgpa, sgpaRange.min), sgpaRange.max) / 10) * 100}%` }} />
                   </div>
-                  <div className="flex justify-between text-[9px] mt-1.5 font-mono text-zinc-500">
+                  <div className="flex justify-between text-[9px] text-zinc-500 mt-1 font-mono">
                     <span>{sgpaRange.min}</span>
-                    <span className="text-indigo-400 font-extrabold">Curr: {sgpa}</span>
+                    <span className="text-yellow-500 font-bold">Curr: {sgpa}</span>
                     <span>{sgpaRange.max}</span>
                   </div>
                 </div>
 
                 {/* Target Gap */}
-                <div className="glass-card bg-white/[0.01] border-white/[0.03] rounded-2xl p-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-2 opacity-10"><Target className="w-10 h-10 text-indigo-400" /></div>
-                  <div className="text-2xl font-black font-display text-zinc-100 tracking-tight">{metrics.allowableLoss.toFixed(1)}</div>
-                  <div className="text-[9px] text-zinc-500 uppercase tracking-widest font-extrabold mt-0.5">GP Budget</div>
-                  <p className="text-[9px] text-zinc-500 mt-1.5 font-medium leading-relaxed">Points you can lose to hit {targetSgpa}</p>
+                <div className="bg-white/[0.04] rounded-lg p-4 border border-white/[0.06] relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-2 opacity-10"><Target className="w-10 h-10" /></div>
+                  <div className="text-2xl font-bold">{metrics.allowableLoss.toFixed(1)}</div>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider">GP Budget</div>
+                  <p className="text-[10px] text-zinc-500 mt-1">Points you can lose to hit {targetSgpa}</p>
                 </div>
 
                 {/* Momentum */}
-                <div className="glass-card bg-purple-950/[0.03] border-purple-500/15 rounded-2xl p-4 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-10 h-10 text-purple-400" /></div>
-                  <div className="text-2xl font-black font-display text-purple-300 tracking-tight">{metrics.momentumSGPA}</div>
-                  <div className="text-[9px] text-purple-200/50 uppercase tracking-widest font-extrabold mt-0.5">Momentum SGPA *</div>
-                  <p className="text-[9px] text-purple-300/40 mt-1.5 font-medium leading-relaxed">If you maintain current average form</p>
+                <div className="bg-indigo-900/40 rounded-lg p-4 border border-indigo-500/30 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-2 opacity-10"><TrendingUp className="w-10 h-10" /></div>
+                  <div className="text-2xl font-bold text-indigo-300">{metrics.momentumSGPA}</div>
+                  <div className="text-[10px] text-indigo-200/70 uppercase tracking-wider">Momentum SGPA *</div>
+                  <p className="text-[10px] text-indigo-200/50 mt-1">If you maintain current form, i.e ISA performance = ESA</p>
                 </div>
               </div>
 
               {/* Subject-wise Analysis List */}
-              <div className="space-y-3 md:space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto pr-1 md:pr-2 custom-scrollbar">
+              <div className="space-y-3 md:space-y-2 max-h-[60vh] md:max-h-80 overflow-y-auto pr-1 md:pr-2 scrollbar-thin">
 
                 {/* Table Header (Desktop Only) */}
-                <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-zinc-500 uppercase tracking-wider font-extrabold pb-2 border-b border-white/[0.04] sticky top-0 bg-[#08080f] z-10">
-                  <div className="col-span-3 pl-1">Subject</div>
+                <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] text-zinc-500 uppercase font-bold pb-2 border-b border-white/[0.06] sticky top-0 bg-[#0c0c14] z-10">
+                  <div className="col-span-3">Subject</div>
                   <div className="col-span-2 text-center">Momentum</div>
-                  <div className="col-span-2 text-center text-zinc-300/90">Pass (40)</div>
+                  <div className="col-span-2 text-center text-zinc-200/90">Pass (40)</div>
                   <div className="col-span-2 text-center">For A (80)</div>
                   <div className="col-span-2 text-center">For S (90)</div>
-                  <div className="col-span-1 text-center pr-1">GP</div>
+                  <div className="col-span-1 text-center">GP</div>
                 </div>
 
                 {metrics.analysisData.map((d, i) => {
@@ -3067,9 +3059,9 @@ export default function PES_Universal_Calculator() {
                   const buildIsa2Line = (targetLabel, info) => {
                     if (!info) return null;
                     if (info.needed === null) {
-                      return <div className="text-[9px] text-red-400 font-bold leading-none mt-1">{isa2Label} {targetLabel}: impossible</div>;
+                      return <div className="text-[9px] text-red-400 leading-none mt-0.5">{isa2Label} {targetLabel}: impossible</div>;
                     }
-                    return <div className="text-[9px] text-zinc-500 font-medium leading-none mt-1">{isa2Label} {targetLabel}: {info.needed}/{info.max}</div>;
+                    return <div className="text-[9px] text-zinc-500 leading-none mt-0.5">{isa2Label} {targetLabel}: {info.needed}/{info.max}</div>;
                   };
                   const isa2PassLine = buildIsa2Line('pass', isa2PassInfo);
                   const isa2ALine = buildIsa2Line('A', isa2AInfo);
@@ -3078,74 +3070,77 @@ export default function PES_Universal_Calculator() {
                   return (
                     <div
                       key={i}
-                      className="flex flex-col gap-3 p-3.5 rounded-2xl border border-white/[0.03] bg-white/[0.01] md:grid md:grid-cols-12 md:gap-2 md:items-center md:py-2.5 md:border-b md:border-t-0 md:border-x-0 md:border-white/[0.03] md:bg-transparent md:rounded-none hover:bg-white/[0.02] transition-colors duration-300"
+                      className={`
+                        flex flex-col gap-3 p-3 rounded-xl border border-white/[0.04] bg-white/[0.02]
+                        md:grid md:grid-cols-12 md:gap-2 md:items-center md:py-2 md:border-b md:border-t-0 md:border-x-0 md:border-white/[0.04] md:bg-transparent md:rounded-none md:hover:bg-white/[0.03]
+                      `}
                     >
                       {/* Header: Name & GP */}
                       <div className="flex items-center justify-between md:contents">
-                        <div className="md:col-span-3 truncate text-zinc-200 font-bold font-display text-sm pl-1">
+                        <div className="md:col-span-3 truncate text-zinc-200 font-bold md:font-medium text-sm">
                           {d.name}
                         </div>
                         <div className="md:hidden flex items-center gap-2">
-                          <span className="text-[9px] uppercase text-zinc-500 font-bold">Curr GP</span>
-                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg ${d.currentGP >= 9 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : d.currentGP >= 8 ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15' : 'bg-white/[0.04] text-zinc-300 border border-white/[0.05]'}`}>
+                          <span className="text-[10px] uppercase text-zinc-500 font-bold">Curr GP</span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/[0.1] text-zinc-300'}`}>
                             {d.currentGP}
                           </span>
                         </div>
                       </div>
 
                       {/* Stats Grid (2x2 on Mobile, Flat on Desktop) */}
-                      <div className="grid grid-cols-2 gap-2.5 md:contents">
+                      <div className="grid grid-cols-2 gap-2 md:contents">
 
                         {/* 1. Momentum */}
-                        <div className="bg-black/35 md:bg-transparent p-2.5 md:p-0 rounded-xl flex flex-col items-center md:block md:col-span-2 md:text-center border border-white/[0.03] md:border-none">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold tracking-wider mb-1">Momentum</span>
-                          <span className={`font-black text-base md:text-sm font-display ${d.momentumScore >= 90 ? 'text-emerald-400' : d.momentumScore >= 80 ? 'text-indigo-400' : d.momentumScore >= 40 ? 'text-zinc-300' : 'text-red-400'}`}>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">Momentum</span>
+                          <span className={`font-bold text-lg md:text-sm ${d.momentumScore >= 90 ? 'text-green-400' : d.momentumScore >= 80 ? 'text-blue-400' : d.momentumScore >= 40 ? 'text-zinc-300' : 'text-red-400'}`}>
                             {d.momentumScore}
                           </span>
                           {d.momentumIsa2Marks !== null && (
-                            <span className="text-[9px] text-indigo-300/80 mt-1 font-semibold block">
+                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
                               {isa2Label} est: {d.momentumIsa2Marks}/{d.isa2Max}
                             </span>
                           )}
                           {d.momentumAssignmentMarks !== null && (
-                            <span className="text-[9px] text-indigo-300/80 mt-0.5 font-semibold block">
+                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
                               {assignmentLabelShort} est: {d.momentumAssignmentMarks}/{d.assignmentMax}
                             </span>
                           )}
                           {d.momentumLabMarks !== null && (
-                            <span className="text-[9px] text-indigo-300/80 mt-0.5 font-semibold block">
+                            <span className="text-[9px] text-indigo-300/80 mt-0.5">
                               {labLabel} est: {d.momentumLabMarks}/{d.labMax}
                             </span>
                           )}
                         </div>
 
                         {/* 2. Pass Requirement (Fixed Logic) */}
-                        <div className="bg-black/35 md:bg-transparent p-2.5 md:p-0 rounded-xl flex flex-col items-center md:block md:col-span-2 md:text-center border border-white/[0.03] md:border-none">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold tracking-wider mb-1">To Pass</span>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">To Pass</span>
                           {reqPass.safe === null ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-red-500 text-xs font-bold font-sans">Impossible</span>
+                              <span className="text-red-500 text-xs font-bold">Impossible</span>
                               {isa2PassLine}
                             </div>
                           ) : reqPass.safe === 0 ? (
                             <div className="flex flex-col items-center">
                               <div className="flex items-center justify-center gap-1">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                <span className="text-emerald-400 text-xs font-bold md:hidden">Passed</span>
+                                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                <span className="text-green-500 text-xs font-bold md:hidden">Passed</span>
                               </div>
                               {isa2PassLine}
                             </div>
                           ) : (
                             <div className="flex flex-col items-center">
-                              <span className={`font-mono font-bold text-base md:text-sm ${reqPass.requiresRounding ? 'text-amber-400' : 'text-zinc-200'}`}>
+                              <span className={`font-mono font-bold text-base md:text-sm ${reqPass.requiresRounding ? 'text-orange-300' : 'text-zinc-200'}`}>
                                 {reqPass.safe}
                               </span>
                               {/* Show Min Value if it differs */}
                               {reqPass.minimum !== null && reqPass.minimum < reqPass.safe && (
-                                <div className="text-[9px] text-zinc-500 leading-none mt-0.5 font-medium">min: {reqPass.minimum}</div>
+                                <div className="text-[9px] text-zinc-500 leading-none">min: {reqPass.minimum}</div>
                               )}
                               {reqPass.requiresRounding && (
-                                <div className="text-[9px] text-amber-500 font-bold leading-none mt-0.5">*rounding</div>
+                                <div className="text-[9px] text-orange-400 leading-none">*rounding</div>
                               )}
                               {isa2PassLine}
                             </div>
@@ -3153,44 +3148,44 @@ export default function PES_Universal_Calculator() {
                         </div>
 
                         {/* 3. Target A */}
-                        <div className="bg-black/35 md:bg-transparent p-2.5 md:p-0 rounded-xl flex flex-col items-center md:block md:col-span-2 md:text-center border border-white/[0.03] md:border-none">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold tracking-wider mb-1">For A (80)</span>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For A (80)</span>
                           {d.reqA === null ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-red-500 text-xs font-bold font-sans">Impossible</span>
+                              <span className="text-red-500 text-xs font-bold">Impossible</span>
                               {isa2ALine}
                             </div>
                           ) : d.reqA === 0 ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-emerald-400 text-xs font-bold font-sans">✓ Done</span>
+                              <span className="text-green-500 text-xs font-bold">✓ Done</span>
                               {isa2ALine}
                             </div>
                           ) : (
                             <div className="flex flex-col items-center">
-                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqARequiresRounding ? 'text-amber-400' : 'text-indigo-400'}`}>{d.reqA}</span>
-                              {d.reqAMin !== null && d.reqAMin < d.reqA && <div className="text-[9px] text-zinc-500 leading-none mt-0.5 font-medium">min: {d.reqAMin}</div>}
+                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqARequiresRounding ? 'text-orange-300' : 'text-blue-300'}`}>{d.reqA}</span>
+                              {d.reqAMin !== null && d.reqAMin < d.reqA && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqAMin}</div>}
                               {isa2ALine}
                             </div>
                           )}
                         </div>
 
                         {/* 4. Target S */}
-                        <div className="bg-black/35 md:bg-transparent p-2.5 md:p-0 rounded-xl flex flex-col items-center md:block md:col-span-2 md:text-center border border-white/[0.03] md:border-none">
-                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold tracking-wider mb-1">For S (90)</span>
+                        <div className="bg-black/30 md:bg-transparent p-2 md:p-0 rounded-lg flex flex-col items-center md:block md:col-span-2 md:text-center">
+                          <span className="md:hidden text-[9px] text-zinc-500 uppercase font-bold mb-1">For S (90)</span>
                           {d.reqS === null ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-red-500 text-xs font-bold font-sans">Impossible</span>
+                              <span className="text-red-500 text-xs font-bold">Impossible</span>
                               {isa2SLine}
                             </div>
                           ) : d.reqS === 0 ? (
                             <div className="flex flex-col items-center">
-                              <span className="text-emerald-400 text-xs font-bold font-sans">✓ Done</span>
+                              <span className="text-green-500 text-xs font-bold">✓ Done</span>
                               {isa2SLine}
                             </div>
                           ) : (
                             <div className="flex flex-col items-center">
-                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqSRequiresRounding ? 'text-amber-400' : 'text-yellow-400 font-black'}`}>{d.reqS}</span>
-                              {d.reqSMin !== null && d.reqSMin < d.reqS && <div className="text-[9px] text-zinc-500 leading-none mt-0.5 font-medium">min: {d.reqSMin}</div>}
+                              <span className={`font-mono font-bold text-base md:text-sm ${d.reqSRequiresRounding ? 'text-orange-300' : 'text-yellow-300'}`}>{d.reqS}</span>
+                              {d.reqSMin !== null && d.reqSMin < d.reqS && <div className="text-[9px] text-zinc-500 leading-none">min: {d.reqSMin}</div>}
                               {isa2SLine}
                             </div>
                           )}
@@ -3199,7 +3194,7 @@ export default function PES_Universal_Calculator() {
 
                       {/* Desktop GP (Hidden on Mobile) */}
                       <div className="hidden md:block col-span-1 text-center">
-                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-lg ${d.currentGP >= 9 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/15' : d.currentGP >= 8 ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/15' : 'bg-white/[0.04] text-zinc-300 border border-white/[0.05]'}`}>
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${d.currentGP >= 9 ? 'bg-green-500/20 text-green-400' : d.currentGP >= 8 ? 'bg-blue-500/20 text-blue-400' : 'bg-white/[0.1] text-zinc-300'}`}>
                           {d.currentGP}
                         </span>
                       </div>
@@ -3209,25 +3204,25 @@ export default function PES_Universal_Calculator() {
               </div>
 
               {/* Footer Notes */}
-              <div className="mt-4 p-3 bg-white/[0.01] rounded-xl border border-white/[0.03]">
-                <div className="flex items-start gap-2.5 text-xs text-zinc-500">
-                  <Lightbulb className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
-                  <div className="leading-relaxed">
-                    <strong className="text-zinc-300">Safe vs Minimum scores:</strong> The main number is the <strong className="text-zinc-300">safe</strong> ESA score that guarantees the grade.
+              <div className="mt-4 p-3 bg-white/[0.04] rounded-lg border border-white/[0.06]">
+                <div className="flex items-start gap-2 text-xs text-zinc-400">
+                  <Lightbulb className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <strong className="text-zinc-300">Safe vs Minimum scores:</strong> The main number is the <strong>safe</strong> ESA score that guarantees the grade.
                     The "min" value (when shown) is the absolute minimum that <em>might</em> work due to rounding up, but scoring the safe value is recommended.
                   </div>
                 </div>
               </div>
 
               {/* Momentum Disclaimer (Collapsible) */}
-              <div className="mt-3 bg-purple-950/[0.02] rounded-xl border border-purple-500/10 shadow-sm">
+              <div className="mt-3 mx-1 bg-indigo-900/20 rounded-lg border border-indigo-500/20">
                 <details className="group p-3">
-                  <summary className="flex items-center gap-2 cursor-pointer list-none text-xs text-purple-300 font-bold select-none">
-                    <span className="text-base leading-none">*️⃣</span>
+                  <summary className="flex items-center gap-2 cursor-pointer list-none text-xs text-indigo-200 font-bold select-none">
+                    <span className="text-lg leading-none">*️⃣</span>
                     <span>Momentum Disclaimer</span>
-                    <ChevronDown className="w-3.5 h-3.5 ml-auto opacity-50 transition-transform group-open:rotate-180" />
+                    <ChevronDown className="w-3 h-3 ml-auto opacity-50 transition-transform group-open:rotate-180" />
                   </summary>
-                  <div className="mt-2 text-xs text-purple-300/60 leading-relaxed pl-6 border-t border-purple-500/10 pt-2 font-medium">
+                  <div className="mt-2 text-xs text-indigo-200/70 leading-relaxed pl-7 border-t border-indigo-500/10 pt-2">
                     The momentum score assumes you maintain your current average in future exams. There is a &lt;1% chance this will be your exact final score. <strong>Don't stress over it!</strong> If ISA2 is empty, the Pass/A/S ESA requirements use a momentum-projected ISA2 score and are estimates. When Assignment or Lab is empty, momentum assumes full marks for those components. ISA2 target lines (Pass/A/S) show how much ISA2 you need for that grade, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
                   </div>
                 </details>
@@ -3235,49 +3230,49 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* Smart Strategy Panel (Collapsible on Mobile to save space) */}
-            <div className="glass-card bg-[#08080f]/60 backdrop-blur-xl border border-white/[0.04] rounded-2xl shadow-2xl p-4 md:p-6 text-[#c5c6d0]">
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm rounded-xl shadow-2xl shadow-black/20 p-4 md:p-6 text-zinc-200 border border-white/[0.06]">
               <details className="group" open>
                 <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-                  <div className="text-lg font-bold font-display flex items-center gap-2 text-zinc-100">
-                    <Lightbulb className="w-5 h-5 text-indigo-400 animate-pulse" /> Path to Target ({targetSgpa} SGPA)
+                  <div className="text-lg font-bold flex items-center gap-2 text-green-400">
+                    <Lightbulb className="w-5 h-5" /> Path to Target ({targetSgpa} SGPA)
                   </div>
                   <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
                 </summary>
 
                 <div className="mt-4">
                   {strategy.plan.length === 0 && !strategy.impossible && parseFloat(metrics.momentumSGPA) >= targetSgpa ? (
-                    <div className="bg-emerald-500/[0.02] border border-emerald-500/25 rounded-2xl p-4 flex items-center gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+                    <div className="bg-green-900/20 border border-green-800 rounded-lg p-4 flex items-center gap-3">
+                      <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0" />
                       <div>
-                        <div className="font-bold text-emerald-300">You're on track!</div>
-                        <div className="text-xs text-emerald-400/60 font-medium">Your current momentum meets your target.</div>
+                        <div className="font-bold text-green-300">You're on track!</div>
+                        <div className="text-xs text-green-200/60">Your current momentum meets your target.</div>
                       </div>
                     </div>
                   ) : strategy.impossible ? (
-                    <div className="bg-red-500/[0.02] border border-red-500/25 rounded-2xl p-4 flex items-center gap-3">
+                    <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 flex items-center gap-3">
                       <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0" />
                       <div>
                         <div className="font-bold text-red-300">Target Unreachable</div>
-                        <div className="text-xs text-red-400/60 font-medium font-sans">Mathematically impossible given your internals.</div>
+                        <div className="text-xs text-red-200/60">Mathematically impossible given your internals.</div>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-2">Most efficient upgrades:</p>
+                      <p className="text-xs text-zinc-400 mb-2">Most efficient upgrades:</p>
                       {strategy.plan.map((step, idx) => (
-                        <div key={idx} className="glass-card bg-black/25 p-3 rounded-xl border border-white/[0.03] flex items-start gap-3 hover:border-white/[0.06] transition-all duration-300">
-                          <div className="bg-indigo-500/10 border border-indigo-500/25 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-indigo-400 flex-shrink-0 mt-0.5 font-display">
+                        <div key={idx} className="bg-white/[0.04] p-3 rounded-lg border border-white/[0.06] flex items-start gap-3">
+                          <div className="bg-[#0e0e18] w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-zinc-400 flex-shrink-0 mt-0.5">
                             {idx + 1}
                           </div>
                           <div className="flex-1">
-                            <div className="text-sm font-bold text-zinc-100 flex justify-between items-center font-display">
+                            <div className="text-sm font-bold text-zinc-200 flex justify-between items-center">
                               <span>{step.name}</span>
-                              <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-500/15 font-extrabold uppercase font-sans">+{step.gpGain.toFixed(1)} GP</span>
+                              <span className="text-[10px] bg-indigo-900 text-indigo-200 px-1.5 py-0.5 rounded">+{step.gpGain.toFixed(1)} GP</span>
                             </div>
-                            <div className="text-xs text-zinc-400 mt-1 flex items-center gap-1.5 flex-wrap font-medium">
-                              <span className="text-indigo-300 font-extrabold bg-indigo-500/10 px-1.5 py-0.5 rounded-lg border border-indigo-500/15">{step.esaNeeded}/{step.esaMax}</span>
-                              <span>ESA score for</span>
-                              <span className={`font-black ${step.toGrade === 'S' ? 'text-emerald-400' : 'text-indigo-400'}`}>{step.toGrade} Grade</span>
+                            <div className="text-xs text-zinc-400 mt-1 flex items-center gap-1 flex-wrap">
+                              <span className="text-zinc-200 font-bold bg-white/[0.1] px-1.5 rounded">{step.esaNeeded}/{step.esaMax}</span>
+                              <span>ESA for</span>
+                              <span className={`font-bold ${step.toGrade === 'S' ? 'text-green-400' : 'text-blue-400'}`}>{step.toGrade}</span>
                             </div>
                           </div>
                         </div>
@@ -3292,45 +3287,39 @@ export default function PES_Universal_Calculator() {
 
         {/* ==================== REVERSE CALCULATOR TAB ==================== */}
         {activeTab === 'reverse' && (
-          <div className="space-y-4 md:space-y-6">
-            <div className="glass-card rounded-2xl shadow-2xl p-3.5 md:p-6 text-zinc-200 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/[0.06] blur-[70px] rounded-full pointer-events-none"></div>
-              <div className="absolute bottom-0 left-0 w-36 h-36 bg-indigo-500/[0.04] blur-[60px] rounded-full pointer-events-none"></div>
-              
-              <div className="flex items-center justify-between mb-3 md:mb-4 border-b border-white/[0.05] pb-3 md:pb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2 font-display">
-                  <Target className="w-5 h-5 text-emerald-400" /> Reverse Calculator
-                </h2>
-                <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-bold bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]">
-                  Target Simulator
-                </span>
-              </div>
+          <div className="space-y-4">
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-emerald-500/10 rounded-xl shadow-2xl shadow-black/20 p-4 text-zinc-200 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/[0.07] blur-[60px] rounded-full pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/[0.04] blur-[50px] rounded-full pointer-events-none"></div>
+              <h2 className="text-lg font-bold flex items-center gap-2 mb-2">
+                <Target className="w-5 h-5" /> Reverse Calculator
+              </h2>
 
               {/* ESA Marks Detected Warning (Collapsible) */}
               {subjects.some(sub => (marks[sub.id]?.esa && parseFloat(marks[sub.id]?.esa) > 0)) && (
-                <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] overflow-hidden mb-6 shadow-[0_0_20px_rgba(245,158,11,0.02)]">
+                <div className="rounded-xl border border-amber-200 bg-amber-500/10 border-amber-500/20 overflow-hidden mb-6">
                   <details className="group">
-                    <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-amber-500/5 transition-colors">
+                    <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-amber-500/10 hover:bg-amber-500/15 transition-colors">
                       <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 animate-pulse" />
-                        <h4 className="font-bold text-sm text-amber-300 font-display">
+                        <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+                        <h4 className="font-bold text-sm text-amber-300">
                           ESA Marks Detected (Subject Locked)
                         </h4>
                       </div>
-                      <ChevronDown className="w-4 h-4 text-amber-400 opacity-70 transition-transform group-open:rotate-180" />
+                      <ChevronDown className="w-5 h-5 text-amber-400 opacity-70 transition-transform group-open:rotate-180" />
                     </summary>
 
                     <div className="px-4 pb-4 pt-0">
-                      <div className="text-xs text-amber-200/80 mt-1 space-y-2 border-t border-amber-500/10 pt-3 leading-relaxed">
+                      <div className="text-xs text-amber-400 mt-1 space-y-2 border-t border-amber-500/20/50 pt-3">
                         <p>
-                          You have entered ESA marks for some subjects. These subjects will be treated as <strong className="text-amber-300">Fixed/Locked</strong> and will NOT be reverse-calculated.
+                          You have entered ESA marks for some subjects. These subjects will be treated as <strong>Fixed/Locked</strong> and will NOT be reverse-calculated.
                         </p>
                         <p>
-                          If you want to <strong className="text-amber-300">predict</strong> marks for a specific subject, please go back and <strong className="text-amber-300">clear its ESA score</strong>.
+                          If you want to <strong>predict</strong> marks for a specific subject, please go back and <strong>clear its ESA score</strong>.
                         </p>
                         <button
                           onClick={() => setActiveTab('subjects')}
-                          className="mt-2 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg font-bold transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_15px_rgba(245,158,11,0.05)]"
+                          className="mt-2 text-xs bg-amber-600 hover:bg-amber-700 text-zinc-200 px-3 py-1.5 rounded-lg font-bold transition-colors"
                         >
                           Manage Subjects
                         </button>
@@ -3341,14 +3330,14 @@ export default function PES_Universal_Calculator() {
               )}
 
               {/* ORIGINAL TEXT: Description */}
-              <p className="text-emerald-100 text-sm mb-4 leading-relaxed opacity-95">
+              <p className="text-emerald-100 text-sm mb-4 leading-relaxed">
                 Set your desired SGPA and see exactly what you need to score in each ESA. Lock subjects where you're confident about your score.
               </p>
 
               {/* Controls: Input & Buttons (Compacted layout) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 md:gap-4 mb-3 md:mb-4">
-                <div className="flex items-center justify-between gap-2.5 bg-white/[0.02] border border-white/[0.05] p-2.5 md:p-3 rounded-xl w-full">
-                  <label className="text-xs md:text-sm font-semibold whitespace-nowrap text-zinc-300 font-display">Desired SGPA Target</label>
+              <div className="flex flex-col gap-3 mb-4">
+                <div className="flex items-center gap-3 bg-white/[0.08] px-3 py-2 rounded-lg w-full sm:w-auto">
+                  <label className="text-sm font-semibold whitespace-nowrap">I want SGPA: </label>
                   <input
                     type="number"
                     step="0.1"
@@ -3356,107 +3345,103 @@ export default function PES_Universal_Calculator() {
                     max="10"
                     value={reverseTargetSgpa}
                     onChange={(e) => setReverseTargetSgpa(parseFloat(e.target.value) || 0)}
-                    className="w-20 md:w-24 glass-input px-2 md:px-3 py-1 md:py-1.5 text-emerald-400 font-black text-center text-lg md:text-xl focus:border-emerald-500/50 focus:ring-emerald-500/10 shadow-[0_0_15px_rgba(16,185,129,0.05)]"
+                    className="w-full bg-white/[0.08] border border-white/[0.12] rounded-lg px-2 py-1 text-zinc-200 font-bold text-center text-lg focus:outline-none focus:border-white"
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-2.5 bg-white/[0.02] border border-white/[0.05] p-2.5 md:p-3 rounded-xl w-full">
-                  <div className="flex flex-col">
-                    <span className="text-[9px] md:text-[10px] text-zinc-400 uppercase font-black tracking-wider font-display">ESA Mode</span>
-                    <span className="text-[8px] md:text-[9px] text-zinc-500 mt-0.5">Min relies on rounding luck.</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex items-center gap-2 bg-white/[0.08] px-3 py-2 rounded-lg w-full sm:w-auto">
+                    <span className="text-[10px] text-zinc-400 uppercase font-bold">ESA Mode</span>
+                    <div className="flex bg-white/[0.06] rounded-lg p-1">
+                      <button
+                        onClick={() => setReverseEsaMode('safe')}
+                        className={`px-2 py-1 text-[10px] font-bold rounded ${reverseEsaMode === 'safe'
+                          ? 'bg-white/[0.15] text-zinc-200'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                          }`}
+                      >
+                        Safe
+                      </button>
+                      <button
+                        onClick={() => setReverseEsaMode('min')}
+                        className={`px-2 py-1 text-[10px] font-bold rounded ${reverseEsaMode === 'min'
+                          ? 'bg-white/[0.15] text-zinc-200'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                          }`}
+                      >
+                        Min
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex bg-black/40 border border-white/[0.08] rounded-xl p-0.5 md:p-1 shadow-inner">
+                  <span className="text-[10px] text-zinc-500">Min relies on rounding luck.</span>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setShuffledResults(calculateRandomPath())}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-zinc-200 p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
+                    title="Shuffle: Find a different combination of grades"
+                  >
+                    <Dice5 className="w-4 h-4" /> Shuffle
+                  </button>
+
+                  <button
+                    onClick={() => setShuffledResults(calculateBalancedPath())}
+                    className="flex-1 bg-teal-600 hover:bg-teal-700 text-zinc-200 p-2 rounded-lg transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-xs font-bold"
+                    title="Balanced: Keeps scores even across subjects"
+                  >
+                    <Scale className="w-4 h-4" /> Balanced
+                  </button>
+
+                  {shuffledResults && (
                     <button
-                      onClick={() => setReverseEsaMode('safe')}
-                      className={`px-2.5 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs font-bold rounded-lg transition-all ${reverseEsaMode === 'safe'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.08] shadow-sm font-black'
-                        : 'text-zinc-500 hover:text-zinc-300'
-                        }`}
+                      onClick={() => setShuffledResults(null)}
+                      className="px-3 text-xs text-zinc-200/70 hover:text-zinc-200 underline"
                     >
-                      Safe
+                      Reset
                     </button>
-                    <button
-                      onClick={() => setReverseEsaMode('min')}
-                      className={`px-2.5 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs font-bold rounded-lg transition-all ${reverseEsaMode === 'min'
-                        ? 'bg-white/[0.08] text-white border border-white/[0.08] shadow-sm font-black'
-                        : 'text-zinc-500 hover:text-zinc-300'
-                        }`}
-                    >
-                      Min
-                    </button>
-                  </div>
+                  )}
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 md:gap-2.5 mb-3 md:mb-4">
-                <button
-                  onClick={() => setShuffledResults(calculateRandomPath())}
-                  className="flex-1 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/25 hover:border-purple-500/40 p-2 md:p-2.5 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 md:gap-2 text-[11px] md:text-xs font-bold shadow-[0_0_15px_rgba(168,85,247,0.05)] hover:shadow-[0_0_20px_rgba(168,85,247,0.1)]"
-                  title="Shuffle: Find a different combination of grades"
-                >
-                  <Dice5 className="w-3.5 h-3.5" /> Shuffle
-                </button>
-
-                <button
-                  onClick={() => setShuffledResults(calculateBalancedPath())}
-                  className="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 hover:border-emerald-500/40 p-2 md:p-2.5 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 md:gap-2 text-[11px] md:text-xs font-bold shadow-[0_0_15px_rgba(16,185,129,0.05)] hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]"
-                  title="Balanced: Keeps scores even across subjects"
-                >
-                  <Scale className="w-3.5 h-3.5" /> Balanced
-                </button>
-
-                {shuffledResults && (
-                  <button
-                    onClick={() => setShuffledResults(null)}
-                    className="px-3 md:px-4 py-2 md:py-2.5 text-[11px] md:text-xs text-zinc-400 hover:text-white bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.1] rounded-xl transition-all font-bold active:scale-95"
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-
               {/* ORIGINAL TEXT: Blue Help Box (Accordion for mobile) */}
-              <div className="bg-indigo-500/[0.02] border border-indigo-500/20 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.02)] overflow-hidden">
-                <details className="group">
-                  <summary className="flex items-center justify-between p-3.5 cursor-pointer list-none select-none hover:bg-indigo-500/[0.04] transition-colors">
-                    <div className="flex items-center gap-2 text-sm font-bold text-indigo-300 font-display">
-                      <HelpCircle className="w-4 h-4 text-indigo-400" />
-                      <span>Why are some scores high/low? (and fix)</span>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-indigo-400 opacity-70 transition-transform group-open:rotate-180" />
+              <div className="bg-blue-900/30 border-l-4 border-blue-400 rounded-r shadow-md">
+                <details className="group p-3">
+                  <summary className="flex items-center gap-2 cursor-pointer list-none text-sm font-bold text-blue-100 select-none">
+                    <HelpCircle className="w-5 h-5 text-blue-400" />
+                    <span>Why are some scores high/low?(and fix)</span>
+                    <ChevronDown className="w-4 h-4 ml-auto opacity-70 transition-transform group-open:rotate-180" />
                   </summary>
-                  <div className="px-4 pb-4 pt-0 text-xs text-indigo-200/80 space-y-2 border-t border-indigo-500/10 pt-3 leading-relaxed">
-                    <p className="opacity-90">
-                      This calculator finds the <strong className="text-indigo-300">absolute cheapest path</strong>.
+                  <div className="mt-3 text-sm text-blue-100 space-y-2 border-t border-blue-400/30 pt-2">
+                    <p className="opacity-80">
+                      This calculator finds the <strong>absolute cheapest path</strong>.
                       It prioritizes subjects where you need fewer marks to jump a grade, even if that means pushing a score to 98 or 99.
                     </p>
-                    <p className="text-amber-300 font-bold bg-amber-500/[0.05] p-2.5 rounded-lg border border-amber-500/10">
-                      💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3.5 h-3.5 inline text-amber-400 mx-0.5" /> icon
+                    <p className="text-yellow-300 font-bold text-xs">
+                      💡 Fix: If a score is unrealistically high/low, click the <Lock className="w-3 h-3 inline" /> icon
                       to set a limit (e.g., 85 that you are confident that you will score at least that much).
                       The app will recalculate the rest!
                     </p>
-                    <p className="font-medium text-zinc-300">
-                      Alternatively you can Click <span className="font-bold text-white bg-white/[0.06] px-1.5 py-0.5 rounded">Balanced</span> for a realistic, balanced path.
+                    <p className="font-medium text-zinc-200/90 text-xs">
+                      Alternatively you can Click <span className="font-bold text-zinc-200">Balanced</span> for a realistic, balanced path.
                     </p>
-                    <p className="font-medium text-zinc-300">
-                      Scores look unrealistic? Click <span className="font-bold text-white bg-white/[0.06] px-1.5 py-0.5 rounded">Shuffle</span> for a different path. Click <span className="font-bold text-white bg-white/[0.06] px-1.5 py-0.5 rounded">Reset</span> to go back to the most efficient way.
+                    <p className="font-medium text-zinc-200/90 text-xs">
+                      Scores look unrealistic? Click <span className="font-bold text-zinc-200">Shuffle</span> for a different path. Click <span className="font-bold text-zinc-200">Reset</span> to go back to the most efficient way.
                     </p>
                   </div>
                 </details>
               </div>
 
               {!reverseResults.isTargetAchievable && (
-                <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/25 p-3.5 rounded-xl text-sm mt-4 text-red-300 shadow-[0_0_15px_rgba(239,68,68,0.05)]">
-                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0 animate-pulse" />
-                  <span className="font-medium">
-                    Max achievable: <strong className="text-red-200 text-glow-red font-display font-extrabold text-base">{reverseResults.achievableSGPA}</strong>
-                  </span>
+                <div className="flex items-center gap-2 bg-red-500/30 px-3 py-2 rounded-lg text-sm mt-3 border border-red-500/30">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Max achievable: <strong>{reverseResults.achievableSGPA}</strong></span>
                 </div>
               )}
             </div>
 
             {/* Subject List - COMPACT ROW LAYOUT */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               {(shuffledResults || reverseResults.results).map((sub, i) => {
                 const baseSubject = subjects.find(s => s.id === sub.id);
                 const baseMetrics = baseSubject ? getSubjectMetrics(baseSubject) : null;
@@ -3493,44 +3478,38 @@ export default function PES_Universal_Calculator() {
                 const showSecondary = secondaryEsa !== null && primaryEsa !== null && secondaryEsa !== primaryEsa;
                 const showRounding = useMin && minDiffers;
 
-                // Color-coded border states and backgrounds for a premium feel
-                let cardClass = "glass-card glass-card-hover";
-                if (sub.isImpossible) {
-                  cardClass = "bg-red-500/[0.03] border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.02)]";
-                } else if (sub.alreadyAchieved) {
-                  cardClass = "bg-emerald-500/[0.03] border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.02)]";
-                } else if (sub.locked) {
-                  cardClass = "bg-amber-500/[0.04] border-amber-500/35 shadow-[0_0_20px_rgba(245,158,11,0.04)] ring-1 ring-amber-500/10";
-                }
-
                 return (
                   <div
                     key={i}
-                    className={`relative flex items-center justify-between p-3 md:p-4 rounded-xl border transition-all gap-2 md:gap-3 ${cardClass}`}
+                    className={`relative flex items-center justify-between p-3 rounded-lg border transition-all gap-2 ${sub.isImpossible ? 'bg-red-500/10 border-red-500/30' :
+                      sub.alreadyAchieved ? 'bg-green-500/10 border-green-500/30' :
+                        sub.locked ? 'bg-yellow-500/10 border-yellow-500/30' :
+                          `${themeClasses.card} shadow-sm`
+                      }`}
                   >
                     {/* Left Side: Name & Info */}
-                    <div className="flex-1 min-w-0 pr-1 md:pr-2">
+                    <div className="flex-1 min-w-0 pr-2">
                       <div className="flex items-center gap-1.5 mb-1">
-                        {sub.locked && <Lock className="w-3.5 h-3.5 text-amber-400 flex-shrink-0 animate-pulse" />}
-                        <span className="text-xs md:text-sm font-bold truncate block font-display text-zinc-100">
+                        {sub.locked && <Lock className="w-3 h-3 text-yellow-500 flex-shrink-0" />}
+                        <span className="text-sm font-bold truncate block">
                           {sub.name}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 md:gap-2 text-[9px] md:text-[10px] opacity-80">
-                        <span className="px-1.5 md:px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.05] text-zinc-300 font-semibold">{sub.credits} Credits</span>
+                      <div className="flex items-center gap-2 text-[10px] opacity-70">
+                        <span className={`px-1.5 rounded bg-white/[0.08]`}>{sub.credits} Cr</span>
                         {sub.isImpossible ? (
-                          <span className="text-red-400 font-extrabold tracking-wide uppercase text-[8px] bg-red-500/10 border border-red-500/20 px-1 py-0.5 rounded-md">Impossible</span>
+                          <span className="text-red-500 font-bold">Impossible</span>
                         ) : (
-                          <span className="text-zinc-450 text-zinc-400">Target: <strong className="text-emerald-400 font-extrabold text-glow-emerald bg-emerald-500/10 border border-emerald-500/20 px-1 md:px-1.5 py-0.5 rounded-md ml-0.5">{sub.projectedGrade}</strong></span>
+                          <span>Target: <strong className="opacity-100">{sub.projectedGrade}</strong></span>
                         )}
                       </div>
                       {assumptions.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                          <span className="text-[7px] md:text-[8px] px-1 md:px-1.5 py-0.5 rounded bg-white/[0.05] text-zinc-400 font-bold uppercase tracking-wider">
-                            Assumptions
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="text-[8px] px-1.5 py-0.5 rounded bg-white/[0.06] text-zinc-500 uppercase tracking-wider">
+                            Assumptions used
                           </span>
                           {assumptions.map((item, idx) => (
-                            <span key={idx} className="text-[7px] md:text-[8px] px-1 md:px-1.5 py-0.5 rounded bg-white/[0.03] text-zinc-500 border border-white/[0.02]">
+                            <span key={idx} className="text-[8px] px-1.5 py-0.5 rounded bg-white/[0.04] text-zinc-400">
                               {item}
                             </span>
                           ))}
@@ -3539,7 +3518,7 @@ export default function PES_Universal_Calculator() {
                     </div>
 
                     {/* Right Side: Score & Actions */}
-                    <div className="flex items-center gap-2 md:gap-3.5 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <div className="text-right">
                         {sub.locked ? (
                           /* Locked Input */
@@ -3556,43 +3535,43 @@ export default function PES_Universal_Calculator() {
                                   const val = e.target.value === '' ? '' : parseFloat(e.target.value);
                                   setLockedSubjects(prev => ({ ...prev, [sub.id]: val }));
                                 }}
-                                className={`w-12 md:w-14 p-1 md:p-1.5 text-center text-xs md:text-sm font-black focus:outline-none focus:ring-4 focus:ring-amber-500/10 ${sub.isHardLocked
-                                  ? 'bg-white/[0.02] text-zinc-500 cursor-not-allowed border border-transparent rounded-lg'
-                                  : 'glass-input border-amber-500/40 text-amber-300 font-bold'
+                                className={`w-12 p-1 text-center text-sm font-bold border rounded focus:outline-none ${sub.isHardLocked
+                                  ? 'bg-white/[0.04] text-zinc-500 cursor-not-allowed border-transparent'
+                                  : 'bg-yellow-500/10 bg-yellow-500/15 border-yellow-400 text-yellow-300'
                                   }`}
                               />
-                              <span className="text-[9px] md:text-[10px] text-zinc-500">/{sub.esaMax}</span>
+                              <span className="text-[10px] opacity-50">/{sub.esaMax}</span>
                             </div>
-                            <span className="text-[8px] md:text-[9px] text-amber-500 mt-0.5 font-bold">
-                              {sub.isHardLocked ? 'Set in Subjects tab' : 'Manual Lock'}
+                            <span className="text-[9px] text-yellow-500 mt-0.5">
+                              {sub.isHardLocked ? 'Set in subjects tab' : 'Manual'}
                             </span>
                           </div>
                         ) : sub.alreadyAchieved ? (
                           /* Done State */
                           <div className="flex flex-col items-end">
-                            <span className="text-base md:text-xl font-black text-emerald-400 text-glow-emerald">0</span>
-                            <span className="text-[8px] md:text-[9px] text-emerald-500/70 font-bold bg-emerald-500/10 border border-emerald-500/20 px-1 rounded">Safe</span>
+                            <span className="text-lg font-bold text-green-500">0</span>
+                            <span className="text-[9px] text-green-500/70">Safe</span>
                           </div>
                         ) : sub.isImpossible ? (
-                          <span className="text-xs md:text-sm font-bold text-red-500">---</span>
+                          <span className="text-xs font-bold text-red-500">---</span>
                         ) : (
                           /* Score Needed */
-                          <div className="flex flex-col items-end justify-center">
-                            <span className="text-base md:text-xl font-black text-white font-display">
-                              {primaryEsa !== null ? primaryEsa : sub.requiredEsa}<span className="text-[10px] md:text-xs font-normal opacity-50 ml-0.5">/{sub.esaMax}</span>
+                          <div className="flex flex-col items-end">
+                            <span className="text-lg font-bold">
+                              {primaryEsa !== null ? primaryEsa : sub.requiredEsa}<span className="text-xs font-normal opacity-50">/{sub.esaMax}</span>
                             </span>
                             {showSecondary && (
-                              <span className="text-[8px] md:text-[9px] text-zinc-400 mt-0.5">{secondaryLabel}: <strong className="text-zinc-200">{secondaryEsa}</strong></span>
+                              <span className="text-[9px] opacity-60">{secondaryLabel}: {secondaryEsa}</span>
                             )}
                             {showRounding && (
-                              <span className="text-[8px] md:text-[9px] text-orange-400 font-semibold">*rounding</span>
+                              <span className="text-[9px] text-orange-400">*rounding</span>
                             )}
-                            <span className="text-[8px] md:text-[9px] text-zinc-500 mt-0.5">Needed</span>
+                            <span className="text-[9px] opacity-50">Needed</span>
                           </div>
                         )}
                         {isa2TargetInfo && (
-                          <div className={`text-[8px] md:text-[9px] leading-none mt-1 text-right ${isa2TargetInfo.needed === null ? 'text-red-400 font-semibold' : 'text-zinc-500'}`}>
-                            {isa2Label} {sub.projectedGrade || 'target'}: <strong className="text-zinc-400">{isa2TargetInfo.needed === null ? 'impossible' : `${isa2TargetInfo.needed}/${isa2TargetInfo.max}`}</strong>
+                          <div className={`text-[9px] leading-none mt-1 text-right ${isa2TargetInfo.needed === null ? 'text-red-400' : 'text-zinc-500'}`}>
+                            {isa2Label} {sub.projectedGrade || 'target'}: {isa2TargetInfo.needed === null ? 'impossible' : `${isa2TargetInfo.needed}/${isa2TargetInfo.max}`}
                           </div>
                         )}
                       </div>
@@ -3610,13 +3589,13 @@ export default function PES_Universal_Calculator() {
                           }
                         }}
                         disabled={sub.isHardLocked}
-                        className={`w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-xl border transition-all active:scale-95 ${sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all ${sub.isHardLocked ? 'opacity-20 cursor-not-allowed border-transparent' :
                           sub.locked
-                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
-                            : 'bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-indigo-400 hover:border-indigo-500/40 hover:bg-indigo-500/5'
+                            ? 'bg-yellow-500/10 bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                            : 'bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:text-blue-500 hover:border-blue-300'
                           }`}
                       >
-                        {sub.locked ? <Lock className="w-3.5 h-3.5 md:w-4 md:h-4" /> : <Unlock className="w-3.5 h-3.5 md:w-4 md:h-4" />}
+                        {sub.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>
@@ -3625,16 +3604,16 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* ORIGINAL TEXT: Bottom Info */}
-            <div className="p-4 bg-white/[0.02] border border-white/[0.05] rounded-2xl shadow-sm">
-              <div className="flex items-start gap-3 text-sm">
-                <Lightbulb className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5 animate-pulse" />
+            <div className="mt-6 p-4 bg-white/[0.04] bg-white/[0.03] rounded-lg border border-white/[0.06]">
+              <div className="flex items-start gap-2 text-sm">
+                <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div className="space-y-2">
-                  <p className="text-zinc-300">
-                    <strong className="text-white">How to use:</strong> Lock subjects where you're confident about your ESA score.
+                  <p>
+                    <strong>How to use:</strong> Lock subjects where you're confident about your ESA score.
                     The calculator will then adjust the requirements for other subjects to compensate.
                   </p>
-                  <p className="text-zinc-500 text-xs italic border-t border-white/[0.05] pt-2 leading-relaxed">
-                    <strong className="text-zinc-400">Note:</strong> There are many combinations of grades that can achieve your target.
+                  <p className="opacity-60 text-xs italic border-t border-white/[0.08] pt-2">
+                    <strong>Note:</strong> There are many combinations of grades that can achieve your target.
                     This result is just the most efficient path (requiring the least amount of total marks).
                   </p>
                 </div>
@@ -3643,11 +3622,11 @@ export default function PES_Universal_Calculator() {
 
             {/* ORIGINAL TEXT: Momentum Warning */}
             {reverseResults.usingMomentum && (
-              <div className="bg-amber-500/[0.02] border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3 shadow-[0_0_15px_rgba(245,158,11,0.02)]">
-                <Zap className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5 animate-pulse" />
+              <div className="mt-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-3">
+                <Zap className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <strong className="text-amber-200 font-display">Using Momentum Scores</strong>
-                  <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+                  <strong className="text-yellow-200">Using Momentum Scores</strong>
+                  <p className="text-yellow-700 text-yellow-100/70 text-xs mt-1 leading-relaxed">
                     Some internals (like Lab, ISA2, or Assignment) are empty. We project ISA2 from ISA1, assume full marks for empty Assignment or Lab, and estimate ESA using your current internal ratio so the calculator does not crash early in the semester. This is optimistic, so the max achievable SGPA can be higher than reality until you enter actual marks.
                   </p>
                 </div>
@@ -3655,73 +3634,72 @@ export default function PES_Universal_Calculator() {
             )}
 
             {/* Minimum Passing Table (Restored & Scrollable for Mobile) */}
-            <div className="glass-card rounded-2xl shadow-2xl p-6 mt-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-36 h-36 bg-blue-500/[0.04] blur-[50px] rounded-full pointer-events-none"></div>
-              
-              <div className="border-b border-white/[0.05] pb-4 mb-4">
-                <h2 className="text-lg font-display font-bold flex items-center gap-2">
-                  <Calculator className="w-5 h-5 text-indigo-400" /> Minimum ESA Scores Needed
-                </h2>
-                <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
-                  Quick reference: minimum ESA marks required for each grade in each subject.
-                </p>
-              </div>
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 mt-8">
+              <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
+                <Calculator className="w-5 h-5 text-blue-500" /> Minimum ESA Scores Needed
+              </h2>
+              <p className={`${themeClasses.muted} text-sm mb-4`}>
+                Quick reference: minimum ESA marks required for each grade in each subject.
+              </p>
 
-              {/* Desktop/Tablet Table View */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-white/[0.08]">
-                      <th className="text-left py-3 px-3 font-bold text-zinc-400 whitespace-nowrap">Subject</th>
-                      {['E (40)', 'D (50)', 'C (60)', 'B (70)', 'A (80)', 'S (90)'].map((h, i) => {
-                        const colors = ['text-red-400', 'text-orange-400', 'text-amber-500', 'text-indigo-400', 'text-blue-400', 'text-emerald-400'];
-                        return <th key={i} className={`text-center py-3 px-2 font-bold font-display ${colors[i]}`}>{h}</th>;
-                      })}
+                    <tr className={`border-b ${themeClasses.border}`}>
+                      <th className="text-left py-3 px-2 font-bold whitespace-nowrap">Subject</th>
+                      <th className="text-center py-3 px-2 font-bold text-red-400">E (40)</th>
+                      <th className="text-center py-3 px-2 font-bold text-orange-400">D (50)</th>
+                      <th className="text-center py-3 px-2 font-bold text-yellow-500">C (60)</th>
+                      <th className="text-center py-3 px-2 font-bold text-indigo-400">B (70)</th>
+                      <th className="text-center py-3 px-2 font-bold text-blue-400">A (80)</th>
+                      <th className="text-center py-3 px-2 font-bold text-green-400">S (90)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {minimumPassingTable.map(sub => (
-                      <tr key={sub.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3.5 px-3">
-                          <div className="truncate font-bold text-zinc-200 font-display text-sm" title={sub.name}>
+                      <tr key={sub.id} className={`border-b ${themeClasses.border} hover:bg-white/[0.04]`}>
+
+                        {/* CHANGED: Increased max-w to 150px for better readability on mobile */}
+                        <td className="py-3 px-2 font-medium max-w-[150px] sm:max-w-none">
+                          <div className="truncate font-bold text-zinc-200" title={sub.name}>
                             {sub.name}
                           </div>
-                          <div className="text-[10px] text-zinc-500 mt-0.5">{sub.credits} Credits • Max ESA: {sub.esaMax}</div>
+                          <div className={`text-[10px] ${themeClasses.muted}`}>{sub.credits} Cr • Max: {sub.esaMax}</div>
                         </td>
 
                         {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
                           const req = sub.gradeRequirements.find(g => g.grade === grade);
                           const isa2MiniLine = req?.showIsa2Needed ? (
                             req.isa2Needed === null ? (
-                              <div className="text-[9px] text-red-400/80 leading-none mt-1">I2: ✗</div>
+                              <div className="text-[9px] text-red-400 leading-none mt-0.5">I2: ✗</div>
                             ) : (
-                              <div className="text-[9px] text-zinc-500 leading-none mt-1 font-semibold">I2: {req.isa2Needed}/{req.isa2Max}</div>
+                              <div className="text-[9px] text-zinc-500 leading-none mt-0.5">I2: {req.isa2Needed}/{req.isa2Max}</div>
                             )
                           ) : null;
                           return (
-                            <td key={grade} className="text-center py-3.5 px-2">
+                            <td key={grade} className="text-center py-3 px-2">
                               {!req?.possible ? (
-                                <div className="inline-flex flex-col items-center">
-                                  <span className="text-red-500/50 text-xs font-bold bg-red-500/5 border border-red-500/10 px-2 py-0.5 rounded-md">✗</span>
+                                <div>
+                                  <span className="text-red-500 text-xs font-bold">✗</span>
                                   {isa2MiniLine}
                                 </div>
                               ) : req.alreadyAchieved ? (
-                                <div className="inline-flex flex-col items-center">
-                                  <span className="text-emerald-400 font-extrabold text-xs bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">✓</span>
+                                <div>
+                                  <span className="text-green-400 font-bold">✓</span>
                                   {isa2MiniLine}
                                 </div>
                               ) : (
-                                <div className="inline-flex flex-col items-center">
-                                  <span className={`font-mono font-bold text-xs px-2 py-0.5 rounded-md border ${req.requiresRounding ? 'text-orange-400 bg-orange-500/5 border-orange-500/20' :
-                                    req.easy ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25 shadow-[0_0_10px_rgba(16,185,129,0.05)]' :
-                                      req.moderate ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
-                                        'text-orange-400 bg-orange-500/5 border-orange-500/20'
+                                <div>
+                                  <span className={`font-mono font-bold ${req.requiresRounding ? 'text-orange-400' :
+                                    req.easy ? 'text-green-400' :
+                                      req.moderate ? 'text-blue-400' :
+                                        'text-orange-400'
                                     }`}>
                                     {req.requiredEsa}
                                     {req.requiresRounding && '*'}
                                   </span>
                                   {req.minimumEsa !== null && req.minimumEsa < req.requiredEsa && (
-                                    <div className="text-[9px] text-zinc-500 mt-0.5">
+                                    <div className={`text-[9px] ${themeClasses.muted}`}>
                                       ({req.minimumEsa})
                                     </div>
                                   )}
@@ -3737,75 +3715,14 @@ export default function PES_Universal_Calculator() {
                 </table>
               </div>
 
-              {/* Mobile Card-based Grid View */}
-              <div className="block md:hidden space-y-4">
-                {minimumPassingTable.map(sub => (
-                  <div key={sub.id} className="p-4 bg-white/[0.02] border border-white/[0.05] rounded-xl space-y-3">
-                    <div className="flex justify-between items-start border-b border-white/[0.03] pb-2">
-                      <div>
-                        <h4 className="font-bold text-sm text-zinc-200 font-display">{sub.name}</h4>
-                        <p className="text-[10px] text-zinc-500 mt-0.5">{sub.credits} Credits • Max ESA: {sub.esaMax}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2">
-                      {['E', 'D', 'C', 'B', 'A', 'S'].map(grade => {
-                        const req = sub.gradeRequirements.find(g => g.grade === grade);
-                        const isa2MiniLine = req?.showIsa2Needed ? (
-                          req.isa2Needed === null ? (
-                            <div className="text-[8px] text-red-400/80 leading-none mt-1">I2: ✗</div>
-                          ) : (
-                            <div className="text-[8px] text-zinc-500 leading-none mt-1 font-semibold">I2: {req.isa2Needed}/{req.isa2Max}</div>
-                          )
-                        ) : null;
-
-                        let badgeColorClass = "text-orange-400 bg-orange-500/5 border-orange-500/20";
-                        if (!req?.possible) {
-                          badgeColorClass = "text-red-500/50 bg-red-500/5 border-red-500/10";
-                        } else if (req.alreadyAchieved) {
-                          badgeColorClass = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-                        } else if (req.easy) {
-                          badgeColorClass = "text-emerald-400 bg-emerald-500/10 border-emerald-500/25 shadow-[0_0_8px_rgba(16,185,129,0.03)]";
-                        } else if (req.moderate) {
-                          badgeColorClass = "text-blue-400 bg-blue-500/10 border-blue-500/20";
-                        }
-
-                        return (
-                          <div key={grade} className="flex flex-col items-center p-2 rounded-lg bg-black/20 border border-white/[0.02]">
-                            <span className="text-[10px] font-black text-zinc-400 mb-1.5 font-display">{grade} Grade</span>
-                            {!req?.possible ? (
-                              <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${badgeColorClass}`}>✗</span>
-                            ) : req.alreadyAchieved ? (
-                              <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${badgeColorClass}`}>✓</span>
-                            ) : (
-                              <div className="flex flex-col items-center">
-                                <span className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded border ${badgeColorClass}`}>
-                                  {req.requiredEsa}
-                                  {req.requiresRounding && '*'}
-                                </span>
-                                {req.minimumEsa !== null && req.minimumEsa < req.requiredEsa && (
-                                  <span className="text-[8px] text-zinc-500 mt-0.5">({req.minimumEsa})</span>
-                                )}
-                              </div>
-                            )}
-                            {isa2MiniLine}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Table legend */}
-              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 text-[10px] text-zinc-500 pt-4 border-t border-white/[0.05]">
-                <span className="flex items-center gap-1"><span className="text-emerald-400 font-extrabold">✓</span> Achieved</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500/30 border border-emerald-500/50"></span> Easy (≤50)</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500/30 border border-blue-500/50"></span> Moderate (51-75)</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500/30 border border-orange-500/50"></span> Hard (&gt;75)</span>
-                <span className="flex items-center gap-1"><span className="text-red-500 font-bold">✗</span> Not possible</span>
-                <span className="flex items-center gap-1"><span>(xx)</span> Best case</span>
-                <span className="flex items-center gap-1"><span className="text-orange-400">*</span> Rounding luck</span>
+              <div className={`flex flex-wrap gap-4 mt-4 text-xs ${themeClasses.muted} pt-4 border-t ${themeClasses.border}`}>
+                <span><span className="text-green-400 font-bold">✓</span> Already achieved</span>
+                <span><span className="text-green-400">Green</span> Easy (≤50)</span>
+                <span><span className="text-blue-400">Blue</span> Moderate (51-75)</span>
+                <span><span className="text-orange-400">Orange</span> Hard (&gt;75)</span>
+                <span><span className="text-red-500 font-bold">✗</span> Not possible</span>
+                <span><span className={themeClasses.muted}>(xx)</span> Best case (with rounding)</span>
+                <span><span className="text-orange-400">*</span> Requires rounding luck</span>
               </div>
             </div>
           </div>
@@ -3814,469 +3731,433 @@ export default function PES_Universal_Calculator() {
         {/* ==================== ATTENDANCE TAB ==================== */}
         {activeTab === 'attendance' && (
           <div className="space-y-6">
-            <div className="glass-card rounded-2xl shadow-2xl p-6 text-zinc-200 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/[0.05] blur-[70px] rounded-full pointer-events-none"></div>
-              <div className="absolute bottom-0 left-0 w-36 h-36 bg-blue-500/[0.03] blur-[60px] rounded-full pointer-events-none"></div>
-              
-              <div className="border-b border-white/[0.05] pb-4">
-                <h2 className="text-xl font-bold flex items-center gap-2 font-display">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 animate-pulse" /> Overall Attendance
-                </h2>
-                <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
-                  One subject at a time. Mode 1 is the base, and all planning modes use it automatically.
-                </p>
-              </div>
+            <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Overall Attendance
+              </h2>
+              <p className={`text-xs ${themeClasses.muted} mt-1`}>
+                One subject at a time. Mode 1 is the base, and all planning modes use it automatically.
+              </p>
             </div>
 
-            {/* MODE 1 ACCORDION */}
-            <details className="glass-card rounded-2xl group overflow-hidden" open>
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors border-b border-transparent group-open:border-white/[0.05]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/25 shadow-sm">
-                    <CheckCircle2 className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-bold font-display text-zinc-200">Mode 1 — Current Attendance and Shared Baseline</span>
+            <details className={`${themeClasses.card} border rounded-xl group`} open>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-bold">Mode 1 — Current Attendance and Shared Baseline</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-bold bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.05]">Saved locally</span>
-                  <ChevronDown className="w-4 h-4 text-zinc-400 opacity-60 transition-transform group-open:rotate-180" />
+                  <span className={`text-[10px] ${themeClasses.muted}`}>Saved locally</span>
+                  <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
                 </div>
               </summary>
 
-              <div className="p-5 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Classes Held So Far</label>
-                    <input
-                      type="number"
-                      value={attendanceStatusMode.total}
-                      onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, total: e.target.value }))}
-                      placeholder="e.g. 51"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-emerald-500/50 focus:ring-emerald-500/10"
-                    />
-                  </div>
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Attended</label>
-                    <input
-                      type="number"
-                      value={attendanceStatusMode.attended}
-                      onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, attended: e.target.value }))}
-                      placeholder="e.g. 48"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-emerald-500/50 focus:ring-emerald-500/10"
-                    />
-                  </div>
+              <div className="p-4 pt-0 space-y-4">
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Held So Far</label>
+                  <input
+                    type="number"
+                    value={attendanceStatusMode.total}
+                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, total: e.target.value }))}
+                    placeholder="e.g. 51"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                  />
                 </div>
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Attended</label>
+                  <input
+                    type="number"
+                    value={attendanceStatusMode.attended}
+                    onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, attended: e.target.value }))}
+                    placeholder="e.g. 48"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
 
-                {statusStats.invalid && (
-                  <div className="text-xs text-red-400 font-semibold bg-red-500/10 border border-red-500/20 p-3 rounded-xl flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>Attended classes cannot be greater than classes held.</span>
-                  </div>
-                )}
+              {statusStats.invalid && (
+                <div className="text-xs text-red-400">
+                  Attended classes cannot be greater than classes held.
+                </div>
+              )}
 
-                {statusStats.ready ? (
-                  <div className="space-y-4">
-                    <div className={`p-5 rounded-2xl border transition-all ${
-                      statusStats.isAboveMinimum 
-                        ? 'bg-emerald-500/[0.02] border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.02)]' 
-                        : 'bg-red-500/[0.02] border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.02)]'
-                    }`}>
-                      <div className="flex justify-between items-center mb-3">
-                        <span className={`text-xs font-bold font-display uppercase tracking-wider ${statusStats.isAboveMinimum ? 'text-emerald-400' : 'text-red-400'}`}>
-                          Current Attendance Status
-                        </span>
-                        <span className={`text-2xl font-black font-display ${statusStats.isAboveMinimum ? 'text-emerald-400 text-glow-emerald' : 'text-red-400'}`}>
-                          {statusStats.currentPercentage.toFixed(2)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-black/40 border border-white/[0.05] h-3 rounded-full overflow-hidden p-0.5">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            statusStats.isAboveMinimum 
-                              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
-                              : 'bg-gradient-to-r from-red-500 to-rose-400'
-                          }`}
-                          style={{ width: `${Math.min(100, statusStats.currentPercentage)}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px] mt-2 font-semibold text-zinc-500">
-                        <span>0%</span>
-                        <span className={`font-bold ${statusStats.isAboveMinimum ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {ATTENDANCE_MIN_PERCENT}% Required Baseline
-                        </span>
-                        <span>100%</span>
-                      </div>
+              {statusStats.ready ? (
+                <div className="space-y-3">
+                  <div className={`p-3 rounded-lg ${statusStats.isAboveMinimum ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className={`text-xs font-bold ${statusStats.isAboveMinimum ? 'text-green-300' : 'text-red-300'}`}>
+                        Current Attendance
+                      </span>
+                      <span className={`text-lg font-bold ${statusStats.isAboveMinimum ? 'text-green-400' : 'text-red-400'}`}>
+                        {statusStats.currentPercentage.toFixed(2)}%
+                      </span>
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                        <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Classes Attended / Held</div>
-                        <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{statusStats.attended}/{statusStats.total}</div>
-                      </div>
-                      <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                        <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Consecutive Skip Allowance</div>
-                        <div className={`text-base font-black mt-1.5 font-display ${statusStats.maxConsecutiveSkipsNow > 0 ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                          {statusStats.maxConsecutiveSkipsNow} {statusStats.maxConsecutiveSkipsNow === 1 ? 'class' : 'classes'}
-                        </div>
-                      </div>
-                      {!statusStats.isAboveMinimum && (
-                        <div className="bg-red-500/[0.02] border border-red-500/20 rounded-xl p-3.5 shadow-sm">
-                          <div className="text-[9px] uppercase font-black text-red-300 tracking-wider font-display">Classes Needed to Recover</div>
-                          <div className="text-base font-black mt-1.5 text-red-400 font-display">{statusStats.classesToAttendNow} classes</div>
-                        </div>
-                      )}
-                      <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                        <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Safety Margin</div>
-                        <div className={`text-base font-black mt-1.5 font-display ${statusStats.currentPercentage >= ATTENDANCE_MIN_PERCENT ? 'text-emerald-400' : 'text-red-400'}`}>
-                          {(statusStats.currentPercentage >= ATTENDANCE_MIN_PERCENT ? '+' : '')}
-                          {(statusStats.currentPercentage - ATTENDANCE_MIN_PERCENT).toFixed(2)}%
-                        </div>
-                      </div>
-                      {statusStats.isAboveMinimum && statusStats.maxConsecutiveSkipsNow > 0 && (
-                        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm col-span-1 sm:col-span-2 lg:col-span-1">
-                          <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Post-Skip Attendance Projection</div>
-                          <div className="text-base font-black mt-1.5 text-zinc-200 font-display">
-                            {((statusStats.attended / (statusStats.total + statusStats.maxConsecutiveSkipsNow)) * 100).toFixed(2)}%
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="text-xs text-zinc-300 bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl leading-relaxed">
-                      {statusStats.isAboveMinimum
-                        ? `You are above ${ATTENDANCE_MIN_PERCENT}%. You can miss ${statusStats.maxConsecutiveSkipsNow} consecutive classes before you need to attend again.`
-                        : `You are below ${ATTENDANCE_MIN_PERCENT}%. Attend the next ${statusStats.classesToAttendNow} classes continuously to recover above the minimum.`}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-zinc-500 text-xs font-semibold bg-white/[0.01] border border-dashed border-white/[0.05] rounded-xl">
-                    Enter classes held and attended to view this mode.
-                  </div>
-                )}
-
-                {/* TARGET BUFFER ACCORDION SECTION */}
-                <div className="bg-white/[0.02] border border-white/[0.05] rounded-2xl p-4 space-y-4">
-                  <div className="flex items-center justify-between border-b border-white/[0.04] pb-3">
-                    <div className="text-sm font-bold font-display text-zinc-200">Separate Target Planner (Buffer)</div>
-                    <div className="text-[10px] text-zinc-500 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.05] font-semibold">Used in Mode 2/3/4</div>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="bg-black/20 p-3 rounded-xl border border-white/[0.03]">
-                      <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Target Attendance %</label>
-                      <input
-                        type="number"
-                        value={attendanceStatusMode.bufferPercent}
-                        onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: e.target.value }))}
-                        placeholder="e.g. 80"
-                        className="w-full glass-input p-2.5 text-sm font-bold text-center focus:ring-emerald-500"
+                    <div className="w-full bg-white/[0.06] h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${statusStats.isAboveMinimum ? 'bg-green-500' : 'bg-red-500'}`}
+                        style={{ width: `${Math.min(100, statusStats.currentPercentage)}%` }}
                       />
                     </div>
+                    <div className="flex justify-between text-[10px] mt-1">
+                      <span className={themeClasses.muted}>0%</span>
+                      <span className={`font-bold ${statusStats.isAboveMinimum ? 'text-green-400' : 'text-red-400'}`}>{ATTENDANCE_MIN_PERCENT}% Minimum</span>
+                      <span className={themeClasses.muted}>100%</span>
+                    </div>
                   </div>
 
-                  {targetStatusStats ? (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                          <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">
-                            Max Miss Limit (Target {targetStatusStats.targetPercent.toFixed(2)}%)
-                          </div>
-                          <div className={`text-base font-black mt-1.5 font-display ${targetStatusStats.maxConsecutiveSkipsForTarget > 0 ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                            {targetStatusStats.maxConsecutiveSkipsForTarget} classes
-                          </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] uppercase font-bold opacity-60">Attendance Entered (Attended / Held)</div>
+                      <div className="text-sm font-bold mt-1">{statusStats.attended}/{statusStats.total}</div>
+                    </div>
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] uppercase font-bold opacity-60">Maximum Consecutive Classes You Can Miss Right Now</div>
+                      <div className="text-sm font-bold mt-1">{statusStats.maxConsecutiveSkipsNow}</div>
+                    </div>
+                    {!statusStats.isAboveMinimum && (
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">Consecutive Classes You Must Attend to Reach 75%</div>
+                        <div className="text-sm font-bold mt-1">{statusStats.classesToAttendNow}</div>
+                      </div>
+                    )}
+                    <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                      <div className="text-[10px] uppercase font-bold opacity-60">Difference From the 75% Minimum</div>
+                      <div className="text-sm font-bold mt-1">
+                        {(statusStats.currentPercentage >= ATTENDANCE_MIN_PERCENT ? '+' : '')}
+                        {(statusStats.currentPercentage - ATTENDANCE_MIN_PERCENT).toFixed(2)}%
+                      </div>
+                    </div>
+                    {statusStats.isAboveMinimum && statusStats.maxConsecutiveSkipsNow > 0 && (
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing Max Allowed (75%)</div>
+                        <div className="text-sm font-bold mt-1">
+                          {((statusStats.attended / (statusStats.total + statusStats.maxConsecutiveSkipsNow)) * 100).toFixed(2)}%
                         </div>
-                        {!targetStatusStats.isAboveTarget && (
-                          <div className="bg-amber-500/[0.02] border border-amber-500/20 rounded-xl p-3.5 shadow-sm">
-                            <div className="text-[9px] uppercase font-black text-amber-300 tracking-wider font-display">
-                              Required Attendance Streak for Target
-                            </div>
-                            <div className="text-base font-black mt-1.5 text-amber-400 font-display">{targetStatusStats.classesToAttendForTarget} classes</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`text-xs ${themeClasses.muted}`}>
+                    {statusStats.isAboveMinimum
+                      ? `You are above ${ATTENDANCE_MIN_PERCENT}%. You can miss ${statusStats.maxConsecutiveSkipsNow} consecutive classes before you need to attend again.`
+                      : `You are below ${ATTENDANCE_MIN_PERCENT}%. Attend the next ${statusStats.classesToAttendNow} classes continuously to recover above the minimum.`}
+                  </div>
+                </div>
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  Enter classes held and attended to view this mode.
+                </div>
+              )}
+
+              <div className="bg-white/[0.03] rounded-lg p-3 border border-white/[0.08] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold">Separate Target Planner (Buffer)</div>
+                  <div className={`text-[10px] ${themeClasses.muted}`}>Used in Mode 2/3/4</div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Target Attendance %</label>
+                    <input
+                      type="number"
+                      value={attendanceStatusMode.bufferPercent}
+                      onChange={(e) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: e.target.value }))}
+                      placeholder="e.g. 80"
+                      className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                    />
+                  </div>
+                </div>
+
+                {targetStatusStats ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">
+                          Maximum Consecutive Classes You Can Miss (Target {targetStatusStats.targetPercent.toFixed(2)}%)
+                        </div>
+                        <div className="text-sm font-bold mt-1">{targetStatusStats.maxConsecutiveSkipsForTarget}</div>
+                      </div>
+                      {!targetStatusStats.isAboveTarget && (
+                        <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                          <div className="text-[10px] uppercase font-bold opacity-60">
+                            Consecutive Classes You Must Attend to Reach {targetStatusStats.targetPercent.toFixed(2)}%
                           </div>
-                        )}
-                      </div>
-                      <div className="text-xs text-zinc-400 leading-relaxed bg-black/20 p-3 rounded-xl border border-white/[0.03]">
-                        {targetStatusStats.isAboveTarget
-                          ? `You are already above ${targetStatusStats.targetPercent.toFixed(2)}%.`
-                          : `You are below ${targetStatusStats.targetPercent.toFixed(2)}%. Attend ${targetStatusStats.classesToAttendForTarget} consecutive classes to recover.`}
-                      </div>
+                          <div className="text-sm font-bold mt-1">{targetStatusStats.classesToAttendForTarget}</div>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-xs text-zinc-500 italic font-medium">
-                      Fill classes held and attended above to activate this target planner.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </details>
-
-            {/* MODE 2 ACCORDION */}
-            <details className="glass-card rounded-2xl group overflow-hidden">
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors border-b border-transparent group-open:border-white/[0.05]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/25 shadow-sm">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-bold font-display text-zinc-200">Mode 2 — Plan Using Classes Remaining</span>
-                </div>
-                <ChevronDown className="w-4 h-4 text-zinc-400 opacity-60 transition-transform group-open:rotate-180" />
-              </summary>
-
-              <div className="p-5 space-y-4">
-                <div className="text-[10px] text-zinc-400 bg-blue-500/[0.03] border border-blue-500/20 px-3.5 py-2.5 rounded-xl leading-relaxed">
-                  {statusStats.ready
-                    ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
-                    : 'Fill Mode 1 first to unlock this planner.'}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Classes Left</label>
-                    <input
-                      type="number"
-                      value={attendanceClassesLeftMode.classesLeft}
-                      onChange={(e) => setAttendanceClassesLeftMode(prev => ({ ...prev, classesLeft: e.target.value }))}
-                      placeholder="e.g. 24"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-blue-500/50 focus:ring-blue-500/10"
-                    />
-                  </div>
-                </div>
-
-                {classesLeftPlan && statusStats.ready ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Allowed Misses (75% Target)</div>
-                      <div className="text-base font-black mt-1.5 text-emerald-400 font-display">{classesLeftPlan.safeMisses75}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Must Attend (75% Target)</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{classesLeftPlan.mustAttendFor75}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Allowed Misses (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{classesLeftPlan.safeMissesBuffer}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Projected End Range</div>
-                      <div className="text-sm font-black mt-1.5 text-zinc-200 font-display">{classesLeftPlan.worstFinalPercentage.toFixed(2)}% - {classesLeftPlan.bestFinalPercentage.toFixed(2)}%</div>
+                    <div className={`text-xs ${themeClasses.muted}`}>
+                      {targetStatusStats.isAboveTarget
+                        ? `You are already above ${targetStatusStats.targetPercent.toFixed(2)}%.`
+                        : `You are below ${targetStatusStats.targetPercent.toFixed(2)}%. Attend ${targetStatusStats.classesToAttendForTarget} consecutive classes to recover.`}
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-zinc-500 text-xs font-semibold bg-white/[0.01] border border-dashed border-white/[0.05] rounded-xl">
-                    {statusStats.ready ? 'Enter classes left to see the result.' : 'Complete Mode 1 first to use this planner.'}
+                  <div className={`text-xs ${themeClasses.muted}`}>
+                    Fill classes held and attended above to activate this target planner.
                   </div>
                 )}
               </div>
-            </details>
-
-            {/* MODE 3 ACCORDION */}
-            <details className="glass-card rounded-2xl group overflow-hidden">
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors border-b border-transparent group-open:border-white/[0.05]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/25 shadow-sm">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-bold font-display text-zinc-200">Mode 3 — Plan Using Total Semester Classes</span>
-                </div>
-                <ChevronDown className="w-4 h-4 text-zinc-400 opacity-60 transition-transform group-open:rotate-180" />
-              </summary>
-
-              <div className="p-5 space-y-4">
-                <div className="text-[10px] text-zinc-400 bg-emerald-500/[0.03] border border-emerald-500/20 px-3.5 py-2.5 rounded-xl leading-relaxed">
-                  {statusStats.ready
-                    ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
-                    : 'Fill Mode 1 first to unlock this planner.'}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Total Classes in Semester</label>
-                    <input
-                      type="number"
-                      value={attendanceSemesterMode.semesterTotal}
-                      onChange={(e) => setAttendanceSemesterMode(prev => ({ ...prev, semesterTotal: e.target.value }))}
-                      placeholder="e.g. 90"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-emerald-500/50 focus:ring-emerald-500/10"
-                    />
-                  </div>
-                </div>
-
-                {semesterPlan?.invalid ? (
-                  <div className="text-xs text-red-400 font-semibold bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
-                    Semester total cannot be less than classes already held.
-                  </div>
-                ) : semesterPlan && statusStats.ready ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Classes Remaining</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{semesterPlan.classesLeft}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Semester Miss Limit (75%)</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{semesterPlan.maxTotalMissesWhole75}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Additional Misses Allowed (75%)</div>
-                      <div className="text-base font-black mt-1.5 text-emerald-400 font-display">{semesterPlan.safeMisses75}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Must Attend (75% Target)</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{semesterPlan.mustAttendFor75}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Additional Misses (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{semesterPlan.safeMissesBuffer}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Projected End Range</div>
-                      <div className="text-sm font-black mt-1.5 text-zinc-200 font-display">{semesterPlan.worstFinalPercentage.toFixed(2)}% - {semesterPlan.bestFinalPercentage.toFixed(2)}%</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-zinc-500 text-xs font-semibold bg-white/[0.01] border border-dashed border-white/[0.05] rounded-xl">
-                    {statusStats.ready ? 'Enter total semester classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
-                  </div>
-                )}
               </div>
             </details>
 
-            {/* MODE 4 ACCORDION */}
-            <details className="glass-card rounded-2xl group overflow-hidden">
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors border-b border-transparent group-open:border-white/[0.05]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400 border border-violet-500/25 shadow-sm">
-                    <TrendingUp className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-bold font-display text-zinc-200">Mode 4 — Weekly Class Range Planner</span>
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm font-bold">Mode 2 — Plan Using Classes Remaining</span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-zinc-400 opacity-60 transition-transform group-open:rotate-180" />
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
               </summary>
 
-              <div className="p-5 space-y-4">
-                <div className="text-[10px] text-zinc-400 bg-violet-500/[0.03] border border-violet-500/20 px-3.5 py-2.5 rounded-xl leading-relaxed">
-                  {statusStats.ready
-                    ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
-                    : 'Fill Mode 1 first to unlock this planner.'}
-                </div>
+              <div className="p-4 pt-0 space-y-4">
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                {statusStats.ready
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
+                  : 'Fill Mode 1 first to unlock this planner.'}
+              </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl col-span-2 lg:col-span-1">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Weeks Left</label>
-                    <input
-                      type="number"
-                      value={attendanceWeeklyMode.weeksLeft}
-                      onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, weeksLeft: e.target.value }))}
-                      placeholder="e.g. 6"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-violet-500/50 focus:ring-violet-500/10"
-                    />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Classes Left</label>
+                  <input
+                    type="number"
+                    value={attendanceClassesLeftMode.classesLeft}
+                    onChange={(e) => setAttendanceClassesLeftMode(prev => ({ ...prev, classesLeft: e.target.value }))}
+                    placeholder="e.g. 24"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              {classesLeftPlan && statusStats.ready ? (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMisses75}</div>
                   </div>
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Min Classes / Week</label>
-                    <input
-                      type="number"
-                      value={attendanceWeeklyMode.minPerWeek}
-                      onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, minPerWeek: e.target.value }))}
-                      placeholder="e.g. 4"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-violet-500/50 focus:ring-violet-500/10"
-                    />
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.mustAttendFor75}</div>
                   </div>
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Max Classes / Week</label>
-                    <input
-                      type="number"
-                      value={attendanceWeeklyMode.maxPerWeek}
-                      onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, maxPerWeek: e.target.value }))}
-                      placeholder="e.g. 6"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-violet-500/50 focus:ring-violet-500/10"
-                    />
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.safeMissesBuffer}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
+                    <div className="text-sm font-bold mt-1">{classesLeftPlan.worstFinalPercentage.toFixed(2)}% - {classesLeftPlan.bestFinalPercentage.toFixed(2)}%</div>
                   </div>
                 </div>
-
-                <div className="text-[10px] text-zinc-500 font-semibold bg-black/20 p-2.5 rounded-xl border border-white/[0.03]">
-                  Use the same number for minimum and maximum if every week has the same class count.
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  {statusStats.ready ? 'Enter classes left to see the result.' : 'Complete Mode 1 first to use this planner.'}
                 </div>
-
-                {weeklyPlan?.minPlan && weeklyPlan?.maxPlan && statusStats.ready ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Remaining Classes (Est)</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{weeklyPlan.minPlan.remaining}{weeklyPlan.maxPlan.remaining !== weeklyPlan.minPlan.remaining && <span className="text-zinc-500 font-semibold"> - {weeklyPlan.maxPlan.remaining}</span>}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Allowed Misses (75% Target)</div>
-                      <div className="text-base font-black mt-1.5 text-emerald-400 font-display">{weeklyPlan.minPlan.safeMisses75}{weeklyPlan.maxPlan.safeMisses75 !== weeklyPlan.minPlan.safeMisses75 && <span className="text-emerald-500/50 font-semibold"> - {weeklyPlan.maxPlan.safeMisses75}</span>}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Allowed Misses (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
-                      <div className="text-base font-black mt-1.5 text-zinc-200 font-display">{weeklyPlan.minPlan.safeMissesBuffer}{weeklyPlan.maxPlan.safeMissesBuffer !== weeklyPlan.minPlan.safeMissesBuffer && <span className="text-zinc-500 font-semibold"> - {weeklyPlan.maxPlan.safeMissesBuffer}</span>}</div>
-                    </div>
-                    <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                      <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Projected End Range</div>
-                      <div className="text-sm font-black mt-1.5 text-zinc-200 font-display">{weeklyPlan.minPlan.worstFinalPercentage.toFixed(2)}% - {weeklyPlan.maxPlan.bestFinalPercentage.toFixed(2)}%</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-zinc-500 text-xs font-semibold bg-white/[0.01] border border-dashed border-white/[0.05] rounded-xl">
-                    {statusStats.ready ? 'Enter weekly range values to see the result.' : 'Complete Mode 1 first to use this planner.'}
-                  </div>
-                )}
+              )}
               </div>
             </details>
 
-            {/* MODE 5 ACCORDION */}
-            <details className="glass-card rounded-2xl group overflow-hidden">
-              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors border-b border-transparent group-open:border-white/[0.05]">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/25 shadow-sm">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <span className="text-sm font-bold font-display text-zinc-200">Mode 5 — Miss Impact Planner</span>
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-bold">Mode 3 — Plan Using Total Semester Classes</span>
                 </div>
-                <ChevronDown className="w-4 h-4 text-zinc-400 opacity-60 transition-transform group-open:rotate-180" />
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
               </summary>
 
-              <div className="p-5 space-y-4">
-                <div className="text-[10px] text-zinc-400 bg-amber-500/[0.03] border border-amber-500/20 px-3.5 py-2.5 rounded-xl leading-relaxed">
+              <div className="p-4 pt-0 space-y-4">
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                {statusStats.ready
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
+                  : 'Fill Mode 1 first to unlock this planner.'}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Total Classes in Semester</label>
+                  <input
+                    type="number"
+                    value={attendanceSemesterMode.semesterTotal}
+                    onChange={(e) => setAttendanceSemesterMode(prev => ({ ...prev, semesterTotal: e.target.value }))}
+                    placeholder="e.g. 90"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              {semesterPlan?.invalid ? (
+                <div className="text-xs text-red-400">
+                  Semester total cannot be less than classes already held.
+                </div>
+              ) : semesterPlan && statusStats.ready ? (
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Classes Remaining in Semester</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.classesLeft}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Total Semester Miss Limit (75%)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.maxTotalMissesWhole75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Additional Misses Allowed From Now (75%)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.safeMisses75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Must Attend From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.mustAttendFor75}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.safeMissesBuffer}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
+                    <div className="text-sm font-bold mt-1">{semesterPlan.worstFinalPercentage.toFixed(2)}% - {semesterPlan.bestFinalPercentage.toFixed(2)}%</div>
+                  </div>
+                </div>
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  {statusStats.ready ? 'Enter total semester classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
+                </div>
+              )}
+              </div>
+            </details>
+
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-violet-400" />
+                  <span className="text-sm font-bold">Mode 4 — Weekly Class Range Planner</span>
+                </div>
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="p-4 pt-0 space-y-4">
+
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                {statusStats.ready
+                  ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%). Buffer target: ${sharedBufferPercent.toFixed(2)}%.`
+                  : 'Fill Mode 1 first to unlock this planner.'}
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Weeks Left</label>
+                  <input
+                    type="number"
+                    value={attendanceWeeklyMode.weeksLeft}
+                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, weeksLeft: e.target.value }))}
+                    placeholder="e.g. 6"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+                <div>
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Min Classes / Week</label>
+                  <input
+                    type="number"
+                    value={attendanceWeeklyMode.minPerWeek}
+                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, minPerWeek: e.target.value }))}
+                    placeholder="e.g. 4"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+                <div className="col-span-2 lg:col-span-1">
+                  <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>Max Classes / Week</label>
+                  <input
+                    type="number"
+                    value={attendanceWeeklyMode.maxPerWeek}
+                    onChange={(e) => setAttendanceWeeklyMode(prev => ({ ...prev, maxPerWeek: e.target.value }))}
+                    placeholder="e.g. 6"
+                    className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none ${themeClasses.input}`}
+                  />
+                </div>
+              </div>
+
+              <div className={`text-[10px] ${themeClasses.muted}`}>
+                Use the same number for minimum and maximum if every week has the same class count.
+              </div>
+
+              {weeklyPlan?.minPlan && weeklyPlan?.maxPlan && statusStats.ready ? (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Estimated Remaining Classes</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.remaining}{weeklyPlan.maxPlan.remaining !== weeklyPlan.minPlan.remaining && <span className="opacity-60"> - {weeklyPlan.maxPlan.remaining}</span>}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Still Miss From Now (75% Target)</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMisses75}{weeklyPlan.maxPlan.safeMisses75 !== weeklyPlan.minPlan.safeMisses75 && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMisses75}</span>}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Can Miss From Now (Buffer {sharedBufferPercent.toFixed(2)}%)</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.safeMissesBuffer}{weeklyPlan.maxPlan.safeMissesBuffer !== weeklyPlan.minPlan.safeMissesBuffer && <span className="opacity-60"> - {weeklyPlan.maxPlan.safeMissesBuffer}</span>}</div>
+                  </div>
+                  <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60">Possible Final Attendance Percentage Range</div>
+                    <div className="text-sm font-bold mt-1">{weeklyPlan.minPlan.worstFinalPercentage.toFixed(2)}% - {weeklyPlan.maxPlan.bestFinalPercentage.toFixed(2)}%</div>
+                  </div>
+                </div>
+              ) : (
+                <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+                  {statusStats.ready ? 'Enter weekly range values to see the result.' : 'Complete Mode 1 first to use this planner.'}
+                </div>
+              )}
+              </div>
+            </details>
+
+            <details className={`${themeClasses.card} border rounded-xl group`}>
+              <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm font-bold">Mode 5 — Miss Impact Planner</span>
+                </div>
+                <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="p-4 pt-0 space-y-4">
+                <div className={`text-[10px] ${themeClasses.muted}`}>
                   {statusStats.ready
                     ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%).`
                     : 'Fill Mode 1 first to unlock this planner.'}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-white/[0.02] border border-white/[0.05] p-3.5 rounded-xl">
-                    <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">How many classes do you want to miss?</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>How many classes do you want to miss?</label>
                     <input
                       type="number"
                       value={attendanceMissPlannerMode.misses}
                       onChange={(e) => setAttendanceMissPlannerMode(prev => ({ ...prev, misses: e.target.value }))}
                       placeholder="e.g. 3"
-                      className="w-full glass-input p-2.5 text-sm font-bold text-center focus:border-amber-500/50 focus:ring-amber-500/10"
+                      className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none ${themeClasses.input}`}
                     />
                   </div>
                 </div>
 
                 {missImpactPlan && statusStats.ready ? (
-                  <div className="space-y-3">
-                    <div className={`grid ${missImpactPlan.isBelowAfterMisses ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3`}>
-                      <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3.5 shadow-sm">
-                        <div className="text-[9px] uppercase font-black text-zinc-400 tracking-wider font-display">Attendance After Missing {missImpactPlan.plannedMisses} Class(es)</div>
-                        <div className={`text-base font-black mt-1.5 font-display ${missImpactPlan.isBelowAfterMisses ? 'text-red-400' : 'text-emerald-400'}`}>
-                          {missImpactPlan.attendanceAfterPlannedMisses.toFixed(2)}%
-                        </div>
+                  <div className="space-y-2">
+                    <div className={`grid ${missImpactPlan.isBelowAfterMisses ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-2`}>
+                      <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                        <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing {missImpactPlan.plannedMisses} Class(es)</div>
+                        <div className={`text-sm font-bold mt-1 ${missImpactPlan.isBelowAfterMisses ? 'text-red-400' : ''}`}>{missImpactPlan.attendanceAfterPlannedMisses.toFixed(2)}%</div>
                       </div>
                       {missImpactPlan.isBelowAfterMisses && (
-                        <div className="bg-red-500/[0.02] border border-red-500/20 rounded-xl p-3.5 shadow-sm">
-                          <div className="text-[9px] uppercase font-black text-red-300 tracking-wider font-display">Streak Needed to Recover 75%</div>
-                          <div className="text-base font-black mt-1.5 text-red-400 font-display">{missImpactPlan.classesToRecoverAfterMisses} classes</div>
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 sm:p-3">
+                          <div className="text-[10px] uppercase font-bold opacity-60 text-red-300">Classes You Must Then Attend to Recover 75%</div>
+                          <div className="text-sm font-bold mt-1 text-red-400">{missImpactPlan.classesToRecoverAfterMisses}</div>
                         </div>
                       )}
                     </div>
                     {missImpactPlan.isBelowAfterMisses && (
-                      <div className="text-xs text-red-400 font-semibold bg-red-500/10 border border-red-500/20 p-3.5 rounded-xl leading-relaxed">
+                      <div className="text-xs text-red-400/80">
                         Missing {missImpactPlan.plannedMisses} class(es) will drop you below 75%. You would need to attend {missImpactPlan.classesToRecoverAfterMisses} consecutive classes after that to recover.
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-zinc-500 text-xs font-semibold bg-white/[0.01] border border-dashed border-white/[0.05] rounded-xl">
+                  <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
                     {statusStats.ready ? 'Enter planned missed classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
                   </div>
                 )}
@@ -4290,177 +4171,172 @@ export default function PES_Universal_Calculator() {
           <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
 
             {/* Header & Result Card */}
-            <div className="glass-card p-6 rounded-2xl shadow-2xl text-center relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-teal-400 via-emerald-500 to-indigo-500"></div>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-teal-500/[0.06] blur-[40px] pointer-events-none"></div>
+            <div className={`${themeClasses.card} p-6 rounded-2xl shadow-2xl border ${themeClasses.border} text-center relative overflow-hidden`}>
+              <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-teal-400 via-blue-500 to-violet-500"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-teal-500/[0.06] blur-[40px] pointer-events-none"></div>
 
-              <h2 className="text-xs font-black uppercase tracking-widest text-zinc-400 font-display mb-3">Cumulative GPA</h2>
+              <h2 className={`text-sm font-bold uppercase tracking-wider ${themeClasses.muted} mb-2`}>Cumulative GPA</h2>
 
-              <div className="flex flex-col items-center justify-center gap-1">
-                <div className="relative w-28 h-28 flex items-center justify-center rounded-full border-2 border-teal-500/20 bg-teal-500/[0.02] shadow-[0_0_30px_rgba(20,184,166,0.05)] mb-3">
-                  <span className="text-4xl md:text-5xl font-black text-teal-400 font-display text-glow-emerald">
-                    {(() => {
-                      const filledSems = semesterData.filter(s => s.sgpa && s.credits);
-                      if (filledSems.length === 0) return "0.00";
+              <div className="flex items-center justify-center gap-1">
+                <span className="text-5xl md:text-6xl font-black text-teal-400">
+                  {(() => {
+                    const filledSems = semesterData.filter(s => s.sgpa && s.credits);
+                    if (filledSems.length === 0) return "0.00";
 
-                      const totalPoints = filledSems.reduce((sum, s) => sum + (parseFloat(s.sgpa) * parseFloat(s.credits)), 0);
-                      const totalCredits = filledSems.reduce((sum, s) => sum + parseFloat(s.credits), 0);
+                    const totalPoints = filledSems.reduce((sum, s) => sum + (parseFloat(s.sgpa) * parseFloat(s.credits)), 0);
+                    const totalCredits = filledSems.reduce((sum, s) => sum + parseFloat(s.credits), 0);
 
-                      return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
-                    })()}
-                  </span>
-                </div>
-                <p className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider bg-white/[0.04] border border-white/[0.05] px-2.5 py-1 rounded-full">
-                  Based on {semesterData.filter(s => s.sgpa && s.credits).length} semesters of data
-                </p>
+                    return totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : "0.00";
+                  })()}
+                </span>
               </div>
+
+              <p className={`text-xs ${themeClasses.muted} mt-2`}>
+                Based on {semesterData.filter(s => s.sgpa && s.credits).length} semesters of data
+              </p>
             </div>
 
             {/* Helper Info */}
-            <div className="flex items-center gap-2.5 text-xs text-zinc-400 px-3 bg-white/[0.02] border border-white/[0.05] py-2.5 rounded-xl">
-              <Info className="w-4 h-4 text-teal-400 shrink-0" />
+            <div className="flex items-center gap-2 text-xs opacity-70 px-2">
+              <Info className="w-4 h-4" />
               <span>Enter SGPA and Credits for completed semesters. Leave future ones blank.</span>
             </div>
 
             {/* Semesters Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {semesterData.map((sem) => {
-                const isActive = sem.sgpa && sem.credits;
-                return (
-                  <div
-                    key={sem.id}
-                    className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all ${
-                      isActive
-                        ? 'glass-card border-teal-500/35 shadow-[0_0_15px_rgba(20,184,166,0.03)]'
-                        : 'bg-white/[0.02] border-white/[0.05] opacity-75 hover:opacity-100 hover:border-white/[0.08]'
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {semesterData.map((sem) => (
+                <div
+                  key={sem.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${(sem.sgpa && sem.credits)
+                    ? `${themeClasses.card} border-teal-500/30 shadow-sm`
+                    : 'bg-white/[0.03] border-transparent opacity-75 hover:opacity-100'
                     }`}
-                  >
-                    {/* Semester Label */}
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm font-display shrink-0 border ${
-                      isActive
-                        ? 'bg-teal-500/10 border-teal-500/20 text-teal-300 shadow-[0_0_10px_rgba(20,184,166,0.1)]'
-                        : 'bg-white/[0.04] border-white/[0.05] text-zinc-500'
+                >
+                  {/* Semester Label */}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${(sem.sgpa && sem.credits)
+                    ? 'bg-teal-500/10 text-teal-300'
+                    : 'bg-white/[0.06] text-zinc-500'
                     }`}>
-                      S{sem.id}
-                    </div>
+                    S{sem.id}
+                  </div>
 
-                    {/* Inputs */}
-                    <div className="flex-1 grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[9px] font-black uppercase tracking-wider text-zinc-500 mb-1 ml-1 font-display">SGPA</label>
-                        <input
-                          type="number"
-                          value={sem.sgpa}
-                          onChange={(e) => updateSemester(sem.id, 'sgpa', e.target.value)}
-                          placeholder="-"
-                          className="w-full glass-input p-2 text-xs font-bold text-center focus:ring-teal-500/30"
-                          min="0" max="10" step="0.01"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-black uppercase tracking-wider text-zinc-500 mb-1 ml-1 font-display">Credits</label>
-                        <input
-                          type="number"
-                          value={sem.credits}
-                          onChange={(e) => updateSemester(sem.id, 'credits', e.target.value)}
-                          placeholder="-"
-                          className="w-full glass-input p-2 text-xs text-center focus:ring-teal-500/30"
-                          min="0" max="30"
-                        />
-                      </div>
+                  {/* Inputs */}
+                  <div className="flex-1 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold opacity-50 mb-1 ml-1">SGPA</label>
+                      <input
+                        type="number"
+                        value={sem.sgpa}
+                        onChange={(e) => updateSemester(sem.id, 'sgpa', e.target.value)}
+                        placeholder="-"
+                        className={`w-full p-2 text-sm font-bold text-center border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
+                        min="0" max="10" step="0.01"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold opacity-50 mb-1 ml-1">Credits</label>
+                      <input
+                        type="number"
+                        value={sem.credits}
+                        onChange={(e) => updateSemester(sem.id, 'credits', e.target.value)}
+                        placeholder="-"
+                        className={`w-full p-2 text-sm text-center border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
+                        min="0" max="30"
+                      />
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-4">
               <button
                 onClick={resetCGPA}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-bold bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/30 rounded-xl transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_10px_rgba(239,68,68,0.03)]"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 hover:bg-red-500/10 rounded-lg transition-colors"
               >
-                <Trash2 className="w-3.5 h-3.5" /> Clear History
+                <Trash2 className="w-4 h-4" /> Clear History
               </button>
             </div>
 
             {/* Disclaimer */}
-            <div className="text-center text-[10px] text-zinc-500 opacity-60 mt-4">
+            <div className="text-center text-[10px] opacity-40 mt-8">
               Calculated using: Σ (SGPA × Credits) / Σ Credits
             </div>
 
             {/* ==================== QUICK PREVIOUS CGPA CALCULATOR (Fully Manual) ==================== */}
-            <div className="glass-card rounded-2xl overflow-hidden mt-6">
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden mt-6`}>
               <details className="group">
-                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.02] transition-colors border-b border-transparent group-open:border-white/[0.05]">
+                <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center shadow-sm">
                       <span className="text-lg">⚡</span>
                     </div>
                     <div className="text-left">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm text-zinc-200 font-display">Quick CGPA Estimator</h3>
-                        <span className="text-[9px] text-zinc-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20 font-bold uppercase tracking-wider">Isolated</span>
+                        <h3 className="font-bold text-sm text-zinc-200">Quick CGPA Estimator</h3>
+                        <span className={`text-[10px] ${themeClasses.muted} font-normal px-1.5 rounded bg-white/[0.04] border`}>Isolated</span>
                       </div>
-                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                      <p className={`text-xs ${themeClasses.muted} mt-0.5`}>
                         Calculate new CGPA by combining previous history + current sem results
                       </p>
                     </div>
                   </div>
-                  <ChevronDown className="w-4 h-4 text-zinc-400 opacity-60 transition-transform group-open:rotate-180" />
+                  <ChevronDown className="w-5 h-5 opacity-50 transition-transform group-open:rotate-180" />
                 </summary>
 
-                <div className="p-5 bg-black/10 space-y-4">
+                <div className={`p-4 border-t ${themeClasses.border} bg-black/20`}>
+
                   {/* Row 1: Previous Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-[#030307]/40 border border-white/[0.05] p-3 rounded-xl">
-                      <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Previous CGPA</label>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold`}>Previous CGPA</label>
                       <input
                         type="number"
                         placeholder="e.g. 8.5"
                         value={simpleCgpa.prevCgpa}
                         onChange={(e) => setSimpleCgpa(prev => ({ ...prev, prevCgpa: e.target.value }))}
-                        className="w-full glass-input p-2 text-sm font-bold text-center focus:border-indigo-500/50"
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
                       />
                     </div>
-                    <div className="bg-[#030307]/40 border border-white/[0.05] p-3 rounded-xl">
-                      <label className="text-[10px] text-zinc-400 uppercase font-black tracking-wider block mb-1.5 font-display">Prev Credits</label>
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold`}>Prev Credits</label>
                       <input
                         type="number"
                         placeholder="e.g. 80"
                         value={simpleCgpa.prevCredits}
                         onChange={(e) => setSimpleCgpa(prev => ({ ...prev, prevCredits: e.target.value }))}
-                        className="w-full glass-input p-2 text-sm font-bold text-center focus:border-indigo-500/50"
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none ${themeClasses.input}`}
                       />
                     </div>
                   </div>
 
                   {/* Row 2: Current Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-emerald-500/[0.01] border border-emerald-500/20 p-3 rounded-xl">
-                      <label className="text-[10px] text-emerald-400 uppercase font-black tracking-wider block mb-1.5 font-display">Current Sem SGPA</label>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-400`}>Current Sem SGPA</label>
                       <input
                         type="number"
                         placeholder="e.g. 9.2"
                         value={simpleCgpa.currSgpa}
                         onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currSgpa: e.target.value }))}
-                        className="w-full glass-input p-2 text-sm font-bold text-center focus:border-emerald-500/50 border-emerald-500/30 text-emerald-300"
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-500/20 bg-teal-500/5`}
                       />
                     </div>
-                    <div className="bg-emerald-500/[0.01] border border-emerald-500/20 p-3 rounded-xl">
-                      <label className="text-[10px] text-emerald-400 uppercase font-black tracking-wider block mb-1.5 font-display">Sem Credits</label>
+                    <div>
+                      <label className={`text-xs ${themeClasses.muted} block mb-1 font-bold text-teal-400`}>Sem Credits</label>
                       <input
                         type="number"
                         placeholder="e.g. 24"
                         value={simpleCgpa.currCredits}
                         onChange={(e) => setSimpleCgpa(prev => ({ ...prev, currCredits: e.target.value }))}
-                        className="w-full glass-input p-2 text-sm font-bold text-center focus:border-emerald-500/50 border-emerald-500/30 text-emerald-300"
+                        className={`w-full p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input} border-teal-500/20 bg-teal-500/5`}
                       />
                     </div>
                   </div>
 
                   {/* Calculation Result */}
-                  <div className="bg-[#030307]/80 rounded-xl p-4 border border-white/[0.05] shadow-inner flex items-center justify-between">
+                  <div className="bg-[#0e0e18] rounded-lg p-3 border shadow-sm flex items-center justify-between">
                     {(() => {
                       const pCgpa = parseFloat(simpleCgpa.prevCgpa) || 0;
                       const pCreds = parseFloat(simpleCgpa.prevCredits) || 0;
@@ -4476,17 +4352,18 @@ export default function PES_Universal_Calculator() {
 
                       return (
                         <>
-                          <div className="text-xs text-zinc-400">
-                            <div>Total Degree Credits: <strong className="text-white font-display">{pCreds + cCreds}</strong></div>
+                          <div className="text-xs opacity-70">
+                            <div>Total Credits: <strong>{pCreds + cCreds}</strong></div>
                           </div>
                           <div className="text-right">
-                            <div className="text-[9px] uppercase font-black text-zinc-500 tracking-wider font-display">Predicted CGPA</div>
-                            <div className="text-3xl font-black text-indigo-400 text-glow-indigo font-display">{newCGPA}</div>
+                            <div className="text-[10px] uppercase font-bold opacity-50">Predicted CGPA</div>
+                            <div className="text-3xl font-black text-indigo-400">{newCGPA}</div>
                           </div>
                         </>
                       );
                     })()}
                   </div>
+
                 </div>
               </details>
             </div>
@@ -4499,26 +4376,19 @@ export default function PES_Universal_Calculator() {
           <div className="space-y-6">
 
             {/* Intro Banner */}
-            <div className="glass-card rounded-2xl shadow-2xl p-6 text-zinc-200 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/[0.04] blur-[70px] rounded-full pointer-events-none"></div>
-              <div className="absolute bottom-0 left-0 w-36 h-36 bg-purple-500/[0.03] blur-[60px] rounded-full pointer-events-none"></div>
-              
-              <div className="relative z-10 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-yellow-500/10 border border-yellow-500/25 flex items-center justify-center text-yellow-400 shrink-0 shadow-[0_0_15px_rgba(234,179,8,0.05)] animate-pulse">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold flex items-center gap-2 font-display">
-                    User Guide & Pro Features
-                  </h2>
-                  <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
-                    Everything you need to know: from keyboard shortcuts to the "Momentum" logic.
-                  </p>
-                </div>
+            <div className="bg-gradient-to-br from-[#0e0e18] to-[#0a0a12] border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 relative overflow-hidden">
+              <div className="relative z-10">
+                <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
+                  <BookOpen className="w-6 h-6 text-yellow-300" /> User Guide & Pro Features
+                </h2>
+                <p className="text-violet-100 opacity-90 max-w-2xl">
+                  Everything you need to know: from keyboard shortcuts to the "Momentum" logic.
+                </p>
               </div>
+              <HelpCircle className="absolute right-[-20px] bottom-[-40px] w-40 h-40 text-zinc-200 opacity-10 rotate-12" />
             </div>
 
-            <div className="text-[10px] text-zinc-600 text-right pr-1">
+            <div className="text-[10px] opacity-30 text-right pr-1">
               AI assistance was used to some extent.
             </div>
 
@@ -4526,74 +4396,62 @@ export default function PES_Universal_Calculator() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
               {/* Feature A: Local Storage */}
-              <div className="glass-card rounded-2xl p-5 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/[0.02] blur-[30px] rounded-full pointer-events-none"></div>
-                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 mb-4 shadow-[0_0_10px_rgba(59,130,246,0.05)]">
-                  <Download className="w-5 h-5" />
+              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
+                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mb-3">
+                  <Download className="w-4 h-4" />
                 </div>
-                <h3 className="font-bold text-sm mb-2 text-zinc-100 font-display">Auto-Save & Privacy</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Your data is <strong className="text-zinc-200">saved locally</strong> in your browser. Close the tab, restart your laptop—your marks will still be here. No login required. This data is not collected or sent anywhere.
+                <h3 className="font-bold text-sm mb-1">Auto-Save & Privacy</h3>
+                <p className={`text-xs ${themeClasses.muted}`}>
+                  Your data is <strong>saved locally</strong> in your browser. Close the tab, restart your laptop—your marks will still be here. No login required. This data is not collected or sent anywhere.
                 </p>
               </div>
 
               {/* Feature B: Presets */}
-              <div className="glass-card rounded-2xl p-5 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/[0.02] blur-[30px] rounded-full pointer-events-none"></div>
-                <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 mb-4 shadow-[0_0_10px_rgba(168,85,247,0.05)]">
-                  <BookOpen className="w-5 h-5" />
+              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
+                <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 mb-3">
+                  <BookOpen className="w-4 h-4" />
                 </div>
-                <h3 className="font-bold text-sm mb-2 text-zinc-100 font-display">One-Click Presets</h3>
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Don't type subjects manually! In the <strong className="text-zinc-200">Subjects Tab</strong>, use the dropdown at the top to instantly load the "Physics Cycle" or "Chemistry Cycle".
+                <h3 className="font-bold text-sm mb-1">One-Click Presets</h3>
+                <p className={`text-xs ${themeClasses.muted}`}>
+                  Don't type subjects manually! In the <strong>Subjects Tab</strong>, use the dropdown at the top to instantly load the "Physics Cycle" or "Chemistry Cycle".
                 </p>
               </div>
 
               {/* Feature C: Shortcuts */}
-              <div className="glass-card rounded-2xl p-5 shadow-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/[0.01] blur-[30px] rounded-full pointer-events-none"></div>
-                <div className="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-zinc-300 mb-4 font-mono text-xs font-black shadow-sm">
+              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
+                <div className="w-8 h-8 rounded-full bg-white/[0.06] flex items-center justify-center text-zinc-400 mb-3 font-mono text-xs font-bold">
                   CTRL
                 </div>
-                <h3 className="font-bold text-sm mb-3 text-zinc-100 font-display">Keyboard Shortcuts</h3>
-                <div className="text-xs text-zinc-400 space-y-2">
-                  <div className="flex justify-between items-center border-b border-white/[0.03] pb-1.5">
-                    <span>Undo</span> 
-                    <kbd className="font-mono bg-white/[0.06] border border-white/[0.08] px-1.5 py-0.5 rounded text-[10px] font-bold text-zinc-300 shadow-sm">Ctrl+Z</kbd>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-white/[0.03] pb-1.5">
-                    <span>Redo</span> 
-                    <kbd className="font-mono bg-white/[0.06] border border-white/[0.08] px-1.5 py-0.5 rounded text-[10px] font-bold text-zinc-300 shadow-sm">Ctrl+Y</kbd>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-white/[0.03] pb-1.5">
-                    <span>Export</span> 
-                    <kbd className="font-mono bg-white/[0.06] border border-white/[0.08] px-1.5 py-0.5 rounded text-[10px] font-bold text-zinc-300 shadow-sm">Ctrl+S</kbd>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Close Panel</span> 
-                    <kbd className="font-mono bg-white/[0.06] border border-white/[0.08] px-1.5 py-0.5 rounded text-[10px] font-bold text-zinc-300 shadow-sm">Esc</kbd>
-                  </div>
+                <h3 className="font-bold text-sm mb-1">Keyboard Shortcuts</h3>
+                <div className={`text-xs ${themeClasses.muted} space-y-1`}>
+                  <div className="flex justify-between"><span>Undo</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+Z</kbd></div>
+                  <div className="flex justify-between"><span>Redo</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+Y</kbd></div>
+                  <div className="flex justify-between"><span>Export</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Ctrl+S</kbd></div>
+                  <div className="flex justify-between"><span>Close</span> <kbd className="font-mono bg-white/[0.06] px-1 rounded">Esc</kbd></div>
                 </div>
               </div>
             </div>
 
             {/* 2. THE MOMENTUM LOGIC */}
-            <div className="glass-card rounded-2xl overflow-hidden shadow-xl">
-              <div className="p-4 border-b border-white/[0.05] bg-white/[0.01] flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-400 animate-pulse" />
-                <h3 className="font-bold text-sm font-display text-zinc-200">How "Momentum" Works</h3>
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
+              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
+                <Zap className="w-5 h-5 text-yellow-500" />
+                <h3 className="font-bold text-lg">How "Momentum" Works</h3>
               </div>
-              <div className="p-5 space-y-4">
-                <p className="text-xs text-zinc-400 leading-relaxed">
-                  Usually, if you leave a field blank (like ISA 2), calculators treat it as a <strong className="text-zinc-300">0</strong>. This crashes your predicted SGPA.
+              <div className="p-5">
+                <p className={`text-sm ${themeClasses.muted} mb-3`}>
+                  Usually, if you leave a field blank (like ISA 2), calculators treat it as a <strong>0</strong>. This crashes your predicted SGPA.
                 </p>
-                <div className="bg-amber-500/[0.02] p-4 rounded-xl border border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.02)]">
-                  <strong className="text-xs text-amber-300 font-display block mb-2">The Solution: Smart Projection</strong>
-                  <p className="text-xs text-amber-200/80 leading-relaxed space-y-2">
-                    <span>If you have marks for ISA 1 but <strong>not</strong> ISA 2, we assume you will perform <em>similarly</em> in ISA 2. This "Momentum Score" is used to give you realistic predictions before you've even written the exam.</span>
-                    <span className="block mt-2">If Assignment or Lab is empty, momentum assumes full marks for those components. If ESA is empty, momentum estimates it using your current internal performance ratio.</span>
+                <div className="bg-yellow-500/5 p-4 rounded-lg border border-yellow-500/15">
+                  <strong className="text-sm text-yellow-200 block mb-2">The Solution: Smart Projection</strong>
+                  <p className="text-xs text-yellow-300/80 leading-relaxed">
+                    If you have marks for ISA 1 but <strong>not</strong> ISA 2, we assume you will perform <em>similarly</em> in ISA 2.
+                    This "Momentum Score" is used to give you realistic predictions before you've even written the exam.
                   </p>
-                  <p className="text-[9px] mt-3 text-amber-400 font-mono font-bold tracking-wider uppercase">
+                  <p className="text-xs text-yellow-300/80 leading-relaxed mt-2">
+                    If Assignment or Lab is empty, momentum assumes full marks for those components. If ESA is empty, momentum estimates it using your current internal performance ratio.
+                  </p>
+                  <p className="text-[10px] mt-2 text-yellow-400 font-mono">
                     *Look for the "Using Momentum" warning in the Reverse tab if you have empty fields.
                   </p>
                 </div>
@@ -4601,53 +4459,53 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* 3. THE HIDDEN GEM: Reverse Calculator */}
-            <div className="glass-card bg-gradient-to-br from-emerald-500/[0.01] to-teal-500/[0.01] border border-emerald-500/20 rounded-2xl overflow-hidden shadow-xl relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/[0.03] blur-[40px] rounded-full pointer-events-none"></div>
-              
-              <div className="p-4 border-b border-emerald-500/10 bg-emerald-500/[0.03] flex items-center gap-2">
-                <Target className="w-5 h-5 text-emerald-400" />
-                <h3 className="font-bold text-sm font-display text-emerald-300">The Hidden Gem: Reverse Calculator</h3>
+            <div className="bg-gradient-to-br from-emerald-900/10 to-teal-900/10 border border-emerald-500/30 rounded-xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Target className="w-24 h-24 text-emerald-500" />
               </div>
-              
-              <div className="p-5 space-y-4">
-                <p className="text-xs font-semibold text-emerald-250 font-display">
+              <div className="p-4 border-b border-emerald-500/20 bg-emerald-500/10 flex items-center gap-2">
+                <Target className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-bold text-lg text-emerald-300">The Hidden Gem: Reverse Calculator</h3>
+              </div>
+              <div className="p-5">
+                <p className="text-sm font-medium mb-4 text-emerald-200">
                   You set the SGPA (e.g., 9.0), we tell you exactly what marks you need.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* The 3 Buttons Explained */}
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-xs text-emerald-400 font-display">The 3 Magic Buttons</h4>
-                    <ul className="space-y-3.5">
+                  <div>
+                    <h4 className="font-bold text-sm text-emerald-400 mb-2">The 3 Magic Buttons</h4>
+                    <ul className="space-y-3">
                       <li className="flex gap-3 items-start">
-                        <div className="bg-black/40 border border-white/[0.05] p-2 rounded-xl shadow-sm flex-shrink-0">
-                          <Target className="w-4 h-4 text-blue-400" />
+                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
+                          <Target className="w-4 h-4 text-blue-500" />
                         </div>
                         <div>
-                          <strong className="text-xs block text-zinc-200 font-display">Default (Efficient)</strong>
-                          <p className="text-[10px] text-zinc-400 leading-relaxed mt-0.5">
+                          <strong className="text-xs block text-zinc-200">Default (Efficient)</strong>
+                          <p className={`text-[10px] ${themeClasses.muted}`}>
                             The "Lazy" path. It finds the <strong>absolute cheapest way</strong> to hit your target, even if it means getting 99 in one subject and 40 in another.
                           </p>
                         </div>
                       </li>
                       <li className="flex gap-3 items-start">
-                        <div className="bg-black/40 border border-white/[0.05] p-2 rounded-xl shadow-sm flex-shrink-0">
-                          <Dice5 className="w-4 h-4 text-purple-400" />
+                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
+                          <Dice5 className="w-4 h-4 text-purple-500" />
                         </div>
                         <div>
-                          <strong className="text-xs block text-zinc-200 font-display">Shuffle</strong>
-                          <p className="text-[10px] text-zinc-400 leading-relaxed mt-0.5">
+                          <strong className="text-xs block text-zinc-200">Shuffle</strong>
+                          <p className={`text-[10px] ${themeClasses.muted}`}>
                             Don't like the plan? Click Shuffle to get a <strong>random valid combination</strong>. It's like re-rolling the dice on your semester.
                           </p>
                         </div>
                       </li>
                       <li className="flex gap-3 items-start">
-                        <div className="bg-black/40 border border-white/[0.05] p-2 rounded-xl shadow-sm flex-shrink-0">
-                          <Scale className="w-4 h-4 text-teal-400" />
+                        <div className="bg-[#0e0e18] p-1.5 rounded shadow-sm flex-shrink-0">
+                          <Scale className="w-4 h-4 text-teal-500" />
                         </div>
                         <div>
-                          <strong className="text-xs block text-zinc-200 font-display">Balanced</strong>
-                          <p className="text-[10px] text-zinc-400 leading-relaxed mt-0.5">
+                          <strong className="text-xs block text-zinc-200">Balanced</strong>
+                          <p className={`text-[10px] ${themeClasses.muted}`}>
                             The "Smart" path. It penalizes extremely high scores, trying to keep effort <strong>spread evenly</strong> across all subjects.
                           </p>
                         </div>
@@ -4657,17 +4515,17 @@ export default function PES_Universal_Calculator() {
 
                   {/* Locking & Logic */}
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <h4 className="font-bold text-xs text-emerald-400 font-display">Locking Scores</h4>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    <div>
+                      <h4 className="font-bold text-sm text-emerald-400 mb-2">Locking Scores</h4>
+                      <p className={`text-xs ${themeClasses.muted} mb-2`}>
                         Confident you'll get exactly 85 in Math?
                       </p>
-                      <div className="bg-black/20 p-3.5 rounded-xl border border-white/[0.05] flex items-start gap-3 shadow-inner">
-                        <Lock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5 animate-pulse" />
-                        <span className="text-[11px] text-zinc-300 leading-relaxed">Click the <strong>Lock Icon</strong>. Enter the score you are confident you will at least get. The app freezes that score and recalculates the rest of the subjects around it.</span>
+                      <div className="bg-white/[0.04] p-2 rounded border border-emerald-500/20 flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-yellow-500" />
+                        <span className="text-xs">Click the <strong>Lock Icon</strong>. Enter the score you are confident you will at least get. The app freezes that score and recalculates the rest of the subjects around it.</span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-zinc-500 italic bg-[#030307]/30 p-2.5 rounded-lg border border-white/[0.02]">
+                    <div className="text-[10px] opacity-70 italic">
                       *Tip: If a target is "Impossible", check if you have entered marks correctly or if you need to lower the target SGPA.
                     </div>
                   </div>
@@ -4676,27 +4534,27 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* 4. THE BASICS: Subjects Tab (Detailed) */}
-            <div className="glass-card rounded-2xl overflow-hidden shadow-xl">
-              <div className="p-4 border-b border-white/[0.05] bg-white/[0.01] flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-indigo-400" />
-                <h3 className="font-bold text-sm font-display text-zinc-200">The Basics: Subjects Tab</h3>
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
+              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-blue-500" />
+                <h3 className="font-bold text-lg">The Basics: Subjects Tab</h3>
               </div>
-              <div className="p-5 space-y-4">
-                <p className="text-xs text-zinc-400 leading-relaxed">
+              <div className="p-5">
+                <p className={`text-sm ${themeClasses.muted} mb-4`}>
                   The control center of the app. This is where you enter marks, but there are hidden settings inside every subject card.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white/[0.02] p-4 rounded-xl border border-white/[0.05]">
-                    <strong className="text-indigo-400 text-xs font-display mb-2 block">1. Configuration & Weights</strong>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.06]">
+                    <strong className="text-blue-400 text-sm mb-2 block">1. Configuration & Weights</strong>
+                    <p className={`text-xs ${themeClasses.muted} leading-relaxed`}>
                       Expand any subject and click <strong>"Edit Subject Details"</strong>.
                       <br />• <strong>Weights:</strong> Default is 50/50, but you can change it to anything (e.g. 40/60).
                       <br />• <strong>Credits:</strong> Change the credit value (e.g. 2 Cr for Labs) to ensure accurate SGPA calculation.
                     </p>
                   </div>
-                  <div className="bg-white/[0.02] p-4 rounded-xl border border-white/[0.05]">
-                    <strong className="text-indigo-400 text-xs font-display mb-2 block">2. Advanced: Custom Cutoffs</strong>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  <div className="bg-white/[0.04] p-4 rounded-lg border border-white/[0.06]">
+                    <strong className="text-blue-400 text-sm mb-2 block">2. Advanced: Custom Cutoffs</strong>
+                    <p className={`text-xs ${themeClasses.muted} leading-relaxed`}>
                       Found inside the "Edit" menu.
                       <br />If a subject is notoriously hard and the college lowers the S-Grade cutoff to 85, you can enter that here. The <strong>entire app</strong> (Analysis, Reverse Calc) will respect this new rule!
                     </p>
@@ -4706,42 +4564,42 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* 5. THE ANALYST: Analysis Tab (Detailed) */}
-            <div className="glass-card rounded-2xl overflow-hidden shadow-xl">
-              <div className="p-4 border-b border-white/[0.05] bg-white/[0.01] flex items-center gap-2">
-                <Activity className="w-5 h-5 text-purple-450" />
-                <h3 className="font-bold text-sm font-display text-zinc-200">The Analyst: Analysis Tab</h3>
+            <div className={`${themeClasses.card} border rounded-xl overflow-hidden`}>
+              <div className="p-4 border-b bg-white/[0.03] border-white/[0.06] flex items-center gap-2">
+                <Activity className="w-5 h-5 text-purple-500" />
+                <h3 className="font-bold text-lg">The Analyst: Analysis Tab</h3>
               </div>
-              <div className="p-5 space-y-4">
-                <p className="text-xs text-zinc-400 leading-relaxed">
+              <div className="p-5">
+                <p className={`text-sm ${themeClasses.muted} mb-4`}>
                   This tab gives you a reality check on your standing and shows the best path forward.
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="p-4 rounded-xl border border-white/[0.05] bg-white/[0.01]">
-                    <strong className="block text-xs mb-1.5 text-zinc-200 font-display">Safe vs Minimum</strong>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div className="p-3 border rounded-lg border-white/[0.06]">
+                    <strong className="block text-sm mb-1">Safe vs Minimum</strong>
+                    <p className={`${themeClasses.muted}`}>
                       • <strong>Safe Score:</strong> The marks you need to in ESA based on your current ISA marks(and momentum is some fields are empty) to <em>guarantee</em> the grade(A/S) (e.g. 90).
                       <br />• <strong>Min Score:</strong> A lower score (e.g. 89.5) that <em>might</em> work because the college rounds up decimals.
                       <br />• <strong>Momentum Score:</strong> Shows your momentum score in ESA based on ISA if applicable.
                       <br />• <strong>Pass/A/S + ISA2 target lines:</strong> Pass/A/S show ESA needed using momentum internals. If ISA2 is empty, ISA2 lines show marks needed for Pass/A/S, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
                     </p>
                   </div>
-                  <div className="p-4 rounded-xl border border-white/[0.05] bg-white/[0.01]">
-                    <strong className="block text-xs mb-1.5 text-zinc-200 font-display">Achievable Range</strong>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  <div className="p-3 border rounded-lg border-white/[0.06]">
+                    <strong className="block text-sm mb-1">Achievable Range</strong>
+                    <p className={`${themeClasses.muted}`}>
                       The slider at the top shows your mathematically <strong>Best Case SGPA</strong> (if you ace everything) and <strong>Worst Case SGPA</strong> (if you fail everything).
                     </p>
                   </div>
-                  <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-500/[0.02] shadow-[0_0_15px_rgba(168,85,247,0.02)]">
-                    <strong className="block text-xs mb-1.5 text-purple-300 flex items-center gap-1 font-display">
-                      <Lightbulb className="w-3.5 h-3.5" /> Path to Target
+                  <div className="p-3 border rounded-lg border-white/[0.06] bg-purple-500/5 border-purple-500/20">
+                    <strong className="block text-sm mb-1 text-purple-300 flex items-center gap-1">
+                      <Lightbulb className="w-3 h-3" /> Path to Target
                     </strong>
-                    <p className="text-[11px] text-zinc-450 text-zinc-300 leading-relaxed">
+                    <p className={`${themeClasses.muted} leading-relaxed`}>
                       A smart algorithm that generates a <strong>step-by-step plan</strong>. It identifies exactly which subjects are the easiest to upgrade (e.g., "Score 45 in Chem to get A") to hit your target SGPA with the least effort.
                     </p>
                   </div>
-                  <div className="p-4 rounded-xl border border-white/[0.05] bg-white/[0.01]">
-                    <strong className="block text-xs mb-1.5 text-zinc-200 font-display">GP Budget</strong>
-                    <p className="text-[11px] text-zinc-400 leading-relaxed">
+                  <div className="p-3 border rounded-lg border-white/[0.06]">
+                    <strong className="block text-sm mb-1">GP Budget</strong>
+                    <p className={`${themeClasses.muted}`}>
                       Shows exactly how many Grade Points you can afford to "lose" while still hitting your target.
                     </p>
                   </div>
@@ -4753,16 +4611,16 @@ export default function PES_Universal_Calculator() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               {/* Quick SGPA Estimator (Static) */}
-              <div className="glass-card rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center gap-2 font-bold text-zinc-100 font-display mb-3">
-                  <span className="bg-teal-500/10 text-teal-300 w-8 h-8 rounded-xl border border-teal-500/20 flex items-center justify-center text-sm shadow-sm">✨</span>
+              <div className={`${themeClasses.card} border rounded-xl p-4`}>
+                <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                  <span className="bg-teal-500/10 text-teal-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">✨</span>
                   <span>Quick SGPA Estimator</span>
                 </div>
-                <div className="text-xs text-zinc-400 leading-relaxed space-y-2">
+                <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
                   <p>
                     Want to check your SGPA without entering specific marks?
                   </p>
-                  <ul className="list-disc pl-5 space-y-1 text-zinc-450 text-zinc-400">
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
                     <li>Located at the bottom of the <strong>Subjects Tab</strong>.</li>
                     <li>Select hypothetical grades (S, A, B...) for each subject directly.</li>
                     <li>Instantly see what your SGPA would be if you scored those grades.</li>
@@ -4772,16 +4630,16 @@ export default function PES_Universal_Calculator() {
               </div>
 
               {/* UPDATED: CGPA Guide (Static) */}
-              <div className="glass-card rounded-2xl p-5 shadow-sm">
-                <div className="flex items-center gap-2 font-bold text-zinc-100 font-display mb-3">
-                  <span className="bg-indigo-500/10 text-indigo-300 w-8 h-8 rounded-xl border border-indigo-500/20 flex items-center justify-center text-sm shadow-sm">🎓</span>
+              <div className={`${themeClasses.card} border rounded-xl p-4`}>
+                <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                  <span className="bg-indigo-500/10 text-indigo-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
                   <span>Cumulative GPA (CGPA)</span>
                 </div>
-                <div className="text-xs text-zinc-400 leading-relaxed space-y-2">
+                <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
                   <p>
                     Track your performance across your entire degree.
                   </p>
-                  <ul className="list-disc pl-5 space-y-1 text-zinc-450 text-zinc-400">
+                  <ul className="list-disc pl-5 mt-2 space-y-1">
                     <li>Enter the <strong>SGPA</strong> and <strong>Total Credits</strong> for every semester you have completed.</li>
                     <li>The calculator uses the weighted average formula (Σ SGPA×Credits / Σ Credits) for 100% accuracy.</li>
                     <li>You can clear the history at any time using the "Clear History" button.</li>
@@ -4791,51 +4649,51 @@ export default function PES_Universal_Calculator() {
             </div>
 
             {/* UPDATED: Attendance Guide (Static) */}
-            <div className="glass-card rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center gap-2 font-bold text-zinc-100 font-display mb-3">
-                <span className="bg-green-500/10 text-green-300 w-8 h-8 rounded-xl border border-green-500/20 flex items-center justify-center text-sm shadow-sm">📅</span>
+            <div className={`${themeClasses.card} border rounded-xl p-4`}>
+              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                <span className="bg-green-500/10 text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">📅</span>
                 <span>How does the Attendance Calculator work?</span>
               </div>
-              <div className="text-xs text-zinc-400 leading-relaxed space-y-2">
+              <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
                 <p>
                   The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
                 </p>
-                <ul className="list-disc pl-5 space-y-1 text-zinc-450 text-zinc-400">
+                <ul className="list-disc pl-5 mt-2 space-y-1">
                   <li><strong>Mode 1 First:</strong> Enter current held and attended classes once, and the planners reuse it automatically.</li>
                   <li><strong>Clear Results:</strong> Every mode explains how many classes you can miss and how many you must attend to stay above your target.</li>
                   <li><strong>Buffer Target:</strong> Set a stricter target (like 80%) in Mode 1, and all planning modes use it.</li>
                 </ul>
-                <p className="mt-2 text-[11px] italic opacity-85 text-zinc-500 border-t border-white/[0.03] pt-2">
+                <p className="mt-2 text-xs italic opacity-70">
                   Attendance inputs are saved locally in your browser.
                 </p>
               </div>
             </div>
 
             {/* UPDATED: Universal Mode Guide (Static) */}
-            <div className="glass-card rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center gap-2 font-bold text-zinc-100 font-display mb-3">
-                <span className="bg-purple-500/10 text-purple-300 w-8 h-8 rounded-xl border border-purple-500/20 flex items-center justify-center text-sm shadow-sm">🎓</span>
+            <div className={`${themeClasses.card} border rounded-xl p-4`}>
+              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                <span className="bg-purple-500/10 text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">🎓</span>
                 <span>I'm not from PES / Custom Curriculum</span>
               </div>
-              <div className="text-xs text-zinc-400 leading-relaxed space-y-2">
+              <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
                 <p>
                   You can use this calculator for <strong>VTU, IIT, Manipal, or any other college</strong>.
                 </p>
-                <ol className="list-decimal pl-5 space-y-1 text-zinc-450 text-zinc-400">
+                <ol className="list-decimal pl-5 mt-2 space-y-1">
                   <li>Go to the <strong>Subjects Tab</strong>.</li>
                   <li>Click the button <strong>"Not from PES? 🎓"</strong>.</li>
                   <li><strong>Define Components:</strong> Add your own exams (e.g., "Midterm 1", "Quiz", "Finals") and set their weights.</li>
                   <li><strong>Set Grading:</strong> Choose a preset (like VTU 10-point, US 4.0 GPA) or define your own grade cutoffs (e.g., A = 85+).</li>
                   <li>Click <strong>Create Subject</strong>.</li>
                 </ol>
-                <p className="mt-2 text-zinc-350">
+                <p className="mt-2">
                   Your custom grading scheme will be saved for that subject and used in all calculations (SGPA, Reverse, Analysis).
                 </p>
               </div>
             </div>
 
             {/* Footer Note */}
-            <div className="text-center text-xs text-zinc-500 opacity-60 py-4 font-semibold font-display">
+            <div className="text-center text-xs opacity-50 py-4">
               Built for PESU / PES / PESIT.
             </div>
           </div>
@@ -4894,8 +4752,8 @@ export default function PES_Universal_Calculator() {
       </motion.div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#030307]/80 backdrop-blur-xl border-t border-white/[0.04] md:hidden z-50 shadow-[0_-8px_30px_rgba(0,0,0,0.55)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 12px)' }}>
-        <div className="flex justify-around items-center pt-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#08080e]/95 backdrop-blur-2xl border-t border-white/[0.06] md:hidden z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
+        <div className="flex justify-around items-end pt-1.5">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
@@ -4907,24 +4765,20 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex flex-col items-center py-1.5 px-2 rounded-xl transition-all duration-300 ${activeTab === tab.id
+              className={`relative flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 ${activeTab === tab.id
                 ? 'text-white'
-                : 'text-[#8e909d] active:text-white'
+                : 'text-zinc-600 active:text-zinc-400'
                 }`}
             >
-              <div className="relative flex items-center justify-center">
+              <div className={`relative ${activeTab === tab.id ? 'scale-110' : ''} transition-transform duration-200`}>
+                <tab.icon className="w-5 h-5" />
                 {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="activeTabMobileBg"
-                    className="absolute -inset-2 bg-white/[0.04] border border-white/[0.06] rounded-xl -z-10 shadow-sm"
-                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                  />
+                  <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md -z-10" />
                 )}
-                <tab.icon className={`w-5 h-5 transition-transform duration-300 ${activeTab === tab.id ? 'scale-110 text-indigo-400' : ''}`} />
               </div>
-              <span className={`text-[9px] mt-1.5 font-semibold transition-colors duration-300 ${activeTab === tab.id ? 'text-white' : 'text-zinc-500'}`}>{tab.label}</span>
+              <span className={`text-[10px] mt-1 font-medium ${activeTab === tab.id ? 'text-white' : ''}`}>{tab.label}</span>
               {tab.accent && activeTab !== tab.id && (
-                <span className={`absolute top-1.5 right-1 w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-indigo-500' : 'bg-emerald-500'} animate-pulse`} />
+                <span className={`absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
               )}
             </button>
           ))}
