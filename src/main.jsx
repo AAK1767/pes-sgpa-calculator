@@ -18,7 +18,16 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
   // Register and immediately check for updates
   navigator.serviceWorker.register('/sw.js')
-    .then(reg => reg.update().catch(() => {}))
+    .then(reg => {
+      reg.update().catch(() => {})
+
+      // Check for updates when the user switches back to the tab
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          reg.update().catch(() => {})
+        }
+      })
+    })
     .catch(() => {})
 }
 
