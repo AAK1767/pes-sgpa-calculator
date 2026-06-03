@@ -942,7 +942,7 @@ export default function PES_Universal_Calculator() {
     // Standard Final Score (based on actual entered marks only)
     let finalScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
     let unroundedScore = totalWeight > 0 ? (sumUnrounded / totalWeight) * 100 : 0;
-    let rawScore = Math.round(unroundedScore * 10) / 10;
+    let rawScore = sumUnrounded;
 
     // 5. Momentum Logic - Project unfilled components
     let momentumScore = 0;
@@ -2313,7 +2313,7 @@ export default function PES_Universal_Calculator() {
                 const hasLabComponent = subject.hasLab || ((subject.customConfig?.weights.lab ?? 0) > 0);
                 const showTotalWeight = hasLabComponent && totalWeight > 100;
                 const totalWeightLabel = Number.isInteger(totalWeight) ? totalWeight : totalWeight.toFixed(1);
-                const rawScoreLabel = Number.isInteger(rawScore) ? rawScore : rawScore.toFixed(1);
+                const rawScoreLabel = rawScore.toFixed(2).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
 
                 return (
                   <div key={subject.id} className={`${themeClasses.card} rounded-xl border transition-all duration-300 ease-out ${isExpanded ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.07)] ring-1 ring-blue-500/10' : themeClasses.cardHover}`}>
