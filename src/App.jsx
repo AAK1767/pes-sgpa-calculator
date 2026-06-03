@@ -895,7 +895,7 @@ export default function PES_Universal_Calculator() {
   // --- Calculations ---
   const getSubjectMetrics = (subject) => {
     const m = marks[subject.id];
-    if (!m) return { finalScore: 0, rawScore: 0, currentInternals: 0, totalWeight: 100, momentumScore: 0, momentumIsa2Marks: null, hasIsa1: false, hasIsa2: false };
+    if (!m) return { finalScore: 0, unroundedScore: 0, rawScore: 0, currentInternals: 0, totalWeight: 100, momentumScore: 0, momentumIsa2Marks: null, hasIsa1: false, hasIsa2: false };
 
     const calcComponent = (score, max, weight) => {
       const s = parseFloat(score);
@@ -911,31 +911,42 @@ export default function PES_Universal_Calculator() {
     const hasLab = m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab));
     const hasEsa = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
 
-    // 1. Calculate actual Internals (only filled values)
-    let currentInternals = 0;
-    currentInternals += calcComponent(m.isa1, m.isa1Max, subject.isaWeight);
-    currentInternals += calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
-    if (subject.hasAssignment) currentInternals += calcComponent(m.assignment, m.assignmentMax, subject.assignmentWeight);
-    if (subject.hasLab) currentInternals += calcComponent(m.lab, m.labMax, subject.labWeight);
+    // 1. Calculate actual raw components
+    let cieRaw = calcComponent(m.isa1, m.isa1Max, subject.isaWeight) +
+                 calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
+    if (subject.hasAssignment) cieRaw += calcComponent(m.assignment, m.assignmentMax, subject.assignmentWeight);
 
-    // 2. Calculate Current ESA
-    let esaComponent = calcComponent(m.esa, m.esaMax, subject.esaWeight);
+    let labRaw = subject.hasLab ? calcComponent(m.lab, m.labMax, subject.labWeight) : 0;
+    let esaRaw = calcComponent(m.esa, m.esaMax, subject.esaWeight);
 
-    // 3. Weights Logic
-    let totalInternalWeight = (subject.isaWeight * 2) +
-      (subject.hasAssignment ? subject.assignmentWeight : 0) +
-      (subject.hasLab ? subject.labWeight : 0);
-    let totalWeight = totalInternalWeight + subject.esaWeight;
+    // Weights
+    let cieWeight = (subject.isaWeight * 2) + (subject.hasAssignment ? subject.assignmentWeight : 0);
+    let labWeight = subject.hasLab ? subject.labWeight : 0;
+    let esaWeight = subject.esaWeight;
+    let totalWeight = cieWeight + labWeight + esaWeight;
 
-    // 4. Standard Final Score (based on actual entered marks only)
-    let rawSum = currentInternals + esaComponent;
-    let finalScore = Math.ceil((rawSum / totalWeight) * 100);
-    let rawScore = Math.round(rawSum * 10) / 10;
+    // Scaling to standard components: CIE to 50, Lab to standalone (e.g. 20), ESA to 50
+    let cieScaled = cieWeight > 0 ? (cieRaw / cieWeight) * 50 : 0;
+    let cieRounded = Math.ceil(cieScaled);
+
+    let labScaled = labRaw; // Standalone, stays out of its labWeight (typically 20)
+    let labRounded = Math.ceil(labScaled);
+
+    let esaScaled = esaWeight > 0 ? (esaRaw / esaWeight) * 50 : 0;
+    let esaRounded = Math.ceil(esaScaled);
+
+    let sumRounded = cieRounded + labRounded + esaRounded;
+    let sumUnrounded = cieScaled + labScaled + esaScaled;
+
+    // Standard Final Score (based on actual entered marks only)
+    let finalScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
+    let unroundedScore = totalWeight > 0 ? (sumUnrounded / totalWeight) * 100 : 0;
+    let rawScore = Math.round(unroundedScore * 10) / 10;
 
     // 5. Momentum Logic - Project unfilled components
     let momentumScore = 0;
     let momentumIsa2Marks = null;
-    let projectedInternals = currentInternals;
+    let projectedInternals = cieRaw + labRaw;
 
     const assignmentMaxRaw = parseFloat(m.assignmentMax ?? subject.assignmentMax ?? 10);
     const labMaxRaw = parseFloat(m.labMax ?? subject.labMax ?? 20);
@@ -943,6 +954,11 @@ export default function PES_Universal_Calculator() {
     const labMax = !isNaN(labMaxRaw) ? labMaxRaw : 20;
     let momentumAssignmentMarks = null;
     let momentumLabMarks = null;
+
+    let isaRatio = 0;
+    let projectedCieRaw = cieRaw;
+    let projectedLabRaw = labRaw;
+    let overallInternalRatio = 0;
 
     if (hasIsa1 || hasIsa2 || hasAssignment || hasLab) {
       // Calculate ISA-only performance ratio (for projecting ISA2)
@@ -958,20 +974,22 @@ export default function PES_Universal_Calculator() {
         isaWeightFilled += subject.isaWeight;
       }
 
-      // ISA performance ratio (how well they're doing in ISAs specifically)
-      const isaRatio = isaWeightFilled > 0 ? (isaPerformance / isaWeightFilled) : 0;
+      isaRatio = isaWeightFilled > 0 ? (isaPerformance / isaWeightFilled) : 0;
       const isa2Max = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
       if (!hasIsa2 && hasIsa1 && subject.hasIsa2 !== false && !isNaN(isa2Max) && isa2Max > 0) {
         const projectedIsa2 = Math.min(isa2Max, Math.max(0, isaRatio * isa2Max));
         momentumIsa2Marks = Math.round(projectedIsa2 * 10) / 10;
+        projectedCieRaw += (projectedIsa2 / isa2Max) * subject.isaWeight;
       }
 
       if (subject.hasAssignment && !hasAssignment && assignmentMax > 0) {
         momentumAssignmentMarks = Math.round(assignmentMax * 10) / 10;
+        projectedCieRaw += subject.assignmentWeight;
       }
 
       if (subject.hasLab && !hasLab && labMax > 0) {
         momentumLabMarks = Math.round(labMax * 10) / 10;
+        projectedLabRaw += subject.labWeight;
       }
 
       // Calculate overall internal performance ratio (for projecting assignment/lab/ESA)
@@ -995,40 +1013,37 @@ export default function PES_Universal_Calculator() {
         filledInternalWeight += subject.labWeight;
       }
 
-      const overallInternalRatio = filledInternalWeight > 0 ? (filledInternalScore / filledInternalWeight) : 0;
-
-      // Start with actual internals
-      // Project ISA2 based on ISA1 performance (if only ISA1 is filled)
-      // This makes sense because ISA1 and ISA2 are similar exam formats
-      if (!hasIsa2 && hasIsa1) {
-        projectedInternals += isaRatio * subject.isaWeight;
-      }
-
-      // Project assignment as full marks if not filled
-      if (subject.hasAssignment && !hasAssignment) {
-        projectedInternals += subject.assignmentWeight;
-      }
-
-      // Project lab as full marks if not filled
-      if (subject.hasLab && !hasLab) {
-        projectedInternals += subject.labWeight;
-      }
+      overallInternalRatio = filledInternalWeight > 0 ? (filledInternalScore / filledInternalWeight) : 0;
 
       // Project ESA based on overall internal performance
-      let momentumESA = hasEsa ? esaComponent : (subject.esaWeight * overallInternalRatio);
+      let momentumESA = hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio);
 
-      // Calculate momentum score
-      let momentumRawSum = projectedInternals + momentumESA;
-      momentumScore = Math.ceil((momentumRawSum / totalWeight) * 100);
+      // Scaled and Rounded for Momentum
+      let projectedCieScaled = cieWeight > 0 ? (projectedCieRaw / cieWeight) * 50 : 0;
+      let projectedCieRounded = Math.ceil(projectedCieScaled);
+
+      let projectedLabScaled = projectedLabRaw;
+      let projectedLabRounded = Math.ceil(projectedLabScaled);
+
+      let momentumEsaScaled = esaWeight > 0 ? (momentumESA / esaWeight) * 50 : 0;
+      let momentumEsaRounded = Math.ceil(momentumEsaScaled);
+
+      let momentumSumRounded = projectedCieRounded + projectedLabRounded + momentumEsaRounded;
+      let momentumSumUnrounded = projectedCieScaled + projectedLabScaled + momentumEsaScaled;
+
+      momentumScore = totalWeight > 0 ? Math.ceil((momentumSumRounded / totalWeight) * 100) : 0;
+      let momentumUnroundedScore = totalWeight > 0 ? (momentumSumUnrounded / totalWeight) * 100 : 0;
+
+      projectedInternals = projectedCieRaw + projectedLabRaw;
     } else {
-      // No data at all, momentum equals final score (which would be 0)
       momentumScore = finalScore;
     }
 
     return {
       finalScore: Math.min(100, Math.max(0, finalScore)),
+      unroundedScore: Math.min(100, Math.max(0, unroundedScore)),
       rawScore: Math.max(0, rawScore),
-      currentInternals,
+      currentInternals: cieRaw + labRaw,
       totalWeight,
       momentumScore: Math.min(100, Math.max(0, momentumScore)),
       momentumIsa2Marks,
@@ -1041,7 +1056,56 @@ export default function PES_Universal_Calculator() {
       hasIsa1,
       hasIsa2,
       hasAssignment,
-      hasLab
+      hasLab,
+      cieScaled,
+      cieRounded,
+      labScaled,
+      labRounded,
+      esaScaled,
+      esaRounded,
+      projectedCieScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? (projectedCieRaw / cieWeight) * 50 : 0,
+      projectedCieRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil((projectedCieRaw / cieWeight) * 50) : 0,
+      projectedLabScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? projectedLabRaw : 0,
+      projectedLabRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil(projectedLabRaw) : 0,
+      momentumEsaScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? ( (hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio)) / esaWeight ) * 50 : 0,
+      momentumEsaRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil(( (hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio)) / esaWeight ) * 50) : 0,
+      momentumEsaMarks: hasEsa ? parseFloat(m.esa) : (m.esaMax || 100) * (overallInternalRatio || 0),
+      momentumUnroundedScore: totalWeight > 0 ? ( ( ( (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? (projectedCieRaw / cieWeight) * 50 : 0 ) + ( (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? projectedLabRaw : 0 ) + ( (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? ( (hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio)) / esaWeight ) * 50 : 0 ) ) / totalWeight ) * 100 : 0
+    };
+  };
+
+  const getFinalIsaSummary = (subject) => {
+    const m = marks[subject.id] || {};
+
+    const calcComponent = (score, max, weight) => {
+      const s = parseFloat(score);
+      const mx = parseFloat(max);
+      const w = parseFloat(weight);
+      if (isNaN(s) || isNaN(mx) || isNaN(w) || mx === 0) return 0;
+      return (s / mx) * w;
+    };
+
+    const isa1Weight = subject.customConfig?.weights?.isa1 ?? subject.isaWeight ?? 0;
+    const isa2Weight = subject.customConfig?.weights?.isa2 ?? subject.isaWeight ?? 0;
+    const assignmentWeight = subject.customConfig?.weights?.assignment ?? subject.assignmentWeight ?? 0;
+
+    const hasIsa1 = subject.hasIsa1 !== false;
+    const hasIsa2 = subject.hasIsa2 !== false;
+    const hasAssignment = subject.hasAssignment || (assignmentWeight > 0);
+
+    const isa1 = hasIsa1 ? calcComponent(m.isa1, m.isa1Max ?? subject.isa1Max ?? 40, isa1Weight) : 0;
+    const isa2 = hasIsa2 ? calcComponent(m.isa2, m.isa2Max ?? subject.isa2Max ?? 40, isa2Weight) : 0;
+    const assignment = hasAssignment ? calcComponent(m.assignment, m.assignmentMax ?? subject.assignmentMax ?? 10, assignmentWeight) : 0;
+
+    const totalWeight = isa1Weight + isa2Weight + (hasAssignment ? assignmentWeight : 0);
+    const scale = totalWeight > 0 ? 50 / totalWeight : 0;
+
+    return {
+      isa1: isa1 * scale,
+      isa2: isa2 * scale,
+      assignment: assignment * scale,
+      total: (isa1 + isa2 + assignment) * scale,
+      max: totalWeight > 0 ? 50 : 0
     };
   };
 
@@ -1062,73 +1126,72 @@ export default function PES_Universal_Calculator() {
 
   // Helper function to calculate required ESA with safety margin
   const getRequiredESAForGrade = (subject, targetScore, withSafetyMargin = true, options = {}) => {
-    const m = marks[subject.id] || {};
-    const { currentInternals, totalWeight, esaWeight, momentumIsa2Marks, hasIsa2, projectedInternals, hasIsa1, hasAssignment, hasLab } = getSubjectMetrics(subject);
-    let effectiveInternals = currentInternals;
+    const { 
+      cieRounded, labRounded,
+      projectedCieRounded, projectedLabRounded,
+      hasIsa2, momentumIsa2Marks,
+      totalWeight, esaWeight
+    } = getSubjectMetrics(subject);
+    
+    let effectiveCieRounded = cieRounded;
+    let effectiveLabRounded = labRounded;
 
     const useMomentumInternals = options.useMomentumInternals === true;
     if (useMomentumInternals) {
-      const missingIsa1 = !hasIsa1;
-      const missingIsa2 = subject.hasIsa2 !== false && !hasIsa2;
-      const missingAssignment = subject.hasAssignment && !hasAssignment;
-      const missingLab = subject.hasLab && !hasLab;
-      const isProjecting = missingIsa1 || missingIsa2 || missingAssignment || missingLab;
-      if (isProjecting) {
-        effectiveInternals = projectedInternals;
-      }
-    }
-
-    if (!useMomentumInternals && options.useMomentumIsa2 && !hasIsa2 && momentumIsa2Marks !== null && subject.hasIsa2 !== false) {
+      effectiveCieRounded = projectedCieRounded;
+      effectiveLabRounded = projectedLabRounded;
+    } else if (options.useMomentumIsa2 && !hasIsa2 && momentumIsa2Marks !== null && subject.hasIsa2 !== false) {
+      const m = marks[subject.id] || {};
       const isa2Max = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
       if (!isNaN(isa2Max) && isa2Max > 0) {
-        effectiveInternals += (momentumIsa2Marks / isa2Max) * subject.isaWeight;
+        let cieWeight = (subject.isaWeight * 2) + (subject.hasAssignment ? subject.assignmentWeight : 0);
+        const isa1Val = parseFloat(m.isa1);
+        const isa1Max = parseFloat(m.isa1Max || subject.isa1Max || 40);
+        const isa1Component = (!isNaN(isa1Val) && isa1Max > 0) ? (isa1Val / isa1Max) * subject.isaWeight : 0;
+        
+        const assignVal = parseFloat(m.assignment);
+        const assignMax = parseFloat(m.assignmentMax || subject.assignmentMax || 10);
+        const assignComponent = (subject.hasAssignment && !isNaN(assignVal) && assignMax > 0) ? (assignVal / assignMax) * subject.assignmentWeight : 0;
+
+        let cieRaw = isa1Component + (momentumIsa2Marks / isa2Max) * subject.isaWeight + assignComponent;
+        let cieScaled = cieWeight > 0 ? (cieRaw / cieWeight) * 50 : 0;
+        effectiveCieRounded = Math.ceil(cieScaled);
       }
     }
-    const esaMax = m.esaMax || 100;
 
-    // First check: Is this grade even achievable with max ESA?
-    // Calculate what score we'd get with perfect ESA
-    const maxEsaComponent = (esaMax / esaMax) * esaWeight; // = esaWeight
-    const maxPossibleRaw = ((effectiveInternals + maxEsaComponent) / totalWeight) * 100;
-    const maxPossibleScore = Math.ceil(maxPossibleRaw);
+    const esaMax = marks[subject.id]?.esaMax || 100;
+    const internalsRoundedSum = effectiveCieRounded + effectiveLabRounded;
 
-    // If even with perfect ESA we can't reach the target, it's impossible
+    // Check if achievable
+    const maxPossibleRoundedSum = internalsRoundedSum + 50;
+    const maxPossibleScore = totalWeight > 0 ? Math.ceil((maxPossibleRoundedSum / totalWeight) * 100) : 0;
+
     if (maxPossibleScore < targetScore) {
       return { safe: null, minimum: null };
     }
 
+    const targetEsaRounded = totalWeight > 0 ? Math.ceil((targetScore - 1 + 0.000001) * totalWeight / 100) - internalsRoundedSum : 0;
+
     if (withSafetyMargin) {
-      // Safe calculation: Ensure we DEFINITELY get the grade
-      // We need: ceil((currentInternals + esaComponent) / totalWeight * 100) >= targetScore
-      // To guarantee this, we need the raw percentage to be >= targetScore - 0.5 (midpoint for ceiling)
-      // But to be SAFE, we calculate for exactly targetScore (no rounding benefit)
-      const requiredWeightedTotal = (targetScore * totalWeight) / 100;
-      const requiredEsaComponent = requiredWeightedTotal - effectiveInternals;
+      const targetEsaSafe = totalWeight > 0 ? Math.ceil(targetScore * totalWeight / 100) - internalsRoundedSum : 0;
 
-      if (requiredEsaComponent <= 0) return { safe: 0, minimum: 0 };
+      let safeEsa = 0;
+      if (targetEsaSafe > 0) {
+        safeEsa = Math.ceil((targetEsaSafe / 50) * esaMax);
+      }
 
-      const requiredEsaMarks = (requiredEsaComponent / esaWeight) * esaMax;
-
-      // Safe value: round up to ensure we hit the target
-      const safeEsa = Math.ceil(requiredEsaMarks);
-
-      // Minimum value: the absolute minimum that could work due to ceiling
-      // We need ceil(x) >= targetScore, so x > targetScore - 1
-      // Find the minimum ESA where ceil gives us targetScore
-      const minWeightedTotal = ((targetScore - 1) * totalWeight / 100) + 0.001;
-      const minRequiredEsaComponent = minWeightedTotal - effectiveInternals;
-      const minEsaMarks = minRequiredEsaComponent > 0
-        ? Math.ceil((minRequiredEsaComponent / esaWeight) * esaMax)
-        : 0;
+      let minEsaMarks = 0;
+      if (targetEsaRounded > 0) {
+        minEsaMarks = Math.ceil((targetEsaRounded - 1 + 0.000001) * esaMax / 50);
+      }
 
       // Cap at esaMax - if safe > esaMax but minimum <= esaMax, show minimum as safe
       if (safeEsa > esaMax) {
-        // Safe isn't achievable, but minimum might be (due to rounding)
         if (minEsaMarks <= esaMax) {
           return {
-            safe: esaMax, // Best we can do
+            safe: esaMax,
             minimum: Math.max(0, minEsaMarks),
-            requiresRounding: true // Flag to indicate this relies on rounding
+            requiresRounding: true
           };
         }
         return { safe: null, minimum: null };
@@ -1139,17 +1202,10 @@ export default function PES_Universal_Calculator() {
         minimum: Math.max(0, Math.min(esaMax, minEsaMarks))
       };
     } else {
-      // Original calculation (minimum possible)
-      const minWeightedTotal = ((targetScore - 1) * totalWeight / 100) + 0.001;
-      const requiredEsaComponent = minWeightedTotal - effectiveInternals;
-
-      if (requiredEsaComponent <= 0) return 0;
-
-      const requiredEsaMarks = (requiredEsaComponent / esaWeight) * esaMax;
-
-      if (requiredEsaMarks > esaMax) return null;
-
-      return Math.ceil(requiredEsaMarks);
+      if (targetEsaRounded <= 0) return 0;
+      const minRequiredEsaMarks = Math.ceil((targetEsaRounded - 1 + 0.000001) * esaMax / 50);
+      if (minRequiredEsaMarks > esaMax) return null;
+      return minRequiredEsaMarks;
     }
   };
 
@@ -1169,13 +1225,6 @@ export default function PES_Universal_Calculator() {
     const isaWeight = parseFloat(subject.isaWeight ?? 0);
     if (!isaWeight || isa2Max <= 0) return null;
 
-    const calcComponent = (score, max, weight) => {
-      const s = parseFloat(score);
-      const mx = parseFloat(max);
-      if (isNaN(s) || isNaN(mx) || mx === 0) return 0;
-      return (s / mx) * weight;
-    };
-
     const hasIsa1 = m.isa1 !== '' && m.isa1 !== undefined && !isNaN(parseFloat(m.isa1));
     const hasAssignment = m.assignment !== '' && m.assignment !== undefined && !isNaN(parseFloat(m.assignment));
     const hasLab = m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab));
@@ -1184,32 +1233,48 @@ export default function PES_Universal_Calculator() {
     const assignmentWeight = subject.hasAssignment ? (subject.assignmentWeight || 0) : 0;
     const labWeight = subject.hasLab ? (subject.labWeight || 0) : 0;
     const esaWeight = subject.esaWeight || 0;
+    const totalWeight = (isaWeight * 2) + assignmentWeight + labWeight + esaWeight;
 
-    let baseInternals = 0;
-    if (hasIsa1) baseInternals += calcComponent(m.isa1, m.isa1Max, isaWeight);
+    // CIE components
+    const isa1Val = parseFloat(m.isa1);
+    const isa1Max = parseFloat(m.isa1Max || subject.isa1Max || 40);
+    const isa1Component = (hasIsa1 && isa1Max > 0) ? (isa1Val / isa1Max) * isaWeight : 0;
 
+    const assignVal = parseFloat(m.assignment);
+    const assignMax = parseFloat(m.assignmentMax || subject.assignmentMax || 10);
+    let assignComponent = 0;
     if (subject.hasAssignment) {
-      baseInternals += hasAssignment
-        ? calcComponent(m.assignment, m.assignmentMax, assignmentWeight)
+      assignComponent = hasAssignment && assignMax > 0
+        ? (assignVal / assignMax) * assignmentWeight
         : (assumeFullForEmptyInternals ? assignmentWeight : 0);
     }
 
+    let labComponent = 0;
+    const labVal = parseFloat(m.lab);
+    const labMax = parseFloat(m.labMax || subject.labMax || 20);
     if (subject.hasLab) {
-      baseInternals += hasLab
-        ? calcComponent(m.lab, m.labMax, labWeight)
+      labComponent = hasLab && labMax > 0
+        ? (labVal / labMax) * labWeight
         : (assumeFullForEmptyInternals ? labWeight : 0);
     }
+    const labRounded = Math.ceil(labComponent);
 
-    const esaComponent = hasEsa ? calcComponent(m.esa, m.esaMax, esaWeight) : 0;
+    const esaVal = parseFloat(m.esa);
+    const esaMax = parseFloat(m.esaMax || subject.esaMax || 100);
+    const esaComponent = (hasEsa && esaMax > 0) ? (esaVal / esaMax) * esaWeight : 0;
+    const esaScaled = esaWeight > 0 ? (esaComponent / esaWeight) * 50 : 0;
+    const esaRounded = Math.ceil(esaScaled);
 
-    const totalWeight = (isaWeight * 2) +
-      assignmentWeight +
-      labWeight +
-      esaWeight;
-    if (totalWeight <= 0) return null;
+    // Target total rounded sum out of totalWeight
+    const targetCieRounded = totalWeight > 0
+      ? Math.ceil((parsedTarget - 1 + 0.000001) * totalWeight / 100) - labRounded - esaRounded
+      : 0;
 
-    const requiredWeightedTotal = (parsedTarget * totalWeight) / 100;
-    const requiredIsa2Component = requiredWeightedTotal - baseInternals - esaComponent;
+    if (targetCieRounded <= 0) return { needed: 0, max: isa2Max };
+
+    const cieWeight = (isaWeight * 2) + assignmentWeight;
+    const requiredCieRaw = (targetCieRounded - 1 + 0.000001) * cieWeight / 50;
+    const requiredIsa2Component = requiredCieRaw - isa1Component - assignComponent;
 
     if (requiredIsa2Component <= 0) return { needed: 0, max: isa2Max };
 
@@ -1323,16 +1388,7 @@ export default function PES_Universal_Calculator() {
     // 1. Build Current State
     let subState = subjects.map(s => {
       const m = marks[s.id] || {};
-      const { momentumScore, totalWeight, esaWeight } = getSubjectMetrics(s);
-
-      // REVERSE ENGINEER INTERNALS:
-      // We need to know what internals the 'Momentum Score' is assuming we have.
-      // If momentum is 0, this will be 0. If momentum is 90, this will be high.
-      const projectedEsaPart = (momentumScore / 100) * esaWeight;
-      const impliedInternals = (momentumScore * totalWeight / 100) - projectedEsaPart;
-
-      // Current ESA "usage" in the momentum score
-      const currentEsaMarks = (projectedEsaPart / esaWeight) * (m.esaMax || 100);
+      const { momentumScore, totalWeight, esaWeight, projectedCieRounded, projectedLabRounded, momentumEsaMarks } = getSubjectMetrics(s);
 
       const isFinal = m.esa && m.esa !== '' && !isNaN(parseFloat(m.esa));
 
@@ -1340,8 +1396,9 @@ export default function PES_Universal_Calculator() {
         ...s,
         currentScore: momentumScore,
         currentGP: getGradePoint(momentumScore, s),
-        impliedInternals,
-        currentEsaMarks,
+        cieRounded: projectedCieRounded,
+        labRounded: projectedLabRounded,
+        currentEsaMarks: momentumEsaMarks,
         totalWeight,
         esaWeight,
         esaMax: m.esaMax || 100,
@@ -1370,17 +1427,12 @@ export default function PES_Universal_Calculator() {
         const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
 
         if (nextGrade) {
-          // 1. Calculate TOTAL weighted points needed for the next grade
-          const requiredWeightedScore = (nextGrade.min * sub.totalWeight) / 100;
-
-          // 2. Subtract the internals we already have (or are projected to have)
-          const requiredEsaWeight = requiredWeightedScore - sub.impliedInternals;
-
-          // 3. Convert to ESA Marks
-          // If requiredEsaWeight is negative (internals already cover it), we need 0.
+          // Calculate target rounded ESA sum
+          const targetSum = sub.totalWeight > 0 ? Math.ceil((nextGrade.min - 1 + 0.000001) * sub.totalWeight / 100) : 0;
+          const targetEsaRounded = targetSum - (sub.cieRounded + sub.labRounded);
           let esaNeeded = 0;
-          if (requiredEsaWeight > 0) {
-            esaNeeded = Math.ceil((requiredEsaWeight / sub.esaWeight) * sub.esaMax);
+          if (targetEsaRounded > 0) {
+            esaNeeded = Math.ceil((targetEsaRounded - 1 + 0.000001) * sub.esaMax / 50);
           }
 
           // 4. Check Feasibility
@@ -1461,17 +1513,14 @@ export default function PES_Universal_Calculator() {
     // 1. Initialization
     let state = subjects.map(sub => {
       const m = marks[sub.id] || {};
-      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
+      const { 
+        cieRounded, labRounded,
+        projectedCieRounded, projectedLabRounded,
+        totalWeight, esaWeight, projectedInternals
+      } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
 
-      // LOGIC FIX 1: Calculate Projected Internals from Momentum
-      // We reverse-engineer the internals that momentum is "assuming" we have.
-      // This prevents the "Zero Lab" trap for both Locked and Unlocked subjects.
-      const projectedEsaScore = (momentumScore / 100) * esaWeight;
-      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
-
       // Check if we are relying on projection (Empty fields)
-      // FIX: Explicitly check for empty fields instead of math estimation to avoid rounding errors
       const missingIsa1 = m.isa1 === '' || m.isa1 === undefined;
       const missingIsa2 = m.isa2 === '' || m.isa2 === undefined;
       const missingAssign = sub.hasAssignment && (m.assignment === '' || m.assignment === undefined);
@@ -1481,43 +1530,45 @@ export default function PES_Universal_Calculator() {
       if (isProjecting) usingMomentum = true;
 
       // LOGIC FIX 2: Check if subject is effectively "Locked"
-      // It is locked if: 
-      // a) User manually locked it in UI
-      // b) User already entered an ESA mark in the main Subjects tab
       const isEsaEntered = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
       const manualLockVal = lockedSubjects[sub.id];
       const isLocked = manualLockVal !== undefined || isEsaEntered;
 
-      // Determine the Effective ESA to use
-      // If manually locked, use that. If ESA entered, use that. Otherwise 0.
       let effectiveEsa = 0;
       if (manualLockVal !== undefined) effectiveEsa = manualLockVal;
       else if (isEsaEntered) effectiveEsa = parseFloat(m.esa);
 
+      const effectiveCieRounded = isProjecting ? projectedCieRounded : cieRounded;
+      const effectiveLabRounded = isProjecting ? projectedLabRounded : labRounded;
+
       if (isLocked) {
-        // Use PROJECTED internals for the total calculation to avoid the trap
-        const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
         const esaComponent = (effectiveEsa / esaMax) * esaWeight;
-        const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
+        const esaScaled = esaWeight > 0 ? (esaComponent / esaWeight) * 50 : 0;
+        const esaRounded = Math.ceil(esaScaled);
+
+        const sumRounded = effectiveCieRounded + effectiveLabRounded + esaRounded;
+        const totalScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
         const gradeInfo = getGradeInfo(Math.min(100, totalScore), sub);
 
         return {
           ...sub,
-          locked: true, // Treat as locked
+          locked: true,
           currentGradeInfo: gradeInfo,
           currentGP: gradeInfo.gp,
           requiredEsa: effectiveEsa,
           esaMax,
           isImpossible: effectiveEsa > esaMax,
-          currentInternals: effectiveInternals, // Pass projected
+          cieRounded: effectiveCieRounded,
+          labRounded: effectiveLabRounded,
           totalWeight, esaWeight,
-          isManualLock: manualLockVal !== undefined // Distinguish for UI
+          isManualLock: manualLockVal !== undefined
         };
       }
 
       // Handle Unlocked
       // Calculate grade with 0 ESA using PROJECTED internals
-      const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
+      const sumRounded = effectiveCieRounded + effectiveLabRounded;
+      const zeroEsaScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
       const startGradeInfo = getGradeInfo(zeroEsaScore, sub);
 
       return {
@@ -1528,7 +1579,8 @@ export default function PES_Universal_Calculator() {
         requiredEsa: 0,
         esaMax,
         isImpossible: false,
-        currentInternals: projectedInternals,
+        cieRounded: effectiveCieRounded,
+        labRounded: effectiveLabRounded,
         totalWeight,
         esaWeight
       };
@@ -1546,22 +1598,23 @@ export default function PES_Universal_Calculator() {
       state.forEach((sub, idx) => {
         if (sub.locked || sub.isImpossible) return;
 
-        // FIX: Use custom map if available, otherwise default
         const activeMap = sub.customGradeMap || GradeMap;
         const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
         if (!nextGrade) return;
 
-        // Calculate Cost
-        const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
-        const requiredEsaComponent = requiredTotal - sub.currentInternals;
-        const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
+        // Calculate Cost using new rounding logic
+        const targetSum = sub.totalWeight > 0 ? Math.ceil((nextGrade.min - 1 + 0.000001) * sub.totalWeight / 100) : 0;
+        const targetEsaRounded = targetSum - (sub.cieRounded + sub.labRounded);
+        let requiredEsa = 0;
+        if (targetEsaRounded > 0) {
+          requiredEsa = Math.ceil((targetEsaRounded - 1 + 0.000001) * sub.esaMax / 50);
+        }
 
         if (requiredEsa > sub.esaMax) return;
 
         const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
 
-        // Efficiency: GP gained per ESA mark
         const efficiency = gpGain / (markCost <= 0 ? 0.0001 : markCost);
 
         if (efficiency > maxEfficiency) {
@@ -1604,23 +1657,27 @@ export default function PES_Universal_Calculator() {
   const calculateRandomPath = () => {
 
     // 1. Generate Random Bias (The "Vibe Shift")
-    // We force the algorithm to prefer some subjects over others arbitrarily
     const subjectBias = {};
     subjects.forEach(s => {
-      // Assign a multiplier between 0.2 (Super Cheap) and 3.0 (Super Expensive)
-      // This drastically changes the "cost" landscape for the algorithm
       subjectBias[s.id] = 0.2 + (Math.random() * 2.8);
     });
 
     // 2. Reset: Build initial state with 0 ESA
     let state = subjects.map(sub => {
       const m = marks[sub.id] || {};
-      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
+      const { 
+        cieRounded, labRounded,
+        projectedCieRounded, projectedLabRounded,
+        totalWeight, esaWeight, projectedInternals
+      } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
 
-      const projectedEsaScore = (momentumScore / 100) * esaWeight;
-      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
-      const isProjecting = projectedInternals > currentInternals + 0.1;
+      const missingIsa1 = m.isa1 === '' || m.isa1 === undefined;
+      const missingIsa2 = m.isa2 === '' || m.isa2 === undefined;
+      const missingAssign = sub.hasAssignment && (m.assignment === '' || m.assignment === undefined);
+      const missingLab = sub.hasLab && (m.lab === '' || m.lab === undefined);
+
+      const isProjecting = missingIsa1 || missingIsa2 || missingAssign || missingLab;
 
       const isEsaEntered = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
       const manualLockVal = lockedSubjects[sub.id];
@@ -1630,10 +1687,16 @@ export default function PES_Universal_Calculator() {
       if (manualLockVal !== undefined) effectiveEsa = manualLockVal;
       else if (isEsaEntered) effectiveEsa = parseFloat(m.esa);
 
+      const effectiveCieRounded = isProjecting ? projectedCieRounded : cieRounded;
+      const effectiveLabRounded = isProjecting ? projectedLabRounded : labRounded;
+
       if (isLocked) {
-        const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
         const esaComponent = (effectiveEsa / esaMax) * esaWeight;
-        const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
+        const esaScaled = esaWeight > 0 ? (esaComponent / esaWeight) * 50 : 0;
+        const esaRounded = Math.ceil(esaScaled);
+
+        const sumRounded = effectiveCieRounded + effectiveLabRounded + esaRounded;
+        const totalScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
         const gradeInfo = getGradeInfo(totalScore);
 
         return {
@@ -1643,13 +1706,15 @@ export default function PES_Universal_Calculator() {
           currentGP: gradeInfo.gp,
           requiredEsa: effectiveEsa,
           esaMax,
-          currentInternals: effectiveInternals,
+          cieRounded: effectiveCieRounded,
+          labRounded: effectiveLabRounded,
           totalWeight, esaWeight
         };
       }
 
       // Unlocked starts at 0 ESA
-      const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
+      const sumRounded = effectiveCieRounded + effectiveLabRounded;
+      const zeroEsaScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
       const startGradeInfo = getGradeInfo(zeroEsaScore);
 
       return {
@@ -1659,7 +1724,8 @@ export default function PES_Universal_Calculator() {
         currentGP: startGradeInfo.gp,
         requiredEsa: 0,
         esaMax,
-        currentInternals: projectedInternals,
+        cieRounded: effectiveCieRounded,
+        labRounded: effectiveLabRounded,
         totalWeight, esaWeight
       };
     });
@@ -1678,25 +1744,22 @@ export default function PES_Universal_Calculator() {
       state.forEach((sub, idx) => {
         if (sub.locked) return;
 
-        // FIX: Use 'GradeMap' which is defined at the top of your file
         const activeMap = sub.customGradeMap || GradeMap;
-
         const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
-
         if (!nextGrade) return;
 
-        const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
-        const requiredEsaComponent = requiredTotal - sub.currentInternals;
-        const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
+        const targetSum = sub.totalWeight > 0 ? Math.ceil((nextGrade.min - 1 + 0.000001) * sub.totalWeight / 100) : 0;
+        const targetEsaRounded = targetSum - (sub.cieRounded + sub.labRounded);
+        let requiredEsa = 0;
+        if (targetEsaRounded > 0) {
+          requiredEsa = Math.ceil((targetEsaRounded - 1 + 0.000001) * sub.esaMax / 50);
+        }
 
         if (requiredEsa > sub.esaMax) return;
 
         const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
 
-        // --- THE MAGIC IS HERE ---
-        // We divide efficiency by our random bias.
-        // If bias is high (expensive), efficiency drops, and the algorithm ignores this subject.
         const bias = subjectBias[sub.id];
         const biasedCost = (markCost <= 0 ? 0.0001 : markCost) * bias;
 
@@ -1737,13 +1800,13 @@ export default function PES_Universal_Calculator() {
     // 1. Reset: Build initial state (Same as others)
     let state = subjects.map(sub => {
       const m = marks[sub.id] || {};
-      const { currentInternals, totalWeight, esaWeight, momentumScore } = getSubjectMetrics(sub);
+      const { 
+        cieRounded, labRounded,
+        projectedCieRounded, projectedLabRounded,
+        totalWeight, esaWeight, projectedInternals
+      } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
 
-      const projectedEsaScore = (momentumScore / 100) * esaWeight;
-      const projectedInternals = (momentumScore * totalWeight / 100) - projectedEsaScore;
-
-      // FIX: Use the specific empty check (same as your recent fix)
       const missingIsa1 = m.isa1 === '' || m.isa1 === undefined;
       const missingIsa2 = m.isa2 === '' || m.isa2 === undefined;
       const missingAssign = sub.hasAssignment && (m.assignment === '' || m.assignment === undefined);
@@ -1759,10 +1822,16 @@ export default function PES_Universal_Calculator() {
       if (manualLockVal !== undefined) effectiveEsa = manualLockVal;
       else if (isEsaEntered) effectiveEsa = parseFloat(m.esa);
 
+      const effectiveCieRounded = isProjecting ? projectedCieRounded : cieRounded;
+      const effectiveLabRounded = isProjecting ? projectedLabRounded : labRounded;
+
       if (isLocked) {
-        const effectiveInternals = isProjecting ? projectedInternals : currentInternals;
         const esaComponent = (effectiveEsa / esaMax) * esaWeight;
-        const totalScore = Math.ceil(((effectiveInternals + esaComponent) / totalWeight) * 100);
+        const esaScaled = esaWeight > 0 ? (esaComponent / esaWeight) * 50 : 0;
+        const esaRounded = Math.ceil(esaScaled);
+
+        const sumRounded = effectiveCieRounded + effectiveLabRounded + esaRounded;
+        const totalScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
         const gradeInfo = getGradeInfo(totalScore);
 
         return {
@@ -1772,12 +1841,14 @@ export default function PES_Universal_Calculator() {
           currentGP: gradeInfo.gp,
           requiredEsa: effectiveEsa,
           esaMax,
-          currentInternals: effectiveInternals,
+          cieRounded: effectiveCieRounded,
+          labRounded: effectiveLabRounded,
           totalWeight, esaWeight
         };
       }
 
-      const zeroEsaScore = Math.ceil((projectedInternals / totalWeight) * 100);
+      const sumRounded = effectiveCieRounded + effectiveLabRounded;
+      const zeroEsaScore = totalWeight > 0 ? Math.ceil((sumRounded / totalWeight) * 100) : 0;
       const startGradeInfo = getGradeInfo(zeroEsaScore);
 
       return {
@@ -1787,7 +1858,8 @@ export default function PES_Universal_Calculator() {
         currentGP: startGradeInfo.gp,
         requiredEsa: 0,
         esaMax,
-        currentInternals: projectedInternals,
+        cieRounded: effectiveCieRounded,
+        labRounded: effectiveLabRounded,
         totalWeight, esaWeight
       };
     });
@@ -1810,19 +1882,18 @@ export default function PES_Universal_Calculator() {
         const nextGrade = activeMap.slice().reverse().find(g => g.gp > sub.currentGP);
         if (!nextGrade) return;
 
-        const requiredTotal = (nextGrade.min * sub.totalWeight) / 100;
-        const requiredEsaComponent = requiredTotal - sub.currentInternals;
-        const requiredEsa = Math.ceil((requiredEsaComponent / sub.esaWeight) * sub.esaMax);
+        const targetSum = sub.totalWeight > 0 ? Math.ceil((nextGrade.min - 1 + 0.000001) * sub.totalWeight / 100) : 0;
+        const targetEsaRounded = targetSum - (sub.cieRounded + sub.labRounded);
+        let requiredEsa = 0;
+        if (targetEsaRounded > 0) {
+          requiredEsa = Math.ceil((targetEsaRounded - 1 + 0.000001) * sub.esaMax / 50);
+        }
 
         if (requiredEsa > sub.esaMax) return;
 
         const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
 
-        // --- THE BALANCING LOGIC ---
-        // We square the total ESA needed. 
-        // This makes high scores EXPONENTIALLY harder to justify.
-        // Going from 40->50 is cheap. Going from 90->100 is very expensive.
         const currentStrain = Math.pow(Math.max(0, sub.requiredEsa), 2);
         const nextStrain = Math.pow(requiredEsa, 2);
         const strainIncrease = nextStrain - currentStrain;
@@ -1896,7 +1967,6 @@ export default function PES_Universal_Calculator() {
       };
     });
   };
-
   // --- Range Calculation (Min/Max Achievable) ---
   const sgpaRange = useMemo(() => {
     let totalCredits = 0;
@@ -1905,38 +1975,65 @@ export default function PES_Universal_Calculator() {
 
     subjects.forEach(sub => {
       const m = marks[sub.id] || {};
-      const { totalWeight } = getSubjectMetrics(sub);
-
-      let rawLoss = 0;    // Marks definitively lost
-      let rawSecured = 0; // Marks definitively secured
-
-      // Helper to check components
-      const checkComp = (val, max, weight) => {
+      let cieRawSecured = 0;
+      let cieWeight = (sub.isaWeight * 2) + (sub.hasAssignment ? sub.assignmentWeight : 0);
+      
+      const checkCieComp = (val, max, weight) => {
         if (val !== '' && val !== undefined && !isNaN(parseFloat(val))) {
-          const v = parseFloat(val);
-          const mx = parseFloat(max);
-          const w = parseFloat(weight);
-          // Calculate raw weighted score
-          const score = (v / mx) * w;
-          rawSecured += score;
-          // Calculate raw lost marks
-          rawLoss += (w - score);
+          cieRawSecured += (parseFloat(val) / parseFloat(max)) * weight;
         }
       };
+      checkCieComp(m.isa1, m.isa1Max, sub.isaWeight);
+      checkCieComp(m.isa2, m.isa2Max, sub.isaWeight);
+      if (sub.hasAssignment) checkCieComp(m.assignment, m.assignmentMax, sub.assignmentWeight);
 
-      checkComp(m.isa1, m.isa1Max, sub.isaWeight);
-      checkComp(m.isa2, m.isa2Max, sub.isaWeight);
-      if (sub.hasAssignment) checkComp(m.assignment, m.assignmentMax, sub.assignmentWeight);
-      if (sub.hasLab) checkComp(m.lab, m.labMax, sub.labWeight);
-      // For ESA: If not entered, Max assumes full marks, Min assumes 0
-      checkComp(m.esa, m.esaMax, sub.esaWeight);
+      let labRawSecured = 0;
+      if (sub.hasLab && m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab))) {
+        labRawSecured = (parseFloat(m.lab) / parseFloat(m.labMax)) * sub.labWeight;
+      }
 
-      // WORST CASE: Assumes 0 in all empty fields
-      const minPercent = Math.ceil((rawSecured / totalWeight) * 100);
+      let esaRawSecured = 0;
+      if (m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa))) {
+        esaRawSecured = (parseFloat(m.esa) / parseFloat(m.esaMax)) * sub.esaWeight;
+      }
+
+      // Scaled and Rounded for WORST CASE (assumes 0 in empty fields)
+      let cieScaledMin = cieWeight > 0 ? (cieRawSecured / cieWeight) * 50 : 0;
+      let cieRoundedMin = Math.ceil(cieScaledMin);
+
+      let labScaledMin = labRawSecured;
+      let labRoundedMin = Math.ceil(labScaledMin);
+
+      let esaScaledMin = sub.esaWeight > 0 ? (esaRawSecured / sub.esaWeight) * 50 : 0;
+      let esaRoundedMin = Math.ceil(esaScaledMin);
+
+      let sumRoundedMin = cieRoundedMin + labRoundedMin + esaRoundedMin;
+      let totalWeight = cieWeight + (sub.hasLab ? sub.labWeight : 0) + sub.esaWeight;
+      const minPercent = totalWeight > 0 ? Math.ceil((sumRoundedMin / totalWeight) * 100) : 0;
 
       // BEST CASE: Assumes Full Marks in all empty fields
-      const maxRawScore = totalWeight - rawLoss;
-      const maxPercent = Math.ceil((maxRawScore / totalWeight) * 100);
+      let cieRawMax = cieRawSecured;
+      if (m.isa1 === '' || m.isa1 === undefined) cieRawMax += sub.isaWeight;
+      if (m.isa2 === '' || m.isa2 === undefined) cieRawMax += sub.isaWeight;
+      if (sub.hasAssignment && (m.assignment === '' || m.assignment === undefined)) cieRawMax += sub.assignmentWeight;
+
+      let labRawMax = sub.hasLab
+        ? (m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab)) ? labRawSecured : sub.labWeight)
+        : 0;
+
+      let esaRawMax = (m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa))) ? esaRawSecured : sub.esaWeight;
+
+      let cieScaledMax = cieWeight > 0 ? (cieRawMax / cieWeight) * 50 : 0;
+      let cieRoundedMax = Math.ceil(cieScaledMax);
+
+      let labScaledMax = labRawMax;
+      let labRoundedMax = Math.ceil(labScaledMax);
+
+      let esaScaledMax = sub.esaWeight > 0 ? (esaRawMax / sub.esaWeight) * 50 : 0;
+      let esaRoundedMax = Math.ceil(esaScaledMax);
+
+      let sumRoundedMax = cieRoundedMax + labRoundedMax + esaRoundedMax;
+      const maxPercent = totalWeight > 0 ? Math.ceil((sumRoundedMax / totalWeight) * 100) : 0;
 
       minWeightedGP += getGradePoint(minPercent, sub) * sub.credits;
       maxWeightedGP += getGradePoint(maxPercent, sub) * sub.credits;
@@ -1977,7 +2074,7 @@ export default function PES_Universal_Calculator() {
         alertList.push({
           type: 'critical',
           subject: sub.name,
-          message: `Currently at ${finalScore}%. Risk of failing!`
+          message: `Currently at score ${finalScore}. Risk of failing!`
         });
       }
 
@@ -1985,13 +2082,10 @@ export default function PES_Universal_Calculator() {
       const currentGP = getGradePoint(finalScore);
       const nextGrade = GradeMap.slice().reverse().find(g => g.gp > currentGP);
       if (nextGrade) {
-        const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
         const esaMax = m.esaMax || 100;
-        const requiredTotal = (nextGrade.min * totalWeight) / 100;
-        const requiredEsaComponent = requiredTotal - currentInternals;
-        const requiredEsa = Math.ceil((requiredEsaComponent / esaWeight) * esaMax);
+        const requiredEsa = getRequiredESAForGrade(sub, nextGrade.min, false);
 
-        if (requiredEsa > 0 && requiredEsa <= 40 && !m.esa) {
+        if (requiredEsa !== null && requiredEsa > 0 && requiredEsa <= 40 && !m.esa) {
           alertList.push({
             type: 'opportunity',
             subject: sub.name,
@@ -2197,9 +2291,23 @@ export default function PES_Universal_Calculator() {
             <div className="space-y-4">
               {subjects.map((subject) => {
                 const m = marks[subject.id] || {};
-                const { finalScore, rawScore, totalWeight } = getSubjectMetrics(subject);
+                const { finalScore, rawScore, totalWeight, unroundedScore, cieScaled, cieRounded, esaScaled, esaRounded, labScaled, labRounded } = getSubjectMetrics(subject);
                 const gp = getGradePoint(finalScore, subject);
                 const gradeInfo = getGradeInfo(finalScore, subject);
+                const finalIsa = getFinalIsaSummary(subject);
+                const isa1Label = subject.customConfig?.labels?.isa1 || 'ISA 1';
+                const isa2Label = subject.customConfig?.labels?.isa2 || 'ISA 2';
+                const assignmentLabel = subject.customConfig?.labels?.assignment || 'Assignment';
+                const formatIsaValue = (value) => {
+                  if (!Number.isFinite(value)) return '0';
+                  const trimmed = value.toFixed(3).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+                  return trimmed === '' ? '0' : trimmed;
+                };
+                const isa1Display = formatIsaValue(finalIsa.isa1);
+                const isa2Display = formatIsaValue(finalIsa.isa2);
+                const assignmentDisplay = formatIsaValue(finalIsa.assignment);
+                const isaTotalDisplay = Math.ceil(finalIsa.total).toString();
+                const isaMaxDisplay = formatIsaValue(finalIsa.max);
                 const isExpanded = expandedSubject === subject.id;
                 const hasLabComponent = subject.hasLab || ((subject.customConfig?.weights.lab ?? 0) > 0);
                 const showTotalWeight = hasLabComponent && totalWeight > 100;
@@ -2404,6 +2512,140 @@ export default function PES_Universal_Calculator() {
                             </div>
                           </div>
 
+                        </div>
+
+                        {/* Final ISA (out of 50) */}
+                        <div className={`${themeClasses.card} p-3 rounded-lg border mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`}>
+                          <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-zinc-500">
+                            <Scale className="w-3 h-3" /> Final ISA (out of 50)
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3 text-xs">
+                            <span className="text-zinc-400">{isa1Label}: <span className="text-zinc-200 font-semibold">{isa1Display}</span></span>
+                            <span className="text-zinc-400">{isa2Label} (reduced): <span className="text-zinc-200 font-semibold">{isa2Display}</span></span>
+                            <span className="text-zinc-400">{assignmentLabel}: <span className="text-zinc-200 font-semibold">{assignmentDisplay}</span></span>
+                            <span className="text-emerald-300 font-semibold">
+                              Total: {isaTotalDisplay}/{isaMaxDisplay}
+                              <span className="text-zinc-400 font-normal ml-1">
+                                (unrounded: {formatIsaValue(finalIsa.total)})
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Unrounded Total Equation (Moved Outside The Box) */}
+                        <div className="flex items-center justify-between text-xs px-2 mb-4">
+                          <span className="text-zinc-400">Unrounded Total Score:</span>
+                          <span className="text-zinc-300 font-medium">
+                            {totalWeight !== 100 ? (
+                              <>
+                                (<span className="text-zinc-300 font-semibold">{formatIsaValue(cieScaled)}</span> + <span className="text-zinc-300 font-semibold">{formatIsaValue(esaScaled)}</span> {hasLabComponent ? <>+ <span className="text-zinc-300 font-semibold">{formatIsaValue(labScaled)}</span></> : ''}) / {totalWeight} &times; 100 = <span className="text-emerald-400 font-bold ml-1">{unroundedScore.toFixed(2)}</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-zinc-300 font-semibold">{formatIsaValue(cieScaled)}</span> + <span className="text-zinc-300 font-semibold">{formatIsaValue(esaScaled)}</span> = <span className="text-emerald-400 font-bold ml-1">{unroundedScore.toFixed(2)}</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Collapsible Detailed Rounding Breakdown Dropdown */}
+                        <div className="mb-4">
+                          <details className="group">
+                            <summary className={`flex items-center gap-1.5 text-xs font-bold ${themeClasses.muted} uppercase tracking-wide cursor-pointer hover:text-blue-400 select-none transition-colors`}>
+                              <ChevronDown className="w-3.5 h-3.5 transition-transform group-open:rotate-180" /> Show Detailed Rounding Breakdown
+                            </summary>
+                            <div className="mt-2">
+                              {/* Rounding & Marks Breakdown Box */}
+                              <div className={`${themeClasses.card} p-4 rounded-lg border space-y-3`}>
+                                <div className="flex items-center justify-between border-b pb-2 border-white/[0.06]">
+                                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-zinc-400">
+                                    <Scale className="w-3.5 h-3.5" /> Marks & Rounding Breakdown
+                                  </div>
+                                  <span className={`text-[10px] ${themeClasses.muted}`}>
+                                    PESU Scaling Rule
+                                  </span>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                  <div className="space-y-1">
+                                    <div className="font-semibold text-zinc-300 mb-1">CIE (Internals)</div>
+                                    <div className="flex flex-col gap-1 text-zinc-400">
+                                      <div className="flex justify-between">
+                                        <span>{isa1Label}:</span>
+                                        <span className="text-zinc-200 font-semibold">{isa1Display}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>{isa2Label} (reduced):</span>
+                                        <span className="text-zinc-200 font-semibold">{isa2Display}</span>
+                                      </div>
+                                      {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
+                                        <div className="flex justify-between">
+                                          <span>{assignmentLabel}:</span>
+                                          <span className="text-zinc-200 font-semibold">{assignmentDisplay}</span>
+                                        </div>
+                                      )}
+                                      <div className="flex justify-between border-t border-white/[0.04] pt-1 font-medium mt-1">
+                                        <span className="text-zinc-300">CIE Total (unrounded):</span>
+                                        <span className="text-zinc-200">{formatIsaValue(cieScaled)} / 50</span>
+                                      </div>
+                                      <div className="flex justify-between text-emerald-400 font-semibold">
+                                        <span>CIE Rounded (Ceil):</span>
+                                        <span>{cieRounded} / 50</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <div className="font-semibold text-zinc-300 mb-1">ESA & Lab Components</div>
+                                    <div className="flex flex-col gap-1 text-zinc-400">
+                                      <div className="flex justify-between">
+                                        <span>ESA Raw Score:</span>
+                                        <span className="text-zinc-200 font-semibold">{m.esa !== '' && m.esa !== undefined ? `${m.esa} / ${m.esaMax || 100}` : '-'}</span>
+                                      </div>
+                                      <div className="flex justify-between">
+                                        <span>ESA (unrounded):</span>
+                                        <span className="text-zinc-200 font-semibold">{formatIsaValue(esaScaled)} / 50</span>
+                                      </div>
+                                      <div className="flex justify-between text-emerald-400 font-semibold mb-2">
+                                        <span>ESA Rounded (Ceil):</span>
+                                        <span>{esaRounded} / 50</span>
+                                      </div>
+
+                                      {hasLabComponent && (
+                                        <>
+                                          <div className="border-t border-white/[0.04] pt-1 flex justify-between">
+                                            <span>Lab Raw Score:</span>
+                                            <span className="text-zinc-200 font-semibold">{m.lab !== '' && m.lab !== undefined ? `${m.lab} / ${m.labMax || 20}` : '-'}</span>
+                                          </div>
+                                          <div className="flex justify-between">
+                                            <span>Lab (unrounded):</span>
+                                            <span className="text-zinc-200 font-semibold">{formatIsaValue(labScaled)} / {subject.labWeight || 20}</span>
+                                          </div>
+                                          <div className="flex justify-between text-emerald-400 font-semibold">
+                                            <span>Lab Rounded (Ceil):</span>
+                                            <span>{labRounded} / {subject.labWeight || 20}</span>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="bg-white/[0.02] border border-white/[0.04] rounded-lg p-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                                  <div>
+                                    <span className="text-zinc-400 font-medium">Unrounded Total: </span>
+                                    <span className="text-zinc-200 font-bold text-sm">{unroundedScore.toFixed(2)}</span>
+                                    <span className="text-[10px] text-zinc-500 block">Sum of raw components scaled to 100</span>
+                                  </div>
+                                  <div className="text-right sm:text-right">
+                                    <span className="text-emerald-400 font-semibold">Final Rounded Score: </span>
+                                    <span className="text-emerald-300 font-bold text-sm bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{finalScore}</span>
+                                    <span className="text-[10px] text-zinc-500 block">Ceil(CIE) + Ceil(Lab) + Ceil(ESA) scaled</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </details>
                         </div>
 
                         {/* Quick Config */}
