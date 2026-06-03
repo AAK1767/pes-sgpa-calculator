@@ -83,6 +83,8 @@ npm run preview  # Preview the build locally
 
 ## 📖 User Guide
 
+> 🧮 **Looking for details on calculations?** Check out the [Detailed Calculation Guide](CALCULATION_GUIDE.md) to understand the exact formulas, scaling, rounding, and algorithms used behind the scenes for SGPA, CGPA, reverse calculation strategies, and attendance planning.
+
 ### Tab Overview
 
 | Tab | Purpose |
@@ -91,6 +93,7 @@ npm run preview  # Preview the build locally
 | **Analysis** | View predictions, grade requirements, smart strategy |
 | **Reverse Calc** | Set target SGPA → get required ESA scores |
 | **CGPA** | Calculate cumulative GPA across semesters |
+| **Attendance** | Track and plan attendance percentage |
 | **Guide** | In-app help and documentation |
 
 ### Quick Start

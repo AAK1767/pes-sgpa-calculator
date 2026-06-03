@@ -9,7 +9,8 @@ import {
   Lightbulb, ArrowRight, CheckCircle2, AlertCircle,
   Download, Upload, Lock, Unlock, AlertTriangle,
   BookOpen, Award, Zap, BarChart3, Moon, Sun,
-  Undo2, Redo2, HelpCircle, Info, X, Heart
+  Undo2, Redo2, HelpCircle, Info, X, Heart,
+  Github, ExternalLink
 } from 'lucide-react';
 
 // --- Default Data for Reset ---
@@ -4634,6 +4635,65 @@ export default function PES_Universal_Calculator() {
               AI assistance was used to some extent.
             </div>
 
+            {/* Developer Resources & Support */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* GitHub & Docs Card */}
+              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm flex flex-col justify-between`}>
+                <div>
+                  <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                    <span className="bg-zinc-800 text-zinc-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-mono font-bold">
+                      <Github className="w-4 h-4" />
+                    </span>
+                    <span>Developer Resources</span>
+                  </div>
+                  <p className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
+                    This calculator is fully open-source. Check out the source repository to view the code, report issues, or read the detailed math breakdown.
+                  </p>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 pl-1">
+                  <a
+                    href="https://github.com/aak1767/pes-sgpa-calculator"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-200 border border-white/[0.06] transition-all"
+                  >
+                    <Github className="w-3.5 h-3.5" /> Source Code
+                  </a>
+                  <a
+                    href="https://github.com/aak1767/pes-sgpa-calculator/blob/main/CALCULATION_GUIDE.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" /> Calculation Guide
+                  </a>
+                </div>
+              </div>
+
+              {/* Support Card */}
+              <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm flex flex-col justify-between`}>
+                <div>
+                  <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+                    <span className="bg-yellow-500/10 text-yellow-400 w-8 h-8 rounded-full flex items-center justify-center text-lg">
+                      🍬
+                    </span>
+                    <span>Support the Project</span>
+                  </div>
+                  <p className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
+                    If this tool helped you project your SGPA, plan your attendance, or save your semester, consider supporting the developer!
+                  </p>
+                </div>
+                <div className="mt-4 pl-1">
+                  <button
+                    onClick={() => setShowToffeeModal(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black shadow-md transition-all cursor-pointer"
+                  >
+                    buy me a toffee 🍬
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* 1. POWER USER FEATURES (Grid) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -4945,12 +5005,12 @@ export default function PES_Universal_Calculator() {
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
           <p className="mt-1 opacity-50">PES SGPA Calculator v4.5.3 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
-          <p
-            className="mt-1 text-[12px] opacity-45 cursor-pointer hover:opacity-60 transition-opacity select-none inline-block translate-x-[9px]"
+          <button
             onClick={() => setShowToffeeModal(true)}
+            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/20 transition-all cursor-pointer"
           >
             buy me a toffee 🍬
-          </p>
+          </button>
         </div>
 
         {/* Toffee Support Modal */}
