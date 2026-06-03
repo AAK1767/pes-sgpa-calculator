@@ -97,7 +97,7 @@ $$\text{Momentum Score} = \left\lceil \frac{\text{Projected CIE Rounded} + \text
 ## 3. SGPA Calculations (Subjects Tab)
 
 The Semester Grade Point Average (SGPA) is computed as the credit-weighted average of all courses:
-$$\text{SGPA} = \frac{\sum_{i} (\text{Grade Point}_i \times \text{Credits}_i)}{\sum_{i} \text{Credits}_i}$$
+$$\text{SGPA} = \frac{\sum_{i} \left( \text{Grade Point}_{i} \times \text{Credits}_{i} \right)}{\sum_{i} \text{Credits}_{i}}$$
 
 ### Quick SGPA Sandbox Estimator
 At the bottom of the Subjects tab, you can select hypothetical letter grades (S, A, B...) directly for each subject. It uses the same SGPA formula but overrides the calculated Grade Points with your selected grades for quick sandboxing.
@@ -142,7 +142,7 @@ The Reverse Calculator finds a configuration of grades across all subjects to ac
 
 ### A. Optimization Strategies (Hill Climbing)
 Starting with $0$ ESA marks for all subjects, the optimizer iteratively upgrades grades one step at a time until the credit-weighted sum of grade points meets the target:
-$$\sum (\text{GP}_i \times \text{Credits}_i) \ge \text{Target SGPA} \times \sum \text{Credits}_i$$
+$$\sum \left( \text{GP}_{i} \times \text{Credits}_{i} \right) \ge \text{Target SGPA} \times \sum \text{Credits}_{i}$$
 
 The three mode strategies determine which subject is selected for an upgrade at each step:
 
@@ -203,7 +203,7 @@ $$\text{Recovery Classes} = \text{consecutiveClassesNeeded}(\text{Total Held} + 
 
 ### A. Cumulative GPA (CGPA)
 The CGPA is computed as a weighted average over all completed semesters where both SGPA and Credits are entered:
-$$\text{CGPA} = \frac{\sum_{j} (\text{SGPA}_j \times \text{Credits}_j)}{\sum_{j} \text{Credits}_j}$$
+$$\text{CGPA} = \frac{\sum_{j} \left( \text{SGPA}_{j} \times \text{Credits}_{j} \right)}{\sum_{j} \text{Credits}_{j}}$$
 
 ### B. Quick CGPA Estimator (Manual combining)
 Combines previous academic history with the current semester's results:
