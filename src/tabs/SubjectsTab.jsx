@@ -809,7 +809,10 @@ export default function SubjectsTab({
             {/* Intro Text */}
             <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 p-4 rounded-lg border border-purple-500/20">
               <p className="text-sm text-purple-200">
-                <strong>Universal Mode:</strong> This calculator works for any college. Define your assessment pattern and grading scheme below, then click "Create Subject".
+                <strong>Universal Mode (Experimental):</strong> This calculator works for any college. Define your assessment pattern and grading scheme below, then click "Create Subject".
+              </p>
+              <p className="text-xs text-purple-300/80 mt-1.5 leading-relaxed">
+                ⚠️ <strong>Note:</strong> Universal Mode is currently in an experimental phase and might be half-baked for complex custom curriculums or edge-case calculations.
               </p>
             </div>
 
