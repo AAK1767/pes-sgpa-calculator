@@ -45,7 +45,7 @@ import {
   Download, Upload, Lock, Unlock, AlertTriangle,
   BookOpen, Award, Zap, BarChart3, Moon, Sun,
   Undo2, Redo2, HelpCircle, Info, X, Heart,
-  Github, ExternalLink
+  Github, ExternalLink, Star, MessageSquare
 } from 'lucide-react';
 
 export default function PES_Universal_Calculator() {
@@ -160,6 +160,44 @@ export default function PES_Universal_Calculator() {
   const [lockedSubjects, setLockedSubjects] = useState({});
   const [showHelp, setShowHelp] = useState(false);
   const [showToffeeModal, setShowToffeeModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackName, setFeedbackName] = useState('');
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackStatus, setFeedbackStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
+  const [hoverRating, setHoverRating] = useState(0);
+
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!feedbackText.trim()) return;
+
+    setFeedbackStatus('submitting');
+    try {
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: feedbackName.trim(),
+          feedback: feedbackText.trim(),
+          rating: feedbackRating,
+        }),
+      });
+
+      if (response.ok) {
+        setFeedbackStatus('success');
+        setFeedbackName('');
+        setFeedbackText('');
+        setFeedbackRating(0);
+      } else {
+        setFeedbackStatus('error');
+      }
+    } catch {
+      setFeedbackStatus('error');
+    }
+  };
+
   const ATTENDANCE_MIN_PERCENT = 75;
   // --- Attendance (Mode 1 is the source for all planners) ---
   const [attendanceStatusMode, setAttendanceStatusMode] = useState(() => {
@@ -1520,22 +1558,39 @@ export default function PES_Universal_Calculator() {
       <div className="bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06] text-zinc-200 py-4 px-4 md:p-6 sticky top-0 z-50 shadow-xl shadow-black/40">
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2.5">
-              <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            <div className="flex flex-wrap items-center gap-2.5 md:gap-3">
+              <h1 className="text-xl md:text-2xl font-bold inline-flex items-center gap-2">
+                <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                  <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                </div>
+                <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
+              </h1>
+              
+              {/* Subtle links positioned beside the title */}
+              <div className="flex items-center gap-1 md:gap-1.5 text-[9px] md:text-xs font-semibold">
+                <button
+                  onClick={() => setShowToffeeModal(true)}
+                  className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 bg-amber-400/5 hover:bg-amber-400/10 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg border border-amber-400/10 cursor-pointer"
+                >
+                  <span>Toffee 🍬</span>
+                </button>
+                <button
+                  onClick={() => setShowFeedbackModal(true)}
+                  className="text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1 bg-white/[0.04] hover:bg-white/[0.08] px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg border border-white/[0.06] cursor-pointer"
+                >
+                  <span>Feedback 📝</span>
+                </button>
               </div>
-              <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
-            </h1>
+            </div>
             <p className="text-zinc-500 text-[10px] md:text-xs mt-1.5 font-medium tracking-widest uppercase">
               Universal &bull; Auto-Saves &bull; Any College
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider font-semibold">SGPA</div>
-              <div className={`text-3xl md:text-4xl font-black tabular-nums tracking-tight ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-white'}`}>
-                {sgpa}
-              </div>
+
+          <div className="text-right">
+            <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider font-semibold">SGPA</div>
+            <div className={`text-3xl md:text-4xl font-black tabular-nums tracking-tight ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-white'}`}>
+              {sgpa}
             </div>
           </div>
         </div>
@@ -1763,6 +1818,123 @@ export default function PES_Universal_Calculator() {
                 <p className="text-[10px] text-zinc-400 hidden">QR code not found — add upi-qr.png to /public</p>
               </div>
               <p className="text-[10px] text-zinc-600">Scan with any UPI app</p>
+            </div>
+          </div>
+        )}
+
+        {/* Feedback Modal */}
+        {showFeedbackModal && (
+          <div
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowFeedbackModal(false)}
+          >
+            <div
+              className="relative bg-[#111118] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl text-zinc-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              
+              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3 text-sm">
+                <span className="bg-purple-500/10 text-purple-400 w-7 h-7 rounded-full flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4" />
+                </span>
+                <span>Send Feedback 🚀</span>
+              </div>
+              <p className="text-[11px] text-zinc-500 mb-4 leading-relaxed">
+                Have a suggestion, bug report, or want to share your thoughts? Send feedback directly to the developer's Discord channel!
+              </p>
+
+              {feedbackStatus === 'success' ? (
+                <div className="bg-green-500/10 border border-green-500/20 text-green-300 rounded-xl p-4 text-center">
+                  <h4 className="font-bold text-xs mb-1">Feedback Sent! 💖</h4>
+                  <p className="text-[10px] text-green-400/80 leading-relaxed">Thank you! Your feedback has been delivered to the developer.</p>
+                  <button
+                    onClick={() => setFeedbackStatus('idle')}
+                    className="mt-3 text-[10px] underline font-semibold hover:text-white"
+                  >
+                    Send more feedback
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+                  <div className="flex flex-col gap-3">
+                    {/* Rating */}
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-[10px] font-semibold text-zinc-400">Rating (Optional)</span>
+                      <div className="flex items-center gap-1 py-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setFeedbackRating(star)}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            className="transition-transform active:scale-95 cursor-pointer focus:outline-none"
+                          >
+                            <Star
+                              className={`w-4.5 h-4.5 ${
+                                star <= (hoverRating || feedbackRating)
+                                  ? 'text-yellow-400 fill-yellow-400'
+                                  : 'text-zinc-600'
+                              } transition-colors`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Name */}
+                    <div className="flex flex-col space-y-1">
+                      <label htmlFor="modal-feedback-name" className="text-[10px] font-semibold text-zinc-400">Name (Optional)</label>
+                      <input
+                        id="modal-feedback-name"
+                        type="text"
+                        placeholder="Anonymous"
+                        value={feedbackName}
+                        onChange={(e) => setFeedbackName(e.target.value)}
+                        className="w-full text-xs p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] focus:border-purple-500 focus:ring-purple-500/20 text-zinc-200 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Message */}
+                  <div className="flex flex-col space-y-1">
+                    <label htmlFor="modal-feedback-msg" className="text-[10px] font-semibold text-zinc-400">Message</label>
+                    <textarea
+                      id="modal-feedback-msg"
+                      required
+                      rows={3}
+                      placeholder="What can we improve? Let us know!"
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      className="w-full text-xs p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] focus:border-purple-500 focus:ring-purple-500/20 text-zinc-200 transition-all resize-none"
+                    />
+                  </div>
+
+                  {feedbackStatus === 'error' && (
+                    <p className="text-[10px] text-red-400">
+                      Failed to send feedback. Please try again.
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={feedbackStatus === 'submitting' || !feedbackText.trim()}
+                    className={`w-full py-2 text-xs font-bold rounded-lg shadow-md transition-all cursor-pointer ${
+                      !feedbackText.trim()
+                        ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700/50'
+                        : 'bg-purple-600 hover:bg-purple-700 text-white'
+                    }`}
+                  >
+                    {feedbackStatus === 'submitting' ? 'Sending...' : 'Submit Feedback 🚀'}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         )}
