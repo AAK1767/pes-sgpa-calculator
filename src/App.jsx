@@ -346,6 +346,17 @@ export default function PES_Universal_Calculator() {
     localStorage.setItem('pes_theme', 'dark'); // Ensure it stays dark
   }, []);
 
+  // --- Google Analytics Tab Tracking ---
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: '/' + activeTab,
+        page_title: `PESU Calc - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`,
+        page_location: window.location.href
+      });
+    }
+  }, [activeTab]);
+
   // --- Undo/Redo Functions ---
   const saveStateForUndo = () => {
     setUndoStack(prev => [...prev.slice(-20), { marks: JSON.parse(JSON.stringify(marks)), subjects: JSON.parse(JSON.stringify(subjects)) }]);
