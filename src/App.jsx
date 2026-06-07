@@ -1542,7 +1542,7 @@ export default function PES_Universal_Calculator() {
 
   // --- Theme Classes (Premium Dark) ---
   const themeClasses = {
-    bg: 'bg-[#06060a]',
+    bg: 'bg-black',
     text: 'text-zinc-300',
     card: 'bg-[#0c0c14]/90 backdrop-blur-sm border-white/[0.06]',
     cardHover: 'hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20',
