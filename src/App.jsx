@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -8,6 +8,7 @@ import ReverseTab from './tabs/ReverseTab';
 import AttendanceTab from './tabs/AttendanceTab';
 import CgpaTab from './tabs/CgpaTab';
 import GuideTab from './tabs/GuideTab';
+import { trackEvent, setUserProperties } from './utils/analytics';
 
 import {
   ChemistryCycleDefaults,
@@ -49,6 +50,10 @@ import {
 } from 'lucide-react';
 
 export default function PES_Universal_Calculator() {
+  // --- GA Refs ---
+  const markTrackTimersRef = useRef({});
+  const lastTrackedSgpaRef = useRef(null);
+
   // --- Theme State ---
   const darkMode = true;
 
@@ -186,14 +191,26 @@ export default function PES_Universal_Calculator() {
       });
 
       if (response.ok) {
+        trackEvent('feedback_submitted', {
+          rating: feedbackRating,
+          has_name: !!feedbackName.trim(),
+          feedback_length: feedbackText.trim().length,
+          status: 'success'
+        });
         setFeedbackStatus('success');
         setFeedbackName('');
         setFeedbackText('');
         setFeedbackRating(0);
       } else {
+        trackEvent('feedback_submitted', {
+          status: 'failed'
+        });
         setFeedbackStatus('error');
       }
     } catch {
+      trackEvent('feedback_submitted', {
+        status: 'failed'
+      });
       setFeedbackStatus('error');
     }
   };
@@ -382,18 +399,83 @@ export default function PES_Universal_Calculator() {
   useEffect(() => {
     document.documentElement.classList.add('dark');
     localStorage.setItem('pes_theme', 'dark'); // Ensure it stays dark
+
+    // Set GA user properties
+    const isPhysics = subjects && subjects.some(s => s && s.name && typeof s.name === 'string' && s.name.toLowerCase().includes('physics'));
+    setUserProperties({
+      calculator_version: '2026_MAY_V4.5',
+      initial_cycle: isPhysics ? 'physics' : 'chemistry'
+    });
+
+    // Track app environment (standalone PWA vs browser, online/offline status)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    trackEvent('app_environment', {
+      standalone: isStandalone,
+      online_status: navigator.onLine
+    });
   }, []);
 
   // --- Google Analytics Tab Tracking ---
   useEffect(() => {
-    if (typeof window.gtag === 'function') {
-      window.gtag('event', 'page_view', {
-        page_path: '/' + activeTab,
-        page_title: `PESU Calc - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`,
-        page_location: window.location.href
-      });
-    }
+    trackEvent('page_view', {
+      page_path: '/' + activeTab,
+      page_title: `PESU Calc - ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`,
+      page_location: window.location.href
+    });
   }, [activeTab]);
+
+  // --- Google Analytics Modal Open Tracking ---
+  useEffect(() => {
+    if (showToffeeModal) {
+      trackEvent('toffee_modal_open');
+    }
+  }, [showToffeeModal]);
+
+  useEffect(() => {
+    if (showFeedbackModal) {
+      trackEvent('feedback_modal_open');
+    }
+  }, [showFeedbackModal]);
+
+  // --- Google Analytics Target SGPA Tracking ---
+  useEffect(() => {
+    if (targetSgpa !== 9.0) {
+      const timer = setTimeout(() => {
+        trackEvent('target_sgpa_set', {
+          target_sgpa: targetSgpa,
+          tab: 'analysis'
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [targetSgpa]);
+
+  useEffect(() => {
+    if (reverseTargetSgpa !== 8.5) {
+      const timer = setTimeout(() => {
+        trackEvent('target_sgpa_set', {
+          target_sgpa: reverseTargetSgpa,
+          tab: 'reverse'
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [reverseTargetSgpa]);
+
+  // --- Google Analytics Attendance Buffer Tracking ---
+  useEffect(() => {
+    const buffer = parseFloat(attendanceStatusMode.bufferPercent);
+    if (!isNaN(buffer) && buffer !== 80) {
+      const timer = setTimeout(() => {
+        trackEvent('attendance_target_change', {
+          target_percentage: buffer
+        });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [attendanceStatusMode.bufferPercent]);
+
+
 
   // --- Undo/Redo Functions ---
   const saveStateForUndo = () => {
@@ -437,6 +519,16 @@ export default function PES_Universal_Calculator() {
     applyGradingSchemeToAll
   } = useCustomTemplate({ setSubjects, setExpandedSubject, saveStateForUndo });
 
+  // --- Google Analytics Custom Template Tracking ---
+  useEffect(() => {
+    if (customTemplate) {
+      trackEvent('custom_scheme_used', {
+        custom_subject_count: subjects.filter(s => s.isCustom).length,
+        modified_grading_schemes: subjects.some(s => s.customGradeMap)
+      });
+    }
+  }, [customTemplate]);
+
 
 
   // --- Mark & Subject Handlers ---
@@ -459,6 +551,40 @@ export default function PES_Universal_Calculator() {
   }, [subjects.length]);
 
   const handleMarkChange = (id, field, value) => {
+    // Debounced GA4 mark entry tracking
+    const subject = subjects.find(s => s.id === id);
+    const subjectName = subject ? subject.name : '';
+    
+    const presetCycleNames = [
+      "Mathematics - I/II",
+      "Engineering Chemistry",
+      "Python for Computational Problem Solving/Problem Solving with C",
+      "Engineering Mechanics",
+      "Electronic Principles",
+      "Constitution of India",
+      "Engineering Physics",
+      "Elements of Electrical Engineering",
+      "Mechanical Engineering Sciences",
+      "Environmental Studies"
+    ];
+
+    const isPresetCycleSubject = presetCycleNames.includes(subjectName);
+    const isScoreField = ['isa1', 'isa2', 'assignment', 'lab', 'esa'].includes(field);
+
+    if (isPresetCycleSubject && isScoreField && value !== '') {
+      const timerKey = `${id}_${field}`;
+      if (markTrackTimersRef.current[timerKey]) {
+        clearTimeout(markTrackTimersRef.current[timerKey]);
+      }
+      markTrackTimersRef.current[timerKey] = setTimeout(() => {
+        trackEvent('mark_input', {
+          subject_name: subjectName,
+          component: field,
+          value: parseFloat(value)
+        });
+      }, 2000);
+    }
+
     // Input validation
     let numValue = parseFloat(value);
 
@@ -564,6 +690,11 @@ export default function PES_Universal_Calculator() {
       saveStateForUndo();
       setSubjects(SemesterPresets[presetName]);
       setMarks({});
+      
+      trackEvent('preset_load', {
+        preset_name: presetName,
+        subject_count: SemesterPresets[presetName].length
+      });
     }
   };
 
@@ -572,6 +703,8 @@ export default function PES_Universal_Calculator() {
       saveStateForUndo();
       setSubjects(PhysicsCycleDefaults);
       setMarks({});
+
+      trackEvent('data_action', { type: 'restore_defaults' });
     }
   };
 
@@ -593,6 +726,8 @@ export default function PES_Universal_Calculator() {
         esaMax: 100
       }]);
       setMarks({});
+
+      trackEvent('data_action', { type: 'clear_all' });
     }
   };
 
@@ -638,6 +773,8 @@ export default function PES_Universal_Calculator() {
     a.download = `pesu-calculator-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+
+    trackEvent('data_action', { type: 'export', subject_count: subjects.length });
   };
 
   const importData = (event) => {
@@ -659,6 +796,8 @@ export default function PES_Universal_Calculator() {
             setPrevCgpaDetails(data.prevCgpaDetails);
           }
           alert('Data imported successfully!');
+
+          trackEvent('data_action', { type: 'import', subject_count: normalizedSubjects.length });
         } else {
           alert('Invalid backup file format');
         }
@@ -714,6 +853,16 @@ export default function PES_Universal_Calculator() {
   const getFinalIsaSummary = (subject) =>
     getFinalIsaSummaryPure(subject, marks);
 
+  const isSubjectMarksComplete = (subject, m) => {
+    if (!m) return false;
+    if (subject.hasIsa1 !== false && (m.isa1 === '' || m.isa1 === undefined || isNaN(parseFloat(m.isa1)))) return false;
+    if (subject.hasIsa2 !== false && (m.isa2 === '' || m.isa2 === undefined || isNaN(parseFloat(m.isa2)))) return false;
+    if (subject.hasAssignment && (m.assignment === '' || m.assignment === undefined || isNaN(parseFloat(m.assignment)))) return false;
+    if (subject.hasLab && (m.lab === '' || m.lab === undefined || isNaN(parseFloat(m.lab)))) return false;
+    if (m.esa === '' || m.esa === undefined || isNaN(parseFloat(m.esa))) return false;
+    return true;
+  };
+
   // --- SGPA Calculation ---
   useEffect(() => {
     let totalCredits = 0;
@@ -726,7 +875,28 @@ export default function PES_Universal_Calculator() {
       totalCredits += sub.credits;
     });
 
-    setSgpa(totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : 0);
+    const calculatedSgpa = totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : 0;
+    setSgpa(calculatedSgpa);
+
+    // Track SGPA summary if complete and changed
+    const allComplete = subjects.every(sub => isSubjectMarksComplete(sub, marks[sub.id]));
+    if (allComplete && lastTrackedSgpaRef.current !== calculatedSgpa) {
+      lastTrackedSgpaRef.current = calculatedSgpa;
+      
+      const getSGPABucket = (val) => {
+        const num = parseFloat(val);
+        if (isNaN(num)) return 'none';
+        if (num >= 9.0) return '9.0 - 10.0';
+        if (num >= 8.0) return '8.0 - 8.99';
+        if (num >= 7.0) return '7.0 - 7.99';
+        return 'below_7.0';
+      };
+
+      trackEvent('calculation_summary', {
+        sgpa_bucket: getSGPABucket(calculatedSgpa),
+        subject_count: subjects.length
+      });
+    }
   }, [marks, subjects]);
 
   // --- Analysis Calculations ---
