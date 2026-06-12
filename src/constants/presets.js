@@ -26,9 +26,303 @@ export const GenericCycleDefaults = [
   { id: 6, name: "Subject 6", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
 ];
 
+export const CseSem3Defaults = [
+  { id: 1, name: "Digital Design and Computer Organisation", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Data Structures and its Applications", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Web Technologies", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Mathematics for Computer Science Engineers", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Automata Formal Languages and Logic", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 6, name: "CIE L1", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+];
+
+export const CseSem4Defaults = [
+  { id: 1, name: "Microprocessor and Computer Achitecture", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Computer Networks", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Design and Analysis of Algorithms", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Operating Systems", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Linear Algebra and its Applications", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 6, name: "CIE L2", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+];
+
+export const CseSem5Defaults = [
+  { id: 1, name: "Machine Learning", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Database Managements System", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Software Engineering", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Elective - I", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Elective - II", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  {
+    id: 6,
+    name: "Capstone Project Phase-1",
+    credits: 2,
+    hasLab: false,
+    hasAssignment: false,
+    isaWeight: 25,
+    assignmentWeight: 0,
+    labWeight: 0,
+    esaWeight: 50,
+    isa1Max: 50,
+    isa2Max: 50,
+    esaMax: 100,
+    customConfig: {
+      labels: {
+        isa1: "Review 1",
+        isa2: "Review 2",
+        assignment: "Assignment",
+        lab: "Lab",
+        esa: "Final Review & Viva"
+      },
+      weights: {
+        isa1: 25,
+        isa2: 25,
+        assignment: 0,
+        lab: 0,
+        esa: 50
+      }
+    }
+  },
+];
+
+export const CseSem6Defaults = [
+  { id: 1, name: "Cloud Computing", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Object Oriented Analysis & Design with Java", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Compiler Design", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Elective - III", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Elective - IV", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  {
+    id: 6,
+    name: "Capstone Project Phase-2",
+    credits: 2,
+    hasLab: false,
+    hasAssignment: false,
+    isaWeight: 25,
+    assignmentWeight: 0,
+    labWeight: 0,
+    esaWeight: 50,
+    isa1Max: 50,
+    isa2Max: 50,
+    esaMax: 100,
+    customConfig: {
+      labels: {
+        isa1: "Review 1",
+        isa2: "Review 2",
+        assignment: "Assignment",
+        lab: "Lab",
+        esa: "Final Review & Viva"
+      },
+      weights: {
+        isa1: 25,
+        isa2: 25,
+        assignment: 0,
+        lab: 0,
+        esa: 50
+      }
+    }
+  },
+];
+
+export const AimlSem3Defaults = [
+  { id: 1, name: "Digital Design and Computer Organisation", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Data Structures and its Applications", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Web Technologies", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Mathematics for Computer Science Engineers", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Automata Formal Languages and Logic", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 6, name: "CIE L1", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+];
+
+export const AimlSem4Defaults = [
+  { id: 1, name: "Microprocessor and Computer Achitecture", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Computer Networks", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Design and Analysis of Algorithms", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Operating Systems", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Linear Algebra and its Applications", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 6, name: "CIE L2", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+];
+
+export const AimlSem5Defaults = [
+  { id: 1, name: "Machine Learning", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Database Management System", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Software Engineering", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Elective - I", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Elective - II", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  {
+    id: 6,
+    name: "Capstone Project Phase-1",
+    credits: 2,
+    hasLab: false,
+    hasAssignment: false,
+    isaWeight: 25,
+    assignmentWeight: 0,
+    labWeight: 0,
+    esaWeight: 50,
+    isa1Max: 50,
+    isa2Max: 50,
+    esaMax: 100,
+    customConfig: {
+      labels: {
+        isa1: "Review 1",
+        isa2: "Review 2",
+        assignment: "Assignment",
+        lab: "Lab",
+        esa: "Final Review & Viva"
+      },
+      weights: {
+        isa1: 25,
+        isa2: 25,
+        assignment: 0,
+        lab: 0,
+        esa: 50
+      }
+    }
+  },
+];
+
+export const AimlSem6Defaults = [
+  { id: 1, name: "Cloud Computing", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Deep Learning", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Compiler Design", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Elective - III", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Elective - IV", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  {
+    id: 6,
+    name: "Capstone Project Phase-2",
+    credits: 2,
+    hasLab: false,
+    hasAssignment: false,
+    isaWeight: 25,
+    assignmentWeight: 0,
+    labWeight: 0,
+    esaWeight: 50,
+    isa1Max: 50,
+    isa2Max: 50,
+    esaMax: 100,
+    customConfig: {
+      labels: {
+        isa1: "Review 1",
+        isa2: "Review 2",
+        assignment: "Assignment",
+        lab: "Lab",
+        esa: "Final Review & Viva"
+      },
+      weights: {
+        isa1: 25,
+        isa2: 25,
+        assignment: 0,
+        lab: 0,
+        esa: 50
+      }
+    }
+  },
+];
+
+export const EceSem3Defaults = [
+  { id: 1, name: "Analog Circuit Design", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Computer Aided Digital Design", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Mathematics for Electronics Engineers", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Network Analysis and Synthesis", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Signals and Systems", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 6, name: "CIE - Level 1", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+];
+
+export const EceSem4Defaults = [
+  { id: 1, name: "Principles of Digital Signal Processing", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Digital VLSI Design", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Control Systems", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Electromagnetic Field Theory", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Linear Algebra", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 6, name: "CIE - Level 2", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+];
+
+export const EceSem5Defaults = [
+  { id: 1, name: "Computer Organisation and Design", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Computer Communication Networks", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Digital Communication", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Elective - I", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Elective - II", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  {
+    id: 6,
+    name: "Capstone Project Phase - 0",
+    credits: 2,
+    hasLab: false,
+    hasAssignment: false,
+    isaWeight: 25,
+    assignmentWeight: 0,
+    labWeight: 0,
+    esaWeight: 50,
+    isa1Max: 50,
+    isa2Max: 50,
+    esaMax: 100,
+    customConfig: {
+      labels: {
+        isa1: "Review 1",
+        isa2: "Review 2",
+        assignment: "Assignment",
+        lab: "Lab",
+        esa: "Final Review & Viva"
+      },
+      weights: {
+        isa1: 25,
+        isa2: 25,
+        assignment: 0,
+        lab: 0,
+        esa: 50
+      }
+    }
+  },
+];
+
+export const EceSem6Defaults = [
+  { id: 1, name: "Waveguides and Antennas", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 2, name: "Machine Learning and Applications", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 3, name: "Computer Architecture", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Elective - III", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Elective - IV", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  {
+    id: 6,
+    name: "Capstone Project - Phase - I",
+    credits: 2,
+    hasLab: false,
+    hasAssignment: false,
+    isaWeight: 25,
+    assignmentWeight: 0,
+    labWeight: 0,
+    esaWeight: 50,
+    isa1Max: 50,
+    isa2Max: 50,
+    esaMax: 100,
+    customConfig: {
+      labels: {
+        isa1: "Review 1",
+        isa2: "Review 2",
+        assignment: "Assignment",
+        lab: "Lab",
+        esa: "Final Review & Viva"
+      },
+      weights: {
+        isa1: 25,
+        isa2: 25,
+        assignment: 0,
+        lab: 0,
+        esa: 50
+      }
+    }
+  },
+];
+
 export const SemesterPresets = {
   "Chemistry Cycle": ChemistryCycleDefaults,
   "Physics Cycle": PhysicsCycleDefaults,
+  "CSE Sem 3": CseSem3Defaults,
+  "CSE Sem 4": CseSem4Defaults,
+  "CSE Sem 5": CseSem5Defaults,
+  "CSE Sem 6": CseSem6Defaults,
+  "AIML Sem 3": AimlSem3Defaults,
+  "AIML Sem 4": AimlSem4Defaults,
+  "AIML Sem 5": AimlSem5Defaults,
+  "AIML Sem 6": AimlSem6Defaults,
+  "ECE Sem 3": EceSem3Defaults,
+  "ECE Sem 4": EceSem4Defaults,
+  "ECE Sem 5": EceSem5Defaults,
+  "ECE Sem 6": EceSem6Defaults,
   "Generic Cycle (Editable)": GenericCycleDefaults,
 };
 
