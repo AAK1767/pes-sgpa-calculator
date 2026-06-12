@@ -40,7 +40,7 @@ import {
 
 import {
   Trash2, Plus, Settings, ChevronDown, ChevronUp,
-  RotateCcw, GraduationCap, Target, Dice5, Scale,
+  RotateCcw, Target, Dice5, Scale,
   Eraser, TrendingUp, Activity, Calculator,
   Lightbulb, ArrowRight, CheckCircle2, AlertCircle,
   Download, Upload, Lock, Unlock, AlertTriangle,
@@ -439,7 +439,7 @@ export default function PES_Universal_Calculator() {
 
   // --- Google Analytics Target SGPA Tracking ---
   useEffect(() => {
-    if (targetSgpa !== 9.0) {
+    if (targetSgpa !== 9.0 && targetSgpa !== '') {
       const timer = setTimeout(() => {
         trackEvent('target_sgpa_set', {
           target_sgpa: targetSgpa,
@@ -451,7 +451,7 @@ export default function PES_Universal_Calculator() {
   }, [targetSgpa]);
 
   useEffect(() => {
-    if (reverseTargetSgpa !== 8.5) {
+    if (reverseTargetSgpa !== 8.5 && reverseTargetSgpa !== '') {
       const timer = setTimeout(() => {
         trackEvent('target_sgpa_set', {
           target_sgpa: reverseTargetSgpa,
@@ -903,7 +903,7 @@ export default function PES_Universal_Calculator() {
   const calculateAnalysis = () => {
     let totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
     let maxPossibleGP = totalCredits * 10;
-    let targetGP = totalCredits * targetSgpa;
+    let targetGP = totalCredits * (parseFloat(targetSgpa) || 0);
 
     let currentLostGP = 0;
     let momentumWeightedGP = 0;
@@ -979,7 +979,7 @@ export default function PES_Universal_Calculator() {
   // --- Smart Strategy Engine (Fixed) ---
   const getSmartSuggestions = () => {
     const totalCredits = subjects.reduce((acc, s) => acc + s.credits, 0);
-    const targetTotalGP = totalCredits * targetSgpa;
+    const targetTotalGP = totalCredits * (parseFloat(targetSgpa) || 0);
 
     // 1. Build Current State
     let subState = subjects.map(s => {
@@ -1103,7 +1103,7 @@ export default function PES_Universal_Calculator() {
   // --- Advanced Reverse Calculator (Smart Greedy Strategy) ---
   const calculateReverseRequirements = () => {
     const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
-    const targetTotalGP = reverseTargetSgpa * totalCredits;
+    const targetTotalGP = (parseFloat(reverseTargetSgpa) || 0) * totalCredits;
     let usingMomentum = false;
 
     // 1. Initialization
@@ -1244,7 +1244,7 @@ export default function PES_Universal_Calculator() {
     });
 
     const achievableSGPA = (currentTotalGP / totalCredits).toFixed(2);
-    const isTargetAchievable = parseFloat(achievableSGPA) >= reverseTargetSgpa;
+    const isTargetAchievable = parseFloat(achievableSGPA) >= (parseFloat(reverseTargetSgpa) || 0);
 
     return { results, isTargetAchievable, achievableSGPA, avgGPNeeded: 0, usingMomentum };
   };
@@ -1327,7 +1327,7 @@ export default function PES_Universal_Calculator() {
     });
 
     const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
-    const targetTotalGP = reverseTargetSgpa * totalCredits;
+    const targetTotalGP = (parseFloat(reverseTargetSgpa) || 0) * totalCredits;
     let currentTotalGP = state.reduce((sum, s) => sum + (s.currentGP * s.credits), 0);
 
     // 3. Optimization Loop (Hill Climbing with Bias)
@@ -1461,7 +1461,7 @@ export default function PES_Universal_Calculator() {
     });
 
     const totalCredits = subjects.reduce((sum, s) => sum + s.credits, 0);
-    const targetTotalGP = reverseTargetSgpa * totalCredits;
+    const targetTotalGP = (parseFloat(reverseTargetSgpa) || 0) * totalCredits;
     let currentTotalGP = state.reduce((sum, s) => sum + (s.currentGP * s.credits), 0);
 
     // 2. Optimization Loop (Quadratic Cost)
@@ -1730,9 +1730,7 @@ export default function PES_Universal_Calculator() {
           <div>
             <div className="flex flex-wrap items-center gap-2.5 md:gap-3">
               <h1 className="text-xl md:text-2xl font-bold inline-flex items-center gap-2">
-                <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                  <GraduationCap className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                </div>
+                <img src="/header_logo.png" alt="PESU Calculator Logo" className="w-7 h-7 md:w-9 md:h-9 object-contain" />
                 <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
               </h1>
               
@@ -1862,12 +1860,14 @@ export default function PES_Universal_Calculator() {
             sgpa={sgpa}
             metrics={metrics}
             subjects={subjects}
+            marks={marks}
             getSubjectMetrics={getSubjectMetrics}
             getRequiredESAForGrade={getRequiredESAForGrade}
             getRequiredISA2ForPass={getRequiredISA2ForPass}
             getRequiredISA2ForGrade={getRequiredISA2ForGrade}
             GradeMap={GradeMap}
             strategy={strategy}
+            minimumPassingTable={minimumPassingTable}
           />
         )}
 
@@ -1944,7 +1944,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v5.0 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v5.1 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}

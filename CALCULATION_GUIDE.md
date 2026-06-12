@@ -122,17 +122,27 @@ For any target letter grade cutoff score $T$ (e.g. $90$ for S, $80$ for A):
    $$\text{Target ESA Rounded (out of 50)} = \left\lceil (T - 1 + 10^{-6}) \times \frac{\text{Total Weight}}{100} \right\rceil - \text{CIE Rounded} - \text{Lab Rounded}$$
    $$\text{Minimum ESA Marks (out of ESA Max)} = \left\lceil \frac{\text{Target ESA Rounded} - 1 + 10^{-6}}{50} \times \text{ESA Max} \right\rceil$$
 
-### C. GP Budget
-The GP Budget represents the maximum amount of grade points you can afford to lose while still achieving your target SGPA:
-$$\text{GP Budget} = \text{Max Possible GP} - \text{Target GP}$$
-$$\text{GP Budget} = \left(\sum \text{Credits} \times 10\right) - \left(\sum \text{Credits} \times \text{Target SGPA}\right)$$
+### C. ISA 2 Target Planner
+The ISA 2 Target Planner calculates the required marks in the upcoming ISA 2 exam to secure target grades ($40$ for Pass, $80$ for A, $90$ for S) under an assumed Semester End Exam (ESA) performance score.
+
+1. **Effective Assumed ESA ($E$)**:
+   $$\text{Effective Assumed ESA } (E) = \begin{cases} 
+   \text{Subject Override ESA} & \text{if entered} \\
+   \text{Global Assumed ESA} & \text{otherwise}
+   \end{cases}$$
+
+2. **Required ISA 2 Marks**:
+   To find the required ISA 2 mark for a target grade cutoff score $T$:
+   - Sets the subject's ESA component to the effective assumed ESA ($E$) out of $100$.
+   - Mocks the subject's ISA 2 mark as empty (allowing retrospective calculations for completed subjects).
+   - Solves for the minimum required ISA 2 mark ($I_2$ out of $\text{ISA2 Max}$) such that the final scaled subject score $\ge T$.
 
 ### D. Path to Target (Recommendation Engine)
 A greedy recommendation engine generates step-by-step advice to reach your target SGPA:
 1. Calculates the current SGPA.
 2. If current SGPA < target SGPA, it evaluates upgrading each subject to the next higher grade.
 3. It selects the subject upgrade that requires the least increase in marks (highest efficiency: $\frac{\text{GP Gain}}{\text{ESA Mark Cost}}$).
-4. Applies the upgrade, updates the SGPA, and repeats until the target is reached.
+4. Applies the upgrade, updates the SGPA, and repeats until the target is reached. (Note: Grade Point badges are hidden on recommendations to focus purely on the target grade and ESA marks needed).
 
 ---
 
@@ -208,3 +218,22 @@ $$\text{CGPA} = \frac{\sum_{j} \left( \text{SGPA}_{j} \times \text{Credits}_{j} 
 ### B. Quick CGPA Estimator (Manual combining)
 Combines previous academic history with the current semester's results:
 $$\text{Predicted CGPA} = \frac{(\text{Prev CGPA} \times \text{Prev Credits}) + (\text{Current SGPA} \times \text{Current Credits})}{\text{Prev Credits} + \text{Current Credits}}$$
+
+### C. CGPA Target Planner (Reverse CGPA)
+The CGPA Target Planner allows planning future academic semesters to reach a cumulative target CGPA ($C_{\text{target}}$):
+
+1. **Required Future Average SGPA ($S_{\text{req}}$)**:
+   Given completed semesters credit sum $Cr_{\text{comp}}$ and completed grade point sum $GP_{\text{comp}} = \sum (SGPA_i \times Credits_i)$, and planned future semesters credit sum $Cr_{\text{future}}$:
+   $$S_{\text{req}} = \frac{C_{\text{target}} \times (Cr_{\text{comp}} + Cr_{\text{future}}) - GP_{\text{comp}}}{Cr_{\text{future}}}$$
+   If $S_{\text{req}} \le 10.0$ and $S_{\text{req}} \ge 0.0$, the target is achievable. If $S_{\text{req}} > 10.0$, it is flagged as mathematically impossible.
+
+2. **Maximum Achievable CGPA ($C_{\text{max}}$)**:
+   Calculates the CGPA assuming a perfect $10.0$ SGPA in all remaining active future semesters:
+   $$C_{\text{max}} = \frac{GP_{\text{comp}} + (10.0 \times Cr_{\text{future}})}{Cr_{\text{comp}} + Cr_{\text{future}}}$$
+
+3. **Placement Preparation CGPA Checkpoint ($C_{\text{placement}}$)**:
+   Calculates the maximum achievable CGPA until Semester 6 (the typical checkpoint for placement eligibility) by assuming a $10.0$ SGPA for any remaining semesters up to Semester 6:
+   $$C_{\text{placement}} = \frac{GP_{\text{comp}} + (10.0 \times Cr_{\text{future\_to\_sem6}})}{Cr_{\text{comp}} + Cr_{\text{future\_to\_sem6}}}$$
+
+4. **Graduation Credit Progress**:
+   Tracks the total planned credits $Cr_{\text{total}} = Cr_{\text{comp}} + Cr_{\text{future}}$ against the graduation requirement threshold (default $160$ credits) to verify degree completion feasibility.

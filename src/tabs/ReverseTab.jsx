@@ -85,7 +85,10 @@ export default function ReverseTab({
               min="5"
               max="10"
               value={reverseTargetSgpa}
-              onChange={(e) => setReverseTargetSgpa(parseFloat(e.target.value) || 0)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setReverseTargetSgpa(val === '' ? '' : parseFloat(val));
+              }}
               className="w-full bg-white/[0.08] border border-white/[0.12] rounded-lg px-2 py-1 text-zinc-200 font-bold text-center text-lg focus:outline-none focus:border-white"
             />
           </div>

@@ -408,30 +408,31 @@ export default function GuideTab({
             <div className="p-3 border rounded-lg border-white/[0.06]">
               <strong className="block text-sm mb-1">Safe vs Minimum</strong>
               <p className={`${themeClasses.muted}`}>
-                • <strong>Safe Score:</strong> The marks you need to in ESA based on your current ISA marks(and momentum is some fields are empty) to <em>guarantee</em> the grade(A/S) (e.g. 90).
-                <br />• <strong>Min Score:</strong> A lower score (e.g. 89.5) that <em>might</em> work because the college rounds up decimals.
-                <br />• <strong>Momentum Score:</strong> Shows your momentum score in ESA based on ISA if applicable.
-                <br />• <strong>Pass/A/S + ISA2 target lines:</strong> Pass/A/S show ESA needed using momentum internals. If ISA2 is empty, ISA2 lines show marks needed for Pass/A/S, assuming empty Assignment or Lab are full and ESA is 0 unless you have entered an ESA score.
+                • <strong>Safe Score:</strong> The marks you need to get in ESA based on your current internals (using momentum projections for any empty components) to <em>guarantee</em> the grade (Pass/A/S).
+                <br />• <strong>Min Score:</strong> A lower score that <em>might</em> work because the college rounds up decimals.
+                <br />• <strong>Momentum Score:</strong> Shows your projected final grade if you maintain your current internals performance in future exams.
               </p>
             </div>
             <div className="p-3 border rounded-lg border-white/[0.06]">
               <strong className="block text-sm mb-1">Achievable Range</strong>
               <p className={`${themeClasses.muted}`}>
-                The slider at the top shows your mathematically <strong>Best Case SGPA</strong> (if you ace everything) and <strong>Worst Case SGPA</strong> (if you fail everything).
+                The slider at the top shows your mathematically <strong>Best Case SGPA</strong> (if you score 100 on ESAs) and <strong>Worst Case SGPA</strong> (if you score 0 on ESAs).
               </p>
             </div>
-            <div className="p-3 border rounded-lg border-white/[0.06] bg-purple-500/5 border-purple-500/20">
+            <div className="p-3 border rounded-lg border-white/[0.06] bg-yellow-500/5 border-yellow-500/20 sm:col-span-2">
+              <strong className="block text-sm mb-1 text-yellow-300 flex items-center gap-1">
+                <Target className="w-3 h-3" /> ISA 2 Target Planner
+              </strong>
+              <p className={`${themeClasses.muted} leading-relaxed`}>
+                Calculate what ISA 2 score you need to make your finals easy. Choose an assumed final ESA score (either globally or override it per subject), and we show what score you need in the upcoming ISA 2 exam to hit target grades. It works retrospectively too—even if you've already written and entered ISA 2 marks, you can play around with the scores.
+              </p>
+            </div>
+            <div className="p-3 border rounded-lg border-white/[0.06] bg-purple-500/5 border-purple-500/20 sm:col-span-2">
               <strong className="block text-sm mb-1 text-purple-300 flex items-center gap-1">
                 <Lightbulb className="w-3 h-3" /> Path to Target
               </strong>
               <p className={`${themeClasses.muted} leading-relaxed`}>
                 A smart algorithm that generates a <strong>step-by-step plan</strong>. It identifies exactly which subjects are the easiest to upgrade (e.g., "Score 45 in Chem to get A") to hit your target SGPA with the least effort.
-              </p>
-            </div>
-            <div className="p-3 border rounded-lg border-white/[0.06]">
-              <strong className="block text-sm mb-1">GP Budget</strong>
-              <p className={`${themeClasses.muted}`}>
-                Shows exactly how many Grade Points you can afford to "lose" while still hitting your target.
               </p>
             </div>
           </div>
@@ -468,12 +469,13 @@ export default function GuideTab({
           </div>
           <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
             <p>
-              Track your performance across your entire degree.
+              Track and plan your cumulative GPA across semesters.
             </p>
             <ul className="list-disc pl-5 mt-2 space-y-1">
-              <li>Enter the <strong>SGPA</strong> and <strong>Total Credits</strong> for every semester you have completed.</li>
-              <li>The calculator uses the weighted average formula (Σ SGPA×Credits / Σ Credits) for 100% accuracy.</li>
-              <li>You can clear the history at any time using the "Clear History" button.</li>
+              <li>Enter the <strong>SGPA</strong> and <strong>Total Credits</strong> for completed semesters. Computes CGPA using standard credit-weighted average.</li>
+              <li><strong>CGPA Target Planner:</strong> Enter a target CGPA to instantly find the required future average SGPA. Toggles semesters on/off to adapt your course load.</li>
+              <li><strong>Checkpoints:</strong> Shows max achievable CGPA overall and specifically by the end of Semester 6 (important for placements checkpoints).</li>
+              <li><strong>Degree Credit Tracker:</strong> Visualizes your path against the standard <strong>160 credits graduation requirement</strong>.</li>
             </ul>
           </div>
         </div>

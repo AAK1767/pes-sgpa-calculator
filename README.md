@@ -22,6 +22,8 @@
 - **Real-time SGPA Calculation** - Instant updates as you enter marks
 - **Reverse Calculator** - Set target SGPA, get exact ESA scores needed
 - **Momentum Scoring** - Smart projection for empty fields based on current performance
+- **CGPA Target Planner (Reverse CGPA)** - Plan required future SGPAs to reach a target CGPA, with graduation credit tracking (160 Cr)
+- **ISA 2 Target Planner** - Input global or subject-specific assumed ESA scores to plan ISA 2 targets for desired grades (Pass/A/S)
 - **CGPA Calculator** - Track cumulative GPA across semesters
 
 ### 🔧 Advanced Tools
@@ -241,7 +243,14 @@ Contributions are welcome! Here's how:
 
 ## 📝 Changelog
 
-### v3.0 (Current)
+### v4.0 (Current)
+- ✨ Added **CGPA Target Planner (Reverse CGPA)** inside CGPA tab with graduation credit progress tracking (160 credits bar)
+- ✨ Added **ISA 2 Target Planner** collapsible block in the Analysis tab with global and per-subject assumed ESA override inputs
+- ✨ Removed visual clutter (GP badges in recommendation lists, GP Cushion cards) from the Analysis tab
+- 🐛 Fixed default browser focus outlines showing on input elements
+- 🐛 Fixed annoying leading zero insertions when target inputs were cleared
+
+### v3.0
 - ✨ Universal college support with custom templates
 - ✨ Multiple strategy paths (Efficient, Balanced, Random)
 - ✨ Attendance calculator
