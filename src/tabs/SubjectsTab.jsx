@@ -238,6 +238,7 @@ export default function SubjectsTab({
                             onChange={(e) => handleMarkChange(subject.id, 'isa1', e.target.value)}
                             className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                             placeholder="-"
+                            step="0.5"
                           />
                           <span className={themeClasses.muted}>/</span>
                           <input
@@ -268,6 +269,7 @@ export default function SubjectsTab({
                             onChange={(e) => handleMarkChange(subject.id, 'isa2', e.target.value)}
                             className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                             placeholder="-"
+                            step="0.5"
                           />
                           <span className={themeClasses.muted}>/</span>
                           <input
@@ -298,6 +300,7 @@ export default function SubjectsTab({
                             onChange={(e) => handleMarkChange(subject.id, 'assignment', e.target.value)}
                             className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                             placeholder="-"
+                            step="0.5"
                           />
                           <span className={themeClasses.muted}>/</span>
                           <input
@@ -328,6 +331,7 @@ export default function SubjectsTab({
                             onChange={(e) => handleMarkChange(subject.id, 'lab', e.target.value)}
                             className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                             placeholder="-"
+                            step="0.5"
                           />
                           <span className={themeClasses.muted}>/</span>
                           <input
@@ -357,6 +361,7 @@ export default function SubjectsTab({
                           onChange={(e) => handleMarkChange(subject.id, 'esa', e.target.value)}
                           className={`w-full p-1 text-base md:text-sm font-bold border rounded focus:ring-2 focus:ring-blue-500 focus:outline-none text-center ${themeClasses.input}`}
                           placeholder="-"
+                          step="0.5"
                         />
                         <span className={themeClasses.muted}>/</span>
                         <input
