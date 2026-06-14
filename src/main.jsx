@@ -31,8 +31,79 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     .catch(() => {})
 }
 
+// Global input validation for numeric inputs to prevent alphabets and multiple decimals
+if (typeof window !== 'undefined') {
+  const isNumericInput = (target) => {
+    return target && 
+      target.tagName === 'INPUT' && 
+      (target.type === 'number' || target.inputMode === 'decimal' || target.inputMode === 'numeric');
+  };
+
+  // 1. Keydown listener (Capture phase) to block invalid keystrokes immediately
+  document.addEventListener('keydown', (e) => {
+    const target = e.target;
+    if (!isNumericInput(target)) return;
+
+    // Allow navigation/editing keys:
+    // Backspace, Delete, Tab, Escape, Enter, Arrow keys, Home, End
+    const allowedKeys = [
+      'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+      'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'
+    ];
+    if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey || e.altKey) {
+      return;
+    }
+
+    // Block alphabets (including 'e' and 'E')
+    if (/^[a-zA-Z]$/.test(e.key)) {
+      e.preventDefault();
+      return;
+    }
+
+    // Block signs (+ and -)
+    if (e.key === '+' || e.key === '-') {
+      e.preventDefault();
+      return;
+    }
+
+    // Block multiple decimals
+    if (e.key === '.' || e.key === ',') {
+      if (target.value.includes('.')) {
+        e.preventDefault();
+        return;
+      }
+    }
+  }, true);
+
+  // 2. Input listener (Capture phase) to undo invalid paste, drag-and-drop, or autocomplete
+  document.addEventListener('input', (e) => {
+    const target = e.target;
+    if (!isNumericInput(target)) return;
+
+    // Check validity and block signs (+/-) or any alphabets that might have slipped through
+    const hasInvalidChar = /[a-zA-Z+-]/.test(target.value);
+    
+    if (target.validity.badInput || hasInvalidChar) {
+      // Restore to the last known valid value
+      target.value = target._lastValidValue || '';
+    } else {
+      // Keep track of the last valid value
+      target._lastValidValue = target.value;
+    }
+  }, true);
+
+  // Initialize existing inputs on focus
+  document.addEventListener('focusin', (e) => {
+    const target = e.target;
+    if (isNumericInput(target) && target._lastValidValue === undefined) {
+      target._lastValidValue = target.value;
+    }
+  }, true);
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
+
