@@ -729,7 +729,10 @@ export default function SubjectsTab({
                   let totalPoints = 0;
                   let totalCredits = 0;
                   subjects.forEach(sub => {
-                    const gradeLetter = manualGrades[sub.id];
+                    const scheme = sub.customGradeMap || GradeMap;
+                    const maxGradeObj = scheme.reduce((max, current) => current.gp > max.gp ? current : max, scheme[0]);
+                    const maxGrade = maxGradeObj ? maxGradeObj.grade : "";
+                    const gradeLetter = manualGrades[sub.id] !== undefined ? manualGrades[sub.id] : maxGrade;
                     if (gradeLetter) {
                       const scheme = sub.customGradeMap || GradeMap;
                       const gradeObj = scheme.find(g => g.grade === gradeLetter);
@@ -751,6 +754,9 @@ export default function SubjectsTab({
               ) : (
                 subjects.map(sub => {
                   const scheme = sub.customGradeMap || GradeMap;
+                  const maxGradeObj = scheme.reduce((max, current) => current.gp > max.gp ? current : max, scheme[0]);
+                  const maxGrade = maxGradeObj ? maxGradeObj.grade : "";
+                  const selectedGrade = manualGrades[sub.id] !== undefined ? manualGrades[sub.id] : maxGrade;
 
                   return (
                     <div key={sub.id} className="flex items-center justify-between gap-3 p-2 bg-[#0e0e18] rounded border border-white/[0.06]">
@@ -760,7 +766,7 @@ export default function SubjectsTab({
                       </div>
 
                       <select
-                        value={manualGrades[sub.id] || ""}
+                        value={selectedGrade}
                         onChange={(e) => setManualGrades(prev => ({ ...prev, [sub.id]: e.target.value }))}
                         className={`w-24 p-1.5 text-xs font-bold border rounded focus:ring-2 focus:ring-teal-500 focus:outline-none ${themeClasses.input}`}
                       >
