@@ -139,6 +139,10 @@ export default function AnalysisTab({
   };
 
   const renderIsa2Cell = (neededScore, targetGrade, subId) => {
+    const sub = subjects.find(s => s.id === subId);
+    const m = marks?.[subId] || {};
+    const isa2Max = m.isa2Max ?? sub?.isa2Max ?? 40;
+
     if (neededScore === 0) {
       return <span className="text-green-400 font-bold">✓ Secured</span>;
     }
@@ -148,7 +152,7 @@ export default function AnalysisTab({
       return (
         <span className={`font-mono font-bold ${textColor}`}>
           {neededScore}
-          <span className="text-[10px] text-zinc-500 font-normal">/40</span>
+          <span className="text-[10px] text-zinc-500 font-normal">/{isa2Max}</span>
         </span>
       );
     }
@@ -167,8 +171,12 @@ export default function AnalysisTab({
 
     // It's impossible (neededScore === null) and we need to show the fallback
     // Find highest achievable grade under this assumed ESA score
-    const sub = subjects.find(s => s.id === subId);
-    const m = marks?.[subId] || {};
+    let maxGrade = null;
+    let maxGradeNeeded = null;
+
+    const subEsaVal = individualEsa[subId] !== undefined && individualEsa[subId] !== ''
+      ? individualEsa[subId]
+      : assumedEsa;
 
     const gradesToCheck = [
       { grade: 'S', score: 90 },
@@ -178,13 +186,6 @@ export default function AnalysisTab({
       { grade: 'D', score: 50 },
       { grade: 'E', score: 40 }
     ];
-
-    let maxGrade = null;
-    let maxGradeNeeded = null;
-
-    const subEsaVal = individualEsa[subId] !== undefined && individualEsa[subId] !== ''
-      ? individualEsa[subId]
-      : assumedEsa;
 
     for (let g of gradesToCheck) {
       const mockMarks = {
@@ -215,7 +216,7 @@ export default function AnalysisTab({
           Max: <strong className="text-yellow-400 font-bold">{maxGrade}</strong>
         </span>
         <span className="text-zinc-500 text-[9px] mt-0.5 leading-none">
-          ({maxGradeNeeded}/40 needed)
+          ({maxGradeNeeded}/{isa2Max} needed)
         </span>
       </div>
     );

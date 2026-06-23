@@ -140,7 +140,7 @@ export default function AttendanceTab({
                   : `You are below ${ATTENDANCE_MIN_PERCENT}%. Attend the next ${statusStats.classesToAttendNow} classes continuously to recover above the minimum.`}
               </div>
             </div>
-          ) : (
+          ) : statusStats.invalid ? null : (
             <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
               Enter classes held and attended to view this mode.
             </div>

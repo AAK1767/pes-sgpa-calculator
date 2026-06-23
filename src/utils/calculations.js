@@ -20,19 +20,25 @@ export const getSubjectMetrics = (subject, marks) => {
   const hasLab = m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab));
   const hasEsa = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
 
-  // 1. Calculate actual raw components
-  let cieRaw = calcComponent(m.isa1, m.isa1Max, subject.isaWeight) +
-    calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
-  if (subject.hasAssignment) cieRaw += calcComponent(m.assignment, m.assignmentMax, subject.assignmentWeight);
+  // Weights - Dynamic Calculation
+  const isa1Weight = subject.customConfig?.weights?.isa1 ?? (subject.hasIsa1 !== false ? subject.isaWeight : 0);
+  const isa2Weight = subject.customConfig?.weights?.isa2 ?? (subject.hasIsa2 !== false ? subject.isaWeight : 0);
+  const assignmentWeight = subject.customConfig?.weights?.assignment ?? (subject.hasAssignment ? subject.assignmentWeight : 0);
+  const labWeight = subject.customConfig?.weights?.lab ?? (subject.hasLab ? subject.labWeight : 0);
+  const esaWeight = subject.esaWeight;
 
-  let labRaw = subject.hasLab ? calcComponent(m.lab, m.labMax, subject.labWeight) : 0;
-  let esaRaw = calcComponent(m.esa, m.esaMax, subject.esaWeight);
-
-  // Weights
-  let cieWeight = (subject.isaWeight * 2) + (subject.hasAssignment ? subject.assignmentWeight : 0);
-  let labWeight = subject.hasLab ? subject.labWeight : 0;
-  let esaWeight = subject.esaWeight;
+  let cieWeight = isa1Weight + isa2Weight + assignmentWeight;
   let totalWeight = cieWeight + labWeight + esaWeight;
+
+  // 1. Calculate actual raw components
+  let cieRaw = calcComponent(m.isa1, m.isa1Max || subject.isa1Max || 40, isa1Weight) +
+    calcComponent(m.isa2, m.isa2Max || subject.isa2Max || 40, isa2Weight);
+  if (subject.hasAssignment) {
+    cieRaw += calcComponent(m.assignment, m.assignmentMax || subject.assignmentMax || 10, assignmentWeight);
+  }
+
+  let labRaw = subject.hasLab ? calcComponent(m.lab, m.labMax || subject.labMax || 20, labWeight) : 0;
+  let esaRaw = calcComponent(m.esa, m.esaMax || subject.esaMax || 100, esaWeight);
 
   // Scaling to standard components: CIE to 50, Lab to standalone (e.g. 20), ESA to 50
   let cieScaled = cieWeight > 0 ? (cieRaw / cieWeight) * 50 : 0;
@@ -57,8 +63,8 @@ export const getSubjectMetrics = (subject, marks) => {
   let momentumIsa2Marks = null;
   let projectedInternals = cieRaw + labRaw;
 
-  const assignmentMaxRaw = parseFloat(m.assignmentMax ?? subject.assignmentMax ?? 10);
-  const labMaxRaw = parseFloat(m.labMax ?? subject.labMax ?? 20);
+  const assignmentMaxRaw = parseFloat(m.assignmentMax || subject.assignmentMax || 10);
+  const labMaxRaw = parseFloat(m.labMax || subject.labMax || 20);
   const assignmentMax = !isNaN(assignmentMaxRaw) ? assignmentMaxRaw : 10;
   const labMax = !isNaN(labMaxRaw) ? labMaxRaw : 20;
   let momentumAssignmentMarks = null;
@@ -75,30 +81,30 @@ export const getSubjectMetrics = (subject, marks) => {
     let isaWeightFilled = 0;
 
     if (hasIsa1) {
-      isaPerformance += calcComponent(m.isa1, m.isa1Max, subject.isaWeight);
-      isaWeightFilled += subject.isaWeight;
+      isaPerformance += calcComponent(m.isa1, m.isa1Max || subject.isa1Max || 40, isa1Weight);
+      isaWeightFilled += isa1Weight;
     }
     if (hasIsa2) {
-      isaPerformance += calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
-      isaWeightFilled += subject.isaWeight;
+      isaPerformance += calcComponent(m.isa2, m.isa2Max || subject.isa2Max || 40, isa2Weight);
+      isaWeightFilled += isa2Weight;
     }
 
     isaRatio = isaWeightFilled > 0 ? (isaPerformance / isaWeightFilled) : 0;
-    const isa2Max = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
-    if (!hasIsa2 && hasIsa1 && subject.hasIsa2 !== false && !isNaN(isa2Max) && isa2Max > 0) {
+    const isa2Max = parseFloat(m.isa2Max || subject.isa2Max || 40);
+    if (!hasIsa2 && hasIsa1 && subject.hasIsa2 !== false && !isNaN(isa2Max) && isa2Max > 0 && isa2Weight > 0) {
       const projectedIsa2 = Math.min(isa2Max, Math.max(0, isaRatio * isa2Max));
       momentumIsa2Marks = Math.round(projectedIsa2 * 10) / 10;
-      projectedCieRaw += (projectedIsa2 / isa2Max) * subject.isaWeight;
+      projectedCieRaw += (projectedIsa2 / isa2Max) * isa2Weight;
     }
 
     if (subject.hasAssignment && !hasAssignment && assignmentMax > 0) {
       momentumAssignmentMarks = Math.round(assignmentMax * 10) / 10;
-      projectedCieRaw += subject.assignmentWeight;
+      projectedCieRaw += assignmentWeight;
     }
 
     if (subject.hasLab && !hasLab && labMax > 0) {
       momentumLabMarks = Math.round(labMax * 10) / 10;
-      projectedLabRaw += subject.labWeight;
+      projectedLabRaw += labWeight;
     }
 
     // Calculate overall internal performance ratio (for projecting assignment/lab/ESA)
@@ -106,26 +112,26 @@ export const getSubjectMetrics = (subject, marks) => {
     let filledInternalWeight = 0;
 
     if (hasIsa1) {
-      filledInternalScore += calcComponent(m.isa1, m.isa1Max, subject.isaWeight);
-      filledInternalWeight += subject.isaWeight;
+      filledInternalScore += calcComponent(m.isa1, m.isa1Max || subject.isa1Max || 40, isa1Weight);
+      filledInternalWeight += isa1Weight;
     }
     if (hasIsa2) {
-      filledInternalScore += calcComponent(m.isa2, m.isa2Max, subject.isaWeight);
-      filledInternalWeight += subject.isaWeight;
+      filledInternalScore += calcComponent(m.isa2, m.isa2Max || subject.isa2Max || 40, isa2Weight);
+      filledInternalWeight += isa2Weight;
     }
     if (subject.hasAssignment && hasAssignment) {
-      filledInternalScore += calcComponent(m.assignment, m.assignmentMax, subject.assignmentWeight);
-      filledInternalWeight += subject.assignmentWeight;
+      filledInternalScore += calcComponent(m.assignment, m.assignmentMax || subject.assignmentMax || 10, assignmentWeight);
+      filledInternalWeight += assignmentWeight;
     }
     if (subject.hasLab && hasLab) {
-      filledInternalScore += calcComponent(m.lab, m.labMax, subject.labWeight);
-      filledInternalWeight += subject.labWeight;
+      filledInternalScore += calcComponent(m.lab, m.labMax || subject.labMax || 20, labWeight);
+      filledInternalWeight += labWeight;
     }
 
     overallInternalRatio = filledInternalWeight > 0 ? (filledInternalScore / filledInternalWeight) : 0;
 
     // Project ESA based on overall internal performance
-    let momentumESA = hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio);
+    let momentumESA = hasEsa ? esaRaw : (esaWeight * overallInternalRatio);
 
     // Scaled and Rounded for Momentum
     let projectedCieScaled = cieWeight > 0 ? (projectedCieRaw / cieWeight) * 50 : 0;
@@ -159,7 +165,7 @@ export const getSubjectMetrics = (subject, marks) => {
     assignmentMax,
     labMax,
     projectedInternals,
-    esaWeight: subject.esaWeight,
+    esaWeight,
     hasIsa1,
     hasIsa2,
     hasAssignment,
@@ -170,14 +176,14 @@ export const getSubjectMetrics = (subject, marks) => {
     labRounded,
     esaScaled,
     esaRounded,
-    projectedCieScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? (projectedCieRaw / cieWeight) * 50 : 0,
-    projectedCieRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil((projectedCieRaw / cieWeight) * 50) : 0,
+    projectedCieScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? (projectedCieRaw / (cieWeight || 1)) * 50 : 0,
+    projectedCieRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil((projectedCieRaw / (cieWeight || 1)) * 50) : 0,
     projectedLabScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? projectedLabRaw : 0,
     projectedLabRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil(projectedLabRaw) : 0,
-    momentumEsaScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? ((hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio)) / esaWeight) * 50 : 0,
-    momentumEsaRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil(((hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio)) / esaWeight) * 50) : 0,
-    momentumEsaMarks: hasEsa ? parseFloat(m.esa) : (m.esaMax || 100) * (overallInternalRatio || 0),
-    momentumUnroundedScore: totalWeight > 0 ? (((((hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? (projectedCieRaw / cieWeight) * 50 : 0) + ((hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? projectedLabRaw : 0) + ((hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? ((hasEsa ? esaRaw : (subject.esaWeight * overallInternalRatio)) / esaWeight) * 50 : 0)) / totalWeight) * 100) : 0
+    momentumEsaScaled: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? ((hasEsa ? esaRaw : (esaWeight * overallInternalRatio)) / (esaWeight || 1)) * 50 : 0,
+    momentumEsaRounded: (hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? Math.ceil(((hasEsa ? esaRaw : (esaWeight * overallInternalRatio)) / (esaWeight || 1)) * 50) : 0,
+    momentumEsaMarks: hasEsa ? parseFloat(m.esa) : parseFloat(m.esaMax || subject.esaMax || 100) * (overallInternalRatio || 0),
+    momentumUnroundedScore: totalWeight > 0 ? (((((hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? (projectedCieRaw / (cieWeight || 1)) * 50 : 0) + ((hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? projectedLabRaw : 0) + ((hasIsa1 || hasIsa2 || hasAssignment || hasLab) ? ((hasEsa ? esaRaw : (esaWeight * overallInternalRatio)) / (esaWeight || 1)) * 50 : 0)) / totalWeight) * 100) : 0
   };
 };
 
@@ -192,12 +198,12 @@ export const getFinalIsaSummary = (subject, marks) => {
     return (s / mx) * w;
   };
 
-  const isa1Weight = subject.customConfig?.weights?.isa1 ?? subject.isaWeight ?? 0;
-  const isa2Weight = subject.customConfig?.weights?.isa2 ?? subject.isaWeight ?? 0;
-  const assignmentWeight = subject.customConfig?.weights?.assignment ?? subject.assignmentWeight ?? 0;
-
   const hasIsa1 = subject.hasIsa1 !== false;
   const hasIsa2 = subject.hasIsa2 !== false;
+
+  const isa1Weight = hasIsa1 ? (subject.customConfig?.weights?.isa1 ?? subject.isaWeight ?? 0) : 0;
+  const isa2Weight = hasIsa2 ? (subject.customConfig?.weights?.isa2 ?? subject.isaWeight ?? 0) : 0;
+  const assignmentWeight = subject.customConfig?.weights?.assignment ?? subject.assignmentWeight ?? 0;
   const hasAssignment = subject.hasAssignment || (assignmentWeight > 0);
 
   const isa1 = hasIsa1 ? calcComponent(m.isa1, m.isa1Max ?? subject.isa1Max ?? 40, isa1Weight) : 0;
@@ -246,18 +252,22 @@ export const getRequiredESAForGrade = (subject, targetScore, withSafetyMargin = 
     effectiveLabRounded = projectedLabRounded;
   } else if (options.useMomentumIsa2 && !hasIsa2 && momentumIsa2Marks !== null && subject.hasIsa2 !== false) {
     const m = marks[subject.id] || {};
-    const isa2Max = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
+    const isa2Max = parseFloat(m.isa2Max || subject.isa2Max || 40);
     if (!isNaN(isa2Max) && isa2Max > 0) {
-      let cieWeight = (subject.isaWeight * 2) + (subject.hasAssignment ? subject.assignmentWeight : 0);
+      const isa1Weight = subject.customConfig?.weights?.isa1 ?? (subject.hasIsa1 !== false ? subject.isaWeight : 0);
+      const isa2Weight = subject.customConfig?.weights?.isa2 ?? (subject.hasIsa2 !== false ? subject.isaWeight : 0);
+      const assignmentWeight = subject.customConfig?.weights?.assignment ?? (subject.hasAssignment ? subject.assignmentWeight : 0);
+      let cieWeight = isa1Weight + isa2Weight + assignmentWeight;
+
       const isa1Val = parseFloat(m.isa1);
       const isa1Max = parseFloat(m.isa1Max || subject.isa1Max || 40);
-      const isa1Component = (!isNaN(isa1Val) && isa1Max > 0) ? (isa1Val / isa1Max) * subject.isaWeight : 0;
+      const isa1Component = (!isNaN(isa1Val) && isa1Max > 0) ? (isa1Val / isa1Max) * isa1Weight : 0;
 
       const assignVal = parseFloat(m.assignment);
       const assignMax = parseFloat(m.assignmentMax || subject.assignmentMax || 10);
-      const assignComponent = (subject.hasAssignment && !isNaN(assignVal) && assignMax > 0) ? (assignVal / assignMax) * subject.assignmentWeight : 0;
+      const assignComponent = (subject.hasAssignment && !isNaN(assignVal) && assignMax > 0) ? (assignVal / assignMax) * assignmentWeight : 0;
 
-      let cieRaw = isa1Component + (momentumIsa2Marks / isa2Max) * subject.isaWeight + assignComponent;
+      let cieRaw = isa1Component + (momentumIsa2Marks / isa2Max) * isa2Weight + assignComponent;
       let cieScaled = cieWeight > 0 ? (cieRaw / cieWeight) * 50 : 0;
       effectiveCieRounded = Math.ceil(cieScaled);
     }
@@ -324,26 +334,28 @@ export const getRequiredISA2ForGrade = (subject, targetScore, options = {}, mark
   const hasIsa2 = m.isa2 !== '' && m.isa2 !== undefined && !isNaN(parseFloat(m.isa2));
   if (hasIsa2) return null;
 
-  const isa2MaxRaw = parseFloat(m.isa2Max ?? subject.isa2Max ?? 40);
+  const isa2MaxRaw = parseFloat(m.isa2Max || subject.isa2Max || 40);
   const isa2Max = !isNaN(isa2MaxRaw) ? isa2MaxRaw : 40;
-  const isaWeight = parseFloat(subject.isaWeight ?? 0);
 
-  if (!isaWeight || isa2Max <= 0) return null;
+  const isa1Weight = subject.customConfig?.weights?.isa1 ?? (subject.hasIsa1 !== false ? subject.isaWeight : 0);
+  const isa2Weight = subject.customConfig?.weights?.isa2 ?? (subject.hasIsa2 !== false ? subject.isaWeight : 0);
+  const assignmentWeight = subject.customConfig?.weights?.assignment ?? (subject.hasAssignment ? subject.assignmentWeight : 0);
+  const labWeight = subject.customConfig?.weights?.lab ?? (subject.hasLab ? subject.labWeight : 0);
+  const esaWeight = subject.esaWeight || 0;
+
+  if (isa2Weight <= 0 || isa2Max <= 0) return null;
 
   const hasIsa1 = m.isa1 !== '' && m.isa1 !== undefined && !isNaN(parseFloat(m.isa1));
   const hasAssignment = m.assignment !== '' && m.assignment !== undefined && !isNaN(parseFloat(m.assignment));
   const hasLab = m.lab !== '' && m.lab !== undefined && !isNaN(parseFloat(m.lab));
   const hasEsa = m.esa !== '' && m.esa !== undefined && !isNaN(parseFloat(m.esa));
 
-  const assignmentWeight = subject.hasAssignment ? (subject.assignmentWeight || 0) : 0;
-  const labWeight = subject.hasLab ? (subject.labWeight || 0) : 0;
-  const esaWeight = subject.esaWeight || 0;
-  const totalWeight = (isaWeight * 2) + assignmentWeight + labWeight + esaWeight;
+  const totalWeight = isa1Weight + isa2Weight + assignmentWeight + labWeight + esaWeight;
 
   // CIE components
   const isa1Val = parseFloat(m.isa1);
   const isa1Max = parseFloat(m.isa1Max || subject.isa1Max || 40);
-  const isa1Component = (hasIsa1 && isa1Max > 0) ? (isa1Val / isa1Max) * isaWeight : 0;
+  const isa1Component = (hasIsa1 && isa1Max > 0) ? (isa1Val / isa1Max) * isa1Weight : 0;
 
   const assignVal = parseFloat(m.assignment);
   const assignMax = parseFloat(m.assignmentMax || subject.assignmentMax || 10);
@@ -377,13 +389,13 @@ export const getRequiredISA2ForGrade = (subject, targetScore, options = {}, mark
 
   if (targetCieRounded <= 0) return { needed: 0, max: isa2Max };
 
-  const cieWeight = (isaWeight * 2) + assignmentWeight;
+  const cieWeight = isa1Weight + isa2Weight + assignmentWeight;
   const requiredCieRaw = (targetCieRounded - 1 + 0.000001) * cieWeight / 50;
   const requiredIsa2Component = requiredCieRaw - isa1Component - assignComponent;
 
   if (requiredIsa2Component <= 0) return { needed: 0, max: isa2Max };
 
-  const requiredIsa2Marks = Math.ceil((requiredIsa2Component / isaWeight) * isa2Max);
+  const requiredIsa2Marks = Math.ceil((requiredIsa2Component / isa2Weight) * isa2Max);
   if (requiredIsa2Marks > isa2Max) return { needed: null, max: isa2Max };
 
   return { needed: Math.max(0, requiredIsa2Marks), max: isa2Max };

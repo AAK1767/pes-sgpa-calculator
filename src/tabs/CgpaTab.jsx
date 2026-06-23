@@ -259,6 +259,19 @@ export default function CgpaTab({
 
             {/* Calculation Outputs */}
             {(() => {
+              const hasTarget = targetCgpa !== '' && targetCgpa !== undefined && !isNaN(parseFloat(targetCgpa)) && parseFloat(targetCgpa) > 0;
+              if (!hasTarget) {
+                return (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-300">
+                      <span className="font-bold block mb-1">Target CGPA Required</span>
+                      Please enter your desired target CGPA in the input box above to calculate the required SGPA.
+                    </div>
+                  </div>
+                );
+              }
+
               if (completedSems.length === 0) {
                 return (
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-start gap-3">

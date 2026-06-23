@@ -89,10 +89,7 @@ export default function PES_Universal_Calculator() {
     return saved ? JSON.parse(saved) : {};
   });
 
-  const [prevCgpaDetails, setPrevCgpaDetails] = useState(() => {
-    const saved = localStorage.getItem('pes_cgpa_details');
-    return saved ? JSON.parse(saved) : { sgpa: '', credits: '' };
-  });
+
 
   // --- CGPA Tab State (With Persistence) ---
   const [semesterData, setSemesterData] = useState(() => {
@@ -160,10 +157,15 @@ export default function PES_Universal_Calculator() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const [reverseTargetSgpa, setReverseTargetSgpa] = useState(8.5);
+  const [reverseTargetSgpa, setReverseTargetSgpa] = useState(() => {
+    const saved = localStorage.getItem('pes_reverse_target_sgpa');
+    return saved ? parseFloat(saved) : 8.5;
+  });
   const [reverseEsaMode, setReverseEsaMode] = useState('safe');
-  const [lockedSubjects, setLockedSubjects] = useState({});
-  const [showHelp, setShowHelp] = useState(false);
+  const [lockedSubjects, setLockedSubjects] = useState(() => {
+    const saved = localStorage.getItem('pes_reverse_locked_subjects');
+    return saved ? JSON.parse(saved) : {};
+  });
   const [showToffeeModal, setShowToffeeModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackName, setFeedbackName] = useState('');
@@ -377,7 +379,7 @@ export default function PES_Universal_Calculator() {
   // Reset shuffle if user changes target or locks
   useEffect(() => {
     setShuffledResults(null);
-  }, [reverseTargetSgpa, lockedSubjects, marks]);
+  }, [reverseTargetSgpa, lockedSubjects, marks, subjects]);
 
   // --- Undo/Redo State ---
   const [undoStack, setUndoStack] = useState([]);
@@ -393,8 +395,12 @@ export default function PES_Universal_Calculator() {
   }, [marks]);
 
   useEffect(() => {
-    localStorage.setItem('pes_cgpa_details', JSON.stringify(prevCgpaDetails));
-  }, [prevCgpaDetails]);
+    localStorage.setItem('pes_reverse_target_sgpa', reverseTargetSgpa.toString());
+  }, [reverseTargetSgpa]);
+
+  useEffect(() => {
+    localStorage.setItem('pes_reverse_locked_subjects', JSON.stringify(lockedSubjects));
+  }, [lockedSubjects]);
 
   useEffect(() => {
     document.documentElement.classList.add('dark');
@@ -540,8 +546,8 @@ export default function PES_Universal_Calculator() {
         newMarks[sub.id] = {
           isa1: '', isa1Max: sub.isa1Max || 40,
           isa2: '', isa2Max: sub.isa2Max || 40,
-          assignment: '', assignmentMax: 10,
-          lab: '', labMax: 20,
+          assignment: '', assignmentMax: sub.assignmentMax || 10,
+          lab: '', labMax: sub.labMax || 20,
           esa: '', esaMax: sub.esaMax || 100
         };
         changed = true;
@@ -682,6 +688,13 @@ export default function PES_Universal_Calculator() {
     const newMarks = { ...marks };
     delete newMarks[id];
     setMarks(newMarks);
+
+    // Clear lock for this subject
+    if (lockedSubjects[id] !== undefined) {
+      const newLocked = { ...lockedSubjects };
+      delete newLocked[id];
+      setLockedSubjects(newLocked);
+    }
   };
 
   const loadPreset = (presetName) => {
@@ -690,6 +703,8 @@ export default function PES_Universal_Calculator() {
       saveStateForUndo();
       setSubjects(SemesterPresets[presetName]);
       setMarks({});
+      setLockedSubjects({});
+      setShuffledResults(null);
       
       trackEvent('preset_load', {
         preset_name: presetName,
@@ -703,6 +718,8 @@ export default function PES_Universal_Calculator() {
       saveStateForUndo();
       setSubjects(PhysicsCycleDefaults);
       setMarks({});
+      setLockedSubjects({});
+      setShuffledResults(null);
 
       trackEvent('data_action', { type: 'restore_defaults' });
     }
@@ -726,6 +743,8 @@ export default function PES_Universal_Calculator() {
         esaMax: 100
       }]);
       setMarks({});
+      setLockedSubjects({});
+      setShuffledResults(null);
 
       trackEvent('data_action', { type: 'clear_all' });
     }
@@ -762,7 +781,6 @@ export default function PES_Universal_Calculator() {
     const data = {
       subjects,
       marks,
-      prevCgpaDetails,
       exportedAt: new Date().toISOString(),
       version: '2.0'
     };
@@ -792,9 +810,7 @@ export default function PES_Universal_Calculator() {
           const normalizedSubjects = data.subjects.map((s, idx) => normalizeSubject(s, idx));
           setSubjects(normalizedSubjects);
           setMarks(isPlainObject(data.marks) ? data.marks : {});
-          if (data.prevCgpaDetails) {
-            setPrevCgpaDetails(data.prevCgpaDetails);
-          }
+
           alert('Data imported successfully!');
 
           trackEvent('data_action', { type: 'import', subject_count: normalizedSubjects.length });
@@ -1041,7 +1057,7 @@ export default function PES_Universal_Calculator() {
             candidates.push({
               idx,
               name: sub.name,
-              fromGrade: GradeMap.find(g => g.gp === sub.currentGP)?.grade || 'F',
+              fromGrade: activeMap.find(g => g.gp === sub.currentGP)?.grade || 'F',
               toGrade: nextGrade.grade,
               esaNeeded: esaNeeded, // Store absolute needed
               esaMax: sub.esaMax,
@@ -1073,10 +1089,12 @@ export default function PES_Universal_Calculator() {
       plan.push(best);
 
       // Update Simulation State
-      const newGradeInfo = GradeMap.find(g => g.grade === best.toGrade);
-      simState[best.idx].currentGP = newGradeInfo.gp;
-      simState[best.idx].currentScore = newGradeInfo.min;
-      simState[best.idx].currentEsaMarks = best.esaNeeded; // Update ESA usage
+      const targetSub = simState[best.idx];
+      const activeMap = targetSub.customGradeMap || GradeMap;
+      const newGradeInfo = activeMap.find(g => g.grade === best.toGrade);
+      targetSub.currentGP = newGradeInfo.gp;
+      targetSub.currentScore = newGradeInfo.min;
+      targetSub.currentEsaMarks = best.esaNeeded; // Update ESA usage
 
       deficit -= best.gpGain;
     }
@@ -1530,8 +1548,9 @@ export default function PES_Universal_Calculator() {
     return subjects.map(sub => {
       const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
       const esaMax = marks[sub.id]?.esaMax || 100;
+      const activeMap = sub.customGradeMap || GradeMap;
 
-      const gradeRequirements = GradeMap.slice(0, -1).map(g => {
+      const gradeRequirements = activeMap.slice(0, -1).map(g => {
         const result = getRequiredESAForGrade(sub, g.min, true);
         const isa2Info = getRequiredISA2ForGrade(sub, g.min, { assumeFullForEmptyInternals: true });
 
@@ -1552,7 +1571,7 @@ export default function PES_Universal_Calculator() {
         };
       });
 
-      const passReq = gradeRequirements.find(g => g.grade === 'E');
+      const passReq = gradeRequirements[gradeRequirements.length - 1];
 
       return {
         ...sub,
@@ -1662,11 +1681,13 @@ export default function PES_Universal_Calculator() {
   const alerts = useMemo(() => {
     const alertList = [];
     subjects.forEach(sub => {
-      const { finalScore, momentumScore } = getSubjectMetrics(sub);
+      const { finalScore } = getSubjectMetrics(sub);
       const m = marks[sub.id] || {};
+      const activeMap = sub.customGradeMap || GradeMap;
+      const passScore = activeMap[activeMap.length - 2]?.min || 40;
 
       // Critical: Failing
-      if (finalScore < 40 && (m.isa1 !== '' || m.isa2 !== '')) {
+      if (finalScore < passScore && (m.isa1 !== '' || m.isa2 !== '')) {
         alertList.push({
           type: 'critical',
           subject: sub.name,
@@ -1675,8 +1696,8 @@ export default function PES_Universal_Calculator() {
       }
 
       // Opportunity: Easy grade jump
-      const currentGP = getGradePoint(finalScore);
-      const nextGrade = GradeMap.slice().reverse().find(g => g.gp > currentGP);
+      const currentGP = getGradePoint(finalScore, sub);
+      const nextGrade = activeMap.slice().reverse().find(g => g.gp > currentGP);
       if (nextGrade) {
         const esaMax = m.esaMax || 100;
         const requiredEsa = getRequiredESAForGrade(sub, nextGrade.min, false);
@@ -1693,22 +1714,7 @@ export default function PES_Universal_Calculator() {
     return alertList;
   }, [subjects, marks]);
 
-  // CGPA Logic
-  const calculateCGPA = () => {
-    const prevSgpa = parseFloat(prevCgpaDetails.sgpa);
-    const prevCreds = parseFloat(prevCgpaDetails.credits);
-    const currSgpa = parseFloat(sgpa);
-    const currCreds = metrics.totalCredits;
 
-    if (!isNaN(prevSgpa) && !isNaN(prevCreds) && currCreds > 0) {
-      const totalPoints = (prevSgpa * prevCreds) + (currSgpa * currCreds);
-      const totalCreds = prevCreds + currCreds;
-      return (totalPoints / totalCreds).toFixed(2);
-    }
-    return null;
-  };
-
-  const finalCgpa = calculateCGPA();
 
   // --- Theme Classes (Premium Dark) ---
   const themeClasses = {
