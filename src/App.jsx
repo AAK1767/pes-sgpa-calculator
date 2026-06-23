@@ -49,6 +49,36 @@ import {
   Github, ExternalLink, Star, MessageSquare
 } from 'lucide-react';
 
+// Pre-compile a set of all preset subject names for GA tracking classification
+const presetSubjectNames = new Set(
+  Object.values(SemesterPresets).flatMap(presetList => presetList.map(sub => sub.name))
+);
+
+// Identify the active preset/cycle name from subjects list
+const getCyclePresetName = (subjectsList) => {
+  if (!subjectsList || subjectsList.length === 0) return 'Custom/Other';
+
+  for (const [presetName, presetSubjects] of Object.entries(SemesterPresets)) {
+    if (presetSubjects.length === subjectsList.length) {
+      const match = presetSubjects.every((presetSub, idx) => {
+        return presetSub.name === subjectsList[idx]?.name;
+      });
+      if (match) return presetName;
+    }
+  }
+
+  // Fallback: Check if names match but maybe order/IDs differ
+  const currentNames = new Set(subjectsList.map(s => s?.name));
+  for (const [presetName, presetSubjects] of Object.entries(SemesterPresets)) {
+    if (presetSubjects.length === subjectsList.length) {
+      const match = presetSubjects.every(presetSub => currentNames.has(presetSub.name));
+      if (match) return presetName;
+    }
+  }
+
+  return 'Custom/Other';
+};
+
 export default function PES_Universal_Calculator() {
   // --- GA Refs ---
   const markTrackTimersRef = useRef({});
@@ -407,17 +437,18 @@ export default function PES_Universal_Calculator() {
     localStorage.setItem('pes_theme', 'dark'); // Ensure it stays dark
 
     // Set GA user properties
-    const isPhysics = subjects && subjects.some(s => s && s.name && typeof s.name === 'string' && s.name.toLowerCase().includes('physics'));
+    const activePresetName = getCyclePresetName(subjects);
     setUserProperties({
       calculator_version: '2026_MAY_V4.5',
-      initial_cycle: isPhysics ? 'physics' : 'chemistry'
+      initial_cycle: activePresetName
     });
 
     // Track app environment (standalone PWA vs browser, online/offline status)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     trackEvent('app_environment', {
       standalone: isStandalone,
-      online_status: navigator.onLine
+      online_status: navigator.onLine,
+      preset_name: activePresetName
     });
   }, []);
 
@@ -561,30 +592,19 @@ export default function PES_Universal_Calculator() {
     const subject = subjects.find(s => s.id === id);
     const subjectName = subject ? subject.name : '';
     
-    const presetCycleNames = [
-      "Mathematics - I/II",
-      "Engineering Chemistry",
-      "Python for Computational Problem Solving/Problem Solving with C",
-      "Engineering Mechanics",
-      "Electronic Principles",
-      "Constitution of India",
-      "Engineering Physics",
-      "Elements of Electrical Engineering",
-      "Mechanical Engineering Sciences",
-      "Environmental Studies"
-    ];
-
-    const isPresetCycleSubject = presetCycleNames.includes(subjectName);
     const isScoreField = ['isa1', 'isa2', 'assignment', 'lab', 'esa'].includes(field);
 
-    if (isPresetCycleSubject && isScoreField && value !== '') {
+    if (isScoreField && value !== '') {
+      const isPresetSubject = presetSubjectNames.has(subjectName);
+      const trackedSubjectName = isPresetSubject ? subjectName : 'Custom/Other';
+
       const timerKey = `${id}_${field}`;
       if (markTrackTimersRef.current[timerKey]) {
         clearTimeout(markTrackTimersRef.current[timerKey]);
       }
       markTrackTimersRef.current[timerKey] = setTimeout(() => {
         trackEvent('mark_input', {
-          subject_name: subjectName,
+          subject_name: trackedSubjectName,
           component: field,
           value: parseFloat(value)
         });
@@ -910,7 +930,8 @@ export default function PES_Universal_Calculator() {
 
       trackEvent('calculation_summary', {
         sgpa_bucket: getSGPABucket(calculatedSgpa),
-        subject_count: subjects.length
+        subject_count: subjects.length,
+        preset_name: getCyclePresetName(subjects)
       });
     }
   }, [marks, subjects]);
