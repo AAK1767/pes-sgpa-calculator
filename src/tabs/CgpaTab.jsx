@@ -40,9 +40,9 @@ export default function CgpaTab({
     let credits = parseFloat(sem.credits);
     if (isNaN(credits) || sem.credits === '') {
       if (sem.id === 7) {
-        credits = 6;
+        credits = 8;
       } else if (sem.id === 8) {
-        credits = 10;
+        credits = 12;
       } else {
         credits = 24;
       }
@@ -374,7 +374,7 @@ export default function CgpaTab({
                         </div>
                       </div>
                       <div className="text-[10px] opacity-70 mt-2">
-                        Default credits: 24 Cr (except Sem 7: 6 Cr, Sem 8: 10 Cr)
+                        Default credits: 24 Cr (except Sem 7: 8 Cr, Sem 8: 12 Cr)
                       </div>
                     </div>
                   </div>
@@ -466,7 +466,7 @@ export default function CgpaTab({
                   <div>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Remaining Semesters Schedule</h4>
-                      <span className="text-[10px] text-zinc-500 italic">Sem 7 & 8 default to 6 & 10 credits respectively. Toggle any semester off if needed.</span>
+                      <span className="text-[10px] text-zinc-500 italic">Sem 7 & 8 default to 8 & 12 credits respectively. Toggle any semester off if needed.</span>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
