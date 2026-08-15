@@ -2,12 +2,12 @@
 
 <div align="center">
 
-![React](https://img.shields.io/badge/React-19.1-61DAFB?style=for-the-badge&logo=react&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-6.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/Tailwind-3.x-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-**A powerful, offline-first SGPA/CGPA calculator built for PES University students.**  
+**A powerful, offline-first SGPA/CGPA calculator built for PES University students.**
 *Also works for VTU, IIT, and any custom grading scheme!*
 
 [Live Demo](https://pes-sgpa-calculator.vercel.app) · [Report Bug](https://github.com/aak1767/pes-sgpa-calculator/issues) · [Request Feature](https://github.com/aak1767/pes-sgpa-calculator/issues)
@@ -20,28 +20,35 @@
 
 ### 🎯 Core Functionality
 - **Real-time SGPA Calculation** - Instant updates as you enter marks
-- **Reverse Calculator** - Set target SGPA, get exact ESA scores needed
+- **Reverse Calculator** - Set target SGPA, get exact ESA scores needed per subject with locking for fixed subjects
 - **Momentum Scoring** - Smart projection for empty fields based on current performance
-- **CGPA Target Planner (Reverse CGPA)** - Plan required future SGPAs to reach a target CGPA, with graduation credit tracking (160 Cr)
 - **ISA 2 Target Planner** - Input global or subject-specific assumed ESA scores to plan ISA 2 targets for desired grades (Pass/A/S)
-- **CGPA Calculator** - Track cumulative GPA across semesters
+- **Minimum Passing Analysis** - View minimum ESA scores needed in each subject to pass/reach desired grades
+- **Multiple Strategy Paths** - Efficient, Balanced, or Randomized grade combinations for reverse calculator
+- **CGPA Calculator** - Track cumulative GPA across semesters with graduation credit tracking (160 Cr)
+- **CGPA Target Planner** - Plan required future SGPAs to reach a target CGPA
 
 ### 🔧 Advanced Tools
-- **Grade Curve Adjustments** - Customize cutoffs per subject when exams are hard
+- **Grade Curve Adjustments** - Customize grade cutoffs per subject when exams are hard
 - **Attendance Calculator** - Track and plan your 75% attendance requirement
-- **Multiple Strategy Paths** - Efficient, Balanced, or Randomized grade combinations
+- **CIE Component Scaling** - Automatic scaling of continuous internal evaluation components
+- **Lab & Assignment Tracking** - Weighted component system for realistic calculations
 
 ### 💾 Quality of Life
 - **Auto-Save** - All data persists in browser localStorage
-- **Dark/Light Mode** - Easy on the eyes during late-night study sessions
+- **Dark Mode** - Easy on the eyes during late-night study sessions
 - **Undo/Redo** - Full history support with `Ctrl+Z` / `Ctrl+Y`
 - **Export/Import** - Backup and restore your data as JSON
 - **Mobile Responsive** - Works perfectly on phones and tablets
+- **Service Worker** - Offline functionality via PWA support
 
-### 🎓 Universal Support
-- **PES Presets** - One-click load for Physics/Chemistry cycles
-- **Custom Templates** - Build subjects for VTU, IIT, or any college
-- **Flexible Grading** - Support for 10-point, 4.0 GPA, and custom schemes
+### 🎓 Comprehensive Preset Support
+- **First-Year Cycles** - Chemistry Cycle, Physics Cycle (PES Sem 1-2)
+- **CSE Semesters** - Sem 3-8 with specialized capstone projects and internship tracks
+- **AIML Semesters** - Sem 3-8 with AI/ML focus courses and capstone projects
+- **ECE Semesters** - Sem 3-6 with electronics and signal processing emphasis
+- **Generic Cycle** - Fully editable template for any college or program
+- **Custom Grading Schemes** - PES (Default), 10-Point (VTU/IIT Style), 4-Point (US Style), and fully custom options
 
 ---
 
@@ -91,31 +98,60 @@ npm run preview  # Preview the build locally
 
 | Tab | Purpose |
 |-----|---------|
-| **Subjects** | Enter marks, configure subjects, load presets |
-| **Analysis** | View predictions, grade requirements, smart strategy |
-| **Reverse Calc** | Set target SGPA → get required ESA scores |
-| **CGPA** | Calculate cumulative GPA across semesters |
-| **Attendance** | Track and plan attendance percentage |
-| **Guide** | In-app help and documentation |
+| **Subjects** | Enter marks, load presets, configure assessment components, manage templates |
+| **Analysis** | View SGPA predictions, minimum ESA requirements, ISA 2 planner with custom assumptions |
+| **Reverse Calc** | Set target SGPA, lock fixed subjects, see required ESA scores with multiple strategy paths |
+| **CGPA** | Calculate cumulative GPA across semesters (up to 8 semesters), track progress toward target |
+| **Attendance** | Track classes and plan attendance to meet 75% requirement |
+| **Guide** | In-app documentation and help |
+
+### Presets Overview
+
+**First Year (All Branches)**
+- Chemistry Cycle (Sem 1-2)
+- Physics Cycle (Sem 1-2)
+
+**CSE (Computer Science & Engineering)**
+- Semesters 3, 4, 5, 6, 7, 8
+- Includes capstone projects (Phases 1-4) and specialized courses
+
+**AIML (AI & Machine Learning)**
+- Semesters 3, 4, 5, 6, 7, 8
+- ML-focused curriculum with capstone projects and internship
+
+**ECE (Electronics & Communication Engineering)**
+- Semesters 3, 4, 5, 6
+- Digital design, signal processing, and network courses
+
+**Generic Cycle**
+- Fully editable template for any college/program
+- Create custom subjects with your own assessment patterns
 
 ### Quick Start
 
 1. **Load a Preset** (Subjects Tab)
-   - Click the dropdown → Select "Chemistry Cycle" or "Physics Cycle"
-   
+   - Click the preset dropdown to choose your program
+   - **First Year:** Chemistry Cycle, Physics Cycle
+   - **CSE/AIML/ECE:** Select your branch and semester (e.g., "CSE Sem 3")
+   - **Custom:** Select "Generic Cycle (Editable)" to build your own
+
 2. **Enter Your Marks**
    - Click on any subject to expand
-   - Enter ISA1, ISA2, Assignment, Lab, ESA scores
+   - Enter ISA1, ISA2, Assignment (if applicable), Lab (if applicable), ESA scores
    - Scores auto-save as you type
+   - Note: 5-credit courses automatically scale from 120% to 100%
 
 3. **Check Analysis**
-   - Go to Analysis tab to see predictions
-   - View "Safe" ESA scores needed for each grade
+   - Go to Analysis tab to see SGPA predictions
+   - View minimum ESA scores needed for Pass/A/S grades in each subject
+   - Review ISA 2 planner with custom ESA assumptions
 
 4. **Plan Your ESAs**
    - Go to Reverse Calc tab
-   - Set your target SGPA (e.g., 9.0)
-   - See exactly what you need in each subject
+   - Enter your target SGPA (e.g., 9.0)
+   - Lock subjects with fixed marks
+   - Choose strategy: Efficient, Balanced, or Randomized
+   - See exactly what you need to score in each subject
 
 ### Keyboard Shortcuts
 
@@ -134,15 +170,25 @@ When you leave a field empty (like ISA2), most calculators treat it as 0. This a
 - This gives realistic predictions before exams are written
 - Look for the "Using Momentum" warning in Reverse Calc
 
-### Custom Colleges (VTU, IIT, etc.)
+### Custom Templates (VTU, IIT, or Any College)
 
 1. Go to **Subjects Tab**
-2. Click **"Not from PES? 🎓"**
-3. Configure:
-   - Assessment components (Midterms, Finals, Labs, etc.)
-   - Weights for each component
-   - Grading scheme (choose preset or custom)
-4. Click **Create Subject**
+2. Click **"Not from PES? 🎓"** to open the template builder
+3. Configure your assessment pattern:
+   - Define assessment components (ISA1, ISA2, Assignments, Lab, ESA)
+   - Set maximum scores for each component
+   - Set weights as percentages
+   - Customize component labels (e.g., "Midterm" instead of "ISA1")
+4. Select or create a custom grading scheme
+5. Click **Create Subject** to add subjects using your template
+
+### Available Grading Schemes
+
+- **PES (Default):** S(90)=10.0, A(80)=9.0, B(70)=8.0, C(60)=7.0, D(50)=6.0, E(40)=5.0, F(0)=0.0
+- **10-Point (VTU Style):** O(90)=10, A+(80)=9, A(70)=8, B+(60)=7, B(55)=6, C(50)=5, P(40)=4, F(0)=0
+- **10-Point (IIT Style):** AA(90)=10, AB(80)=9, BB(70)=8, BC(60)=7, CC(50)=6, CD(45)=5, DD(40)=4, FF(0)=0
+- **4-Point (US Style):** A(90)=4.0, A-(85)=3.7, B+(80)=3.3, B(75)=3.0, B-(70)=2.7, C+(65)=2.3, C(60)=2.0, C-(55)=1.7, D(50)=1.0, F(0)=0
+- **Custom:** Define your own grade boundaries and grade points
 
 ---
 
@@ -150,19 +196,43 @@ When you leave a field empty (like ISA2), most calculators treat it as 0. This a
 
 ```
 pes-sgpa-calculator/
+├── api/
+│   └── feedback.js                 # Feedback API handler
 ├── public/
-│   └── favicon.ico
+│   ├── robots.txt
+│   └── sitemap.xml
 ├── src/
-│   ├── App.jsx          # Main application component (all logic)
-│   ├── main.jsx         # React entry point
-│   └── index.css        # Tailwind imports
-├── docs/
-│   └── screenshots/     # Documentation images
-├── index.html
+│   ├── App.jsx                     # Main application component
+│   ├── App.css                     # App-specific styles
+│   ├── index.css                   # Global styles & Tailwind imports
+│   ├── main.jsx                    # React entry point
+│   ├── sw.js                       # Service worker (offline support)
+│   ├── assets/                     # Static assets
+│   ├── constants/
+│   │   └── presets.js              # PES preset configurations
+│   ├── hooks/
+│   │   └── useCustomTemplate.js    # Custom hook for templates
+│   ├── tabs/
+│   │   ├── AnalysisTab.jsx         # Grade analysis & predictions
+│   │   ├── AttendanceTab.jsx       # Attendance tracker
+│   │   ├── CgpaTab.jsx             # CGPA calculator
+│   │   ├── GuideTab.jsx            # In-app help & documentation
+│   │   ├── ReverseTab.jsx          # Reverse SGPA calculator
+│   │   └── SubjectsTab.jsx         # Subject configuration & marks entry
+│   └── utils/
+│       ├── analytics.js            # Analytics tracking
+│       ├── attendanceCalculations.js # Attendance logic
+│       ├── calculations.js         # Core SGPA/CGPA calculations
+│       └── calculations.test.js    # Unit tests
+├── CALCULATION_GUIDE.md            # Detailed calculation algorithms
+├── eslint.config.js                # ESLint configuration
+├── fix-dark-mode.cjs               # Dark mode utilities
+├── index.html                      # HTML entry point
 ├── package.json
-├── vite.config.js
-├── tailwind.config.js
-├── eslint.config.js
+├── postcss.config.js               # PostCSS configuration
+├── tailwind.config.js              # Tailwind CSS configuration
+├── vite.config.js                  # Vite build configuration
+├── vercel.json                     # Vercel deployment config
 └── README.md
 ```
 
@@ -170,16 +240,21 @@ pes-sgpa-calculator/
 
 ## 🔧 Tech Stack
 
-- **Framework:** React 19.1 with Hooks
-- **Build Tool:** Vite 6.3
-- **Styling:** Tailwind CSS 3.x
-- **Icons:** Lucide React
+- **Framework:** React 19.2 with Hooks & Function Components
+- **Build Tool:** Vite 7.2 (Lightning-fast dev server)
+- **Styling:** Tailwind CSS 3.4 + PostCSS & Autoprefixer
+- **Animations:** Framer Motion 12.3
+- **Icons:** Lucide React 0.561
 - **Analytics:** Vercel Analytics & Speed Insights
 - **Storage:** Browser localStorage (no backend required)
+- **PWA:** Service Worker support for offline functionality
+- **Testing:** Vitest for unit testing
+- **Linting:** ESLint with React plugins
+- **Deployment:** Vercel (optimized serverless functions)
 
 ---
 
-## 📊 Grading Logic
+## 📊 Grading Logic & Calculations
 
 ### Default PES Scheme
 
@@ -199,11 +274,42 @@ pes-sgpa-calculator/
 SGPA = Σ(Grade Points × Credits) / Σ(Credits)
 ```
 
+### Component Scaling & CIE Calculation
+
+The calculator uses a sophisticated component-based system:
+
+**Continuous Internal Evaluation (CIE)**
+- Combines: ISA1 + ISA2 + Assignments
+- Scaled to 50 marks with ceiling rounding
+
+**Lab Component** 
+- Scaled to its assigned weight (typically 20 marks)
+- Rounded up to nearest integer
+
+**Semester End Exam (ESA)**
+- Scaled to 50 marks
+- Rounded up to nearest integer
+
+**Final Score Calculation**
+```
+Final Score = ceil((CIE_Rounded + Lab_Rounded + ESA_Rounded) / Total_Weight × 100)
+```
+
 ### 5-Credit Course Scaling
 
 PES 5-credit courses have 120% total weightage:
 - ISA1: 20%, ISA2: 20%, Assignment: 10%, Lab: 20%, ESA: 50%
 - Total: 120% → Normalized to 100% in final calculation
+- Automatically handled by the calculator
+
+### Momentum Scoring
+
+When marks are not entered, the calculator uses **momentum scoring** to estimate performance:
+- Analyzes your current performance trend
+- Projects likely scores for unwritten exams
+- Provides realistic SGPA estimates before all assessments are complete
+
+For detailed formulas and algorithms, see [Detailed Calculation Guide](CALCULATION_GUIDE.md)
 
 ---
 
@@ -237,7 +343,7 @@ Contributions are welcome! Here's how:
 
 ## 🐛 Known Issues
 
-- [ ] Momentum calculation can be slightly off for edge cases with 0 marks
+- [ ] Custom grading schemes for non-PES colleges are experimental and may have edge-case mismatches
 
 ---
 
