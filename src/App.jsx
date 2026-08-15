@@ -156,7 +156,7 @@ export default function PES_Universal_Calculator() {
   const [sgpa, setSgpa] = useState(0);
   const [expandedSubject, setExpandedSubject] = useState(null);
   const [targetSgpa, setTargetSgpa] = useState(9.0);
-  
+
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#/', '');
     const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'guide'];
@@ -176,7 +176,7 @@ export default function PES_Universal_Calculator() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    
+
     // Redirect if empty or invalid hash on mount
     const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'guide'];
     const currentHash = window.location.hash.replace('#/', '');
@@ -591,7 +591,7 @@ export default function PES_Universal_Calculator() {
     // Debounced GA4 mark entry tracking
     const subject = subjects.find(s => s.id === id);
     const subjectName = subject ? subject.name : '';
-    
+
     const isScoreField = ['isa1', 'isa2', 'assignment', 'lab', 'esa'].includes(field);
 
     if (isScoreField && value !== '') {
@@ -725,7 +725,7 @@ export default function PES_Universal_Calculator() {
       setMarks({});
       setLockedSubjects({});
       setShuffledResults(null);
-      
+
       trackEvent('preset_load', {
         preset_name: presetName,
         subject_count: SemesterPresets[presetName].length
@@ -918,7 +918,7 @@ export default function PES_Universal_Calculator() {
     const allComplete = subjects.every(sub => isSubjectMarksComplete(sub, marks[sub.id]));
     if (allComplete && lastTrackedSgpaRef.current !== calculatedSgpa) {
       lastTrackedSgpaRef.current = calculatedSgpa;
-      
+
       const getSGPABucket = (val) => {
         const num = parseFloat(val);
         if (isNaN(num)) return 'none';
@@ -1760,7 +1760,7 @@ export default function PES_Universal_Calculator() {
                 <img src="/header_logo.png" alt="PESU Calculator Logo" className="w-7 h-7 md:w-9 md:h-9 object-contain" />
                 <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
               </h1>
-              
+
               {/* Subtle links positioned beside the title */}
               <div className="flex items-center gap-1 md:gap-1.5 text-[9px] md:text-xs font-semibold">
                 <button
@@ -2035,7 +2035,7 @@ export default function PES_Universal_Calculator() {
               >
                 <X className="w-4 h-4" />
               </button>
-              
+
               <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3 text-sm">
                 <span className="bg-purple-500/10 text-purple-400 w-7 h-7 rounded-full flex items-center justify-center">
                   <MessageSquare className="w-4 h-4" />
@@ -2074,11 +2074,10 @@ export default function PES_Universal_Calculator() {
                             className="transition-transform active:scale-95 cursor-pointer focus:outline-none"
                           >
                             <Star
-                              className={`w-4.5 h-4.5 ${
-                                star <= (hoverRating || feedbackRating)
+                              className={`w-4.5 h-4.5 ${star <= (hoverRating || feedbackRating)
                                   ? 'text-yellow-400 fill-yellow-400'
                                   : 'text-zinc-600'
-                              } transition-colors`}
+                                } transition-colors`}
                             />
                           </button>
                         ))}
@@ -2122,11 +2121,10 @@ export default function PES_Universal_Calculator() {
                   <button
                     type="submit"
                     disabled={feedbackStatus === 'submitting' || !feedbackText.trim()}
-                    className={`w-full py-2 text-xs font-bold rounded-lg shadow-md transition-all cursor-pointer ${
-                      !feedbackText.trim()
+                    className={`w-full py-2 text-xs font-bold rounded-lg shadow-md transition-all cursor-pointer ${!feedbackText.trim()
                         ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700/50'
                         : 'bg-purple-600 hover:bg-purple-700 text-white'
-                    }`}
+                      }`}
                   >
                     {feedbackStatus === 'submitting' ? 'Sending...' : 'Submit Feedback 🚀'}
                   </button>

@@ -4,8 +4,8 @@
  * @param {Object} [params] - Optional parameters to send with the event
  */
 export const trackEvent = (eventName, params = {}) => {
-  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-    window.gtag('event', eventName, params);
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag("event", eventName, params);
   }
 };
 
@@ -14,7 +14,7 @@ export const trackEvent = (eventName, params = {}) => {
  * @param {Object} properties - Key-value pairs of user attributes
  */
 export const setUserProperties = (properties = {}) => {
-  if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
-    window.gtag('set', 'user_properties', properties);
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag("set", "user_properties", properties);
   }
 };

@@ -19,23 +19,23 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   // Register and immediately check for updates
   navigator.serviceWorker.register('/sw.js')
     .then(reg => {
-      reg.update().catch(() => {})
+      reg.update().catch(() => { })
 
       // Check for updates when the user switches back to the tab
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          reg.update().catch(() => {})
+          reg.update().catch(() => { })
         }
       })
     })
-    .catch(() => {})
+    .catch(() => { })
 }
 
 // Global input validation for numeric inputs to prevent alphabets and multiple decimals
 if (typeof window !== 'undefined') {
   const isNumericInput = (target) => {
-    return target && 
-      target.tagName === 'INPUT' && 
+    return target &&
+      target.tagName === 'INPUT' &&
       (target.type === 'number' || target.inputMode === 'decimal' || target.inputMode === 'numeric');
   };
 
@@ -82,7 +82,7 @@ if (typeof window !== 'undefined') {
 
     // Check validity and block signs (+/-) or any alphabets that might have slipped through
     const hasInvalidChar = /[a-zA-Z+-]/.test(target.value);
-    
+
     if (target.validity.badInput || hasInvalidChar) {
       // Restore to the last known valid value
       target.value = target._lastValidValue || '';
