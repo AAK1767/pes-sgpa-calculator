@@ -30,8 +30,8 @@ export const CseSem3Defaults = [
   { id: 1, name: "Digital Logic and Computer Design", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 2, name: "Data Structures and its Applications", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 3, name: "Mathematical Foundation for AI & Data Science", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 4, name: "Operating System", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 5, name: "Computer Networks", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Operating System", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Computer Networks", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 6, name: "CIE L1", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
 ];
 
@@ -250,8 +250,8 @@ export const AimlSem3Defaults = [
   { id: 1, name: "Digital Logic and Computer Design", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 2, name: "Data Structures and its Applications", credits: 5, hasLab: true, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 3, name: "Mathematical Foundation for AI & Data Science", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 4, name: "Operating System", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 5, name: "Computer Networks", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 4, name: "Operating System", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
+  { id: 5, name: "Computer Networks", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 6, name: "CIE L1", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
 ];
 
