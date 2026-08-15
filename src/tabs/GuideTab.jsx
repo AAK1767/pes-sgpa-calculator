@@ -78,6 +78,9 @@ export default function GuideTab({
             <p className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
               This calculator is fully open-source. Check out the source repository to view the code, report issues, or read the detailed math breakdown.
             </p>
+            <p className={`text-xs ${themeClasses.muted} leading-relaxed pl-1 mt-2`}>
+              Also check out PESUClaw: a browser extension for <strong>Chrome</strong> and <strong>Firefox</strong> that adds bulk downloading of course materials from PESU Academy, including slides, notes, assignments, question banks, and answers. Download individually, zip files, or merged PDFs directly from the course page.
+            </p>
           </div>
           <div className="mt-4 flex flex-wrap gap-2 pl-1">
             <a
@@ -95,6 +98,14 @@ export default function GuideTab({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all"
             >
               <BookOpen className="w-3.5 h-3.5" /> Calculation Guide
+            </a>
+            <a
+              href="https://github.com/AAK1767/PESUClaw/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 transition-all"
+            >
+              <Download className="w-3.5 h-3.5" /> PESUClaw Extension
             </a>
           </div>
         </div>

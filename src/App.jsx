@@ -89,7 +89,7 @@ export default function PES_Universal_Calculator() {
 
   const [subjects, setSubjects] = useState(() => {
     // --- THE RESET LOGIC ---
-    const CURRENT_VERSION = '2026_MAY_V4.5'; // Change this string whenever you want to nuke again
+    const CURRENT_VERSION = '2026_AUG_v5.2'; // Change this string whenever you want to nuke again
     const savedVersion = localStorage.getItem('pes_version');
 
     if (savedVersion !== CURRENT_VERSION) {
@@ -1971,7 +1971,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v5.1 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v5.2 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}
