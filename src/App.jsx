@@ -8,6 +8,7 @@ import ReverseTab from './tabs/ReverseTab';
 import AttendanceTab from './tabs/AttendanceTab';
 import CgpaTab from './tabs/CgpaTab';
 import GuideTab from './tabs/GuideTab';
+import PesuAcademyTab from './tabs/PesuAcademyTab';
 import { trackEvent, setUserProperties } from './utils/analytics';
 
 import {
@@ -47,7 +48,7 @@ import {
   Download, Upload, Lock, Unlock, AlertTriangle,
   BookOpen, Award, Zap, BarChart3, Moon, Sun,
   Undo2, Redo2, HelpCircle, Info, X, Heart,
-  Github, ExternalLink, Star, MessageSquare
+  Github, ExternalLink, Star, MessageSquare, GraduationCap
 } from 'lucide-react';
 
 // Pre-compile a set of all preset subject names for GA tracking classification
@@ -160,14 +161,14 @@ export default function PES_Universal_Calculator() {
 
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#/', '');
-    const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'guide'];
+    const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'pesu', 'guide'];
     return validTabs.includes(hash) ? hash : 'subjects';
   });
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#/', '');
-      const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'guide'];
+      const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'pesu', 'guide'];
       if (validTabs.includes(hash)) {
         setActiveTab(hash);
       } else {
@@ -179,7 +180,7 @@ export default function PES_Universal_Calculator() {
     window.addEventListener('hashchange', handleHashChange);
 
     // Redirect if empty or invalid hash on mount
-    const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'guide'];
+    const validTabs = ['subjects', 'analysis', 'reverse', 'attendance', 'cgpa', 'pesu', 'guide'];
     const currentHash = window.location.hash.replace('#/', '');
     if (!validTabs.includes(currentHash)) {
       window.location.hash = '#/subjects';
@@ -1675,6 +1676,7 @@ export default function PES_Universal_Calculator() {
             { id: 'reverse', label: 'Reverse Calc', icon: Target, accent: 'emerald' },
             { id: 'attendance', label: 'Attendance', icon: CheckCircle2 },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
+            { id: 'pesu', label: 'PESU Academy', icon: GraduationCap },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
             <button
@@ -1833,6 +1835,15 @@ export default function PES_Universal_Calculator() {
             resetCGPA={resetCGPA}
             simpleCgpa={simpleCgpa}
             setSimpleCgpa={setSimpleCgpa}
+          />
+        )}
+
+        {/* ==================== PESU ACADEMY TAB ==================== */}
+        {activeTab === 'pesu' && (
+          <PesuAcademyTab
+            themeClasses={themeClasses}
+            loadPreset={loadPreset}
+            setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
           />
         )}
 
@@ -2020,6 +2031,7 @@ export default function PES_Universal_Calculator() {
             { id: 'reverse', label: 'Reverse', icon: Target, accent: 'emerald' },
             { id: 'attendance', label: 'Attend', icon: CheckCircle2 },
             { id: 'cgpa', label: 'CGPA', icon: Calculator },
+            { id: 'pesu', label: 'PESU', icon: GraduationCap },
             { id: 'guide', label: 'Guide', icon: HelpCircle },
           ].map(tab => (
             <button

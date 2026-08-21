@@ -2,8 +2,25 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// The /api/* serverless functions only run on Vercel (or under `vercel dev`), NOT under
+// `vite dev`. So during local dev we proxy the PESU auth call straight to the upstream
+// PESUAuth service. This is dev-only — in production Vercel serves api/pesu-auth.js.
+// Override the target with the PESU_AUTH_URL env var if you self-host the service.
+const PESU_AUTH_TARGET = process.env.PESU_AUTH_URL || 'https://pesu-auth.onrender.com'
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    proxy: {
+      '/api/pesu-auth': {
+        target: PESU_AUTH_TARGET,
+        changeOrigin: true,
+        secure: true,
+        // The upstream endpoint is /authenticate; our app calls /api/pesu-auth.
+        rewrite: () => '/authenticate',
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
