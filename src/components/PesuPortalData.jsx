@@ -1,12 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import {
   CalendarDays, CalendarRange, ClipboardList, Award, Clock, RefreshCw,
-  Loader2, AlertCircle, GraduationCap, CheckCircle2, Users, Send
+  Loader2, AlertCircle, GraduationCap, CheckCircle2, Users, Send,
+  Download, ChevronDown, ChevronRight, Check, AlertTriangle, PieChart
 } from 'lucide-react';
 import {
   buildCurrentAttendanceStats, buildAttendancePlan, parseNonNegativeInt,
 } from '../utils/attendanceCalculations';
 import { buildAttendanceProjection } from '../utils/attendanceProjection';
+import { buildImportPlan, summarizeGrades } from '../utils/resultsImport';
 
 // Shared dark-palette helpers (matching the rest of the PESU Academy tab).
 const CARD = 'bg-[#0e0e18] border border-white/[0.06] rounded-xl shadow-sm';
@@ -27,6 +29,18 @@ function gradeColor(g) {
   if (grade === 'D') return 'bg-orange-500/15 text-orange-300 border-orange-500/25';
   if (grade === 'F' || grade === 'W') return 'bg-red-500/15 text-red-300 border-red-500/25';
   return 'bg-white/[0.06] text-zinc-300 border-white/[0.1]';
+}
+
+// Solid fill used for the grade-distribution bar segments.
+function gradeBar(g) {
+  const grade = String(g || '').trim().toUpperCase();
+  if (grade === 'S') return 'bg-emerald-400';
+  if (grade === 'A') return 'bg-green-400';
+  if (grade === 'B') return 'bg-blue-400';
+  if (grade === 'C') return 'bg-amber-400';
+  if (grade === 'D') return 'bg-orange-400';
+  if (grade === 'F' || grade === 'W') return 'bg-red-400';
+  return 'bg-zinc-500';
 }
 
 function pctColor(p) {
@@ -308,10 +322,263 @@ function AttendanceView({ att, timetable, calendar, onSendToPlanner }) {
 }
 
 /* --------------------------------- Results -------------------------------- */
-function FinalResults({ final }) {
+
+// Human labels for the importable calculator fields.
+const FIELD_LABEL = { isa1: 'ISA 1', isa2: 'ISA 2', assignment: 'Assignment', lab: 'Lab' };
+
+// Read-only analytics: a proportional strip + chips of the grade spread for a
+// semester's subjects. Grade comes from `.grade` (provisional) or `.esaGrade`
+// (final); summarizeGrades skips blanks and orders S→A→B→…
+function GradeDistribution({ subjects }) {
+  const { counts, total } = summarizeGrades(subjects || []);
+  if (!total) return null;
+  return (
+    <div className="bg-white/[0.02] border border-white/[0.05] rounded-lg p-3 mb-4">
+      <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400 mb-2">
+        <PieChart className="w-3.5 h-3.5" /> Grade distribution
+        <span className="ml-auto font-medium normal-case tracking-normal text-zinc-500">{total} graded</span>
+      </div>
+      <div className="flex h-2 rounded-full overflow-hidden mb-2.5 bg-white/[0.04]">
+        {counts.map(({ grade, count }) => (
+          <div
+            key={grade}
+            className={gradeBar(grade)}
+            style={{ width: `${(count / total) * 100}%` }}
+            title={`${grade}: ${count}`}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {counts.map(({ grade, count }) => (
+          <span key={grade} className={`text-[11px] font-bold px-1.5 py-0.5 rounded border ${gradeColor(grade)}`}>
+            {grade} <span className="opacity-70 font-medium">×{count}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ConfidenceBadge({ confidence }) {
+  const map = {
+    high: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20',
+    medium: 'bg-blue-500/10 text-blue-300 border-blue-500/20',
+    low: 'bg-amber-500/10 text-amber-300 border-amber-500/20',
+  };
+  return (
+    <span className={`text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border ${map[confidence] || map.low}`}>
+      {confidence} match
+    </span>
+  );
+}
+
+// One matched portal→calculator row in the import preview: a checkbox, the
+// name mapping, the exact fields (with /max) that will be set, and any caveats
+// (overwrite, heuristic lab sum, or lab parts that can't be imported).
+function MatchRow({ m, checked, onToggle }) {
+  const fieldKeys = ['isa1', 'isa2', 'assignment', 'lab'].filter((k) => m.fields[k] != null);
+  const labNotImported = m.labParts.length > 0 && m.fields.lab == null;
+  return (
+    <div className={`rounded-lg border p-2.5 transition-colors ${checked ? 'bg-white/[0.03] border-white/[0.08]' : 'border-white/[0.05] opacity-60'}`}>
+      <label className="flex items-start gap-2.5 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onToggle}
+          className="mt-0.5 w-4 h-4 flex-shrink-0 accent-blue-500 cursor-pointer"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-sm font-semibold text-zinc-200 leading-tight">{m.portalName}</span>
+            <ChevronRight className="w-3.5 h-3.5 text-zinc-600 flex-shrink-0" />
+            <span className="text-sm text-zinc-300 leading-tight">{m.calcName}</span>
+            <ConfidenceBadge confidence={m.confidence} />
+          </div>
+          <div className="flex flex-wrap gap-1.5 mt-1.5">
+            {fieldKeys.map((k) => {
+              const willOverwrite = m.overwrites.includes(k);
+              return (
+                <span
+                  key={k}
+                  className={`text-[11px] rounded px-1.5 py-0.5 border ${
+                    willOverwrite
+                      ? 'bg-amber-500/10 text-amber-200 border-amber-500/25'
+                      : 'bg-white/[0.03] text-zinc-300 border-white/[0.06]'
+                  }`}
+                >
+                  {FIELD_LABEL[k]}: <span className="font-semibold text-zinc-100">
+                    {m.fields[k]}{m.fields[k + 'Max'] ? `/${m.fields[k + 'Max']}` : ''}
+                  </span>
+                  {willOverwrite && <span className="ml-1 opacity-80">(replaces)</span>}
+                </span>
+              );
+            })}
+          </div>
+          {m.esaGrade && (
+            <div className="text-[10px] text-zinc-500 mt-1">
+              ESA grade <span className="font-semibold text-zinc-400">{m.esaGrade}</span> — kept as a letter, not imported.
+            </div>
+          )}
+          {m.review && (
+            <div className="text-[10px] text-amber-300/80 mt-1 inline-flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 flex-shrink-0" /> Lab is a sum of {m.labParts.join(' + ')} — double-check.
+            </div>
+          )}
+          {labNotImported && (
+            <div className="text-[10px] text-zinc-500 mt-1">
+              {m.labParts.join(', ')} found on the portal, but this subject has no lab slot — turn on a lab
+              component for it in the Subjects tab to include {m.labParts.length > 1 ? 'them' : 'it'}.
+            </div>
+          )}
+        </div>
+      </label>
+    </div>
+  );
+}
+
+// A collapsible "these didn't match" list for portal-only or calculator-only subjects.
+function UnmatchedNote({ title, items, tone }) {
+  const [show, setShow] = useState(false);
+  const toneCls = tone === 'amber' ? 'text-amber-300/80' : 'text-zinc-500';
+  if (!items.length) return null;
+  return (
+    <div>
+      <button
+        onClick={() => setShow((s) => !s)}
+        className={`inline-flex items-center gap-1 text-[11px] font-semibold ${toneCls} hover:opacity-80 cursor-pointer`}
+      >
+        {show ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+        {title} ({items.length})
+      </button>
+      {show && (
+        <ul className="mt-1 ml-4 space-y-0.5">
+          {items.map((it, i) => <li key={i} className="text-[11px] text-zinc-500">• {it}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Preview + confirm panel mapping this semester's results onto the calculator's
+// Subjects tab. Numbers are read from the final results and merged with the
+// matching provisional semester, so if the portal ever surfaces ISA numbers in
+// provisional instead of final, they're still picked up. Nothing is written
+// until the student ticks subjects and confirms; the import is undoable.
+function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImportResults }) {
+  const [open, setOpen] = useState(false);
+  const [deselected, setDeselected] = useState(() => new Set());
+  const [done, setDone] = useState(0);
+
+  const plan = useMemo(
+    () => buildImportPlan({
+      calcSubjects: subjects || [],
+      finalSem,
+      provisionalSem,
+      marks: marks || {},
+    }),
+    [subjects, finalSem, provisionalSem, marks]
+  );
+
+  if (!subjects || !onImportResults) return null;
+
+  const isChecked = (id) => !deselected.has(id);
+  const toggle = (id) => setDeselected((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  const chosen = plan.matched.filter((m) => isChecked(m.calcId));
+  const overwriteCount = chosen.filter((m) => m.overwrites.length > 0).length;
+
+  const doImport = () => {
+    if (!chosen.length) return;
+    const n = onImportResults(chosen);
+    setDone(typeof n === 'number' ? n : chosen.length);
+    setOpen(false);
+  };
+
+  return (
+    <div className="mb-4">
+      <button
+        onClick={() => { setOpen((o) => !o); setDone(0); }}
+        className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-bold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/25 transition-all cursor-pointer"
+      >
+        <Download className="w-4 h-4" />
+        Import marks to calculator
+        {plan.matched.length > 0 && (
+          <span className="text-[11px] font-bold bg-blue-500/25 text-blue-200 rounded-full px-1.5 py-0.5 leading-none">
+            {plan.matched.length}
+          </span>
+        )}
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {done > 0 && !open && (
+        <p className="text-[11px] text-emerald-300/90 inline-flex items-center gap-1 mt-2">
+          <CheckCircle2 className="w-3.5 h-3.5" /> Imported {done} subject{done === 1 ? '' : 's'} — check the Subjects tab.
+        </p>
+      )}
+
+      {open && (
+        <div className="mt-2 bg-white/[0.02] border border-white/[0.06] rounded-lg p-3 space-y-3">
+          <p className="text-[11px] text-zinc-500 leading-relaxed">
+            Subjects are matched by name (your calculator subjects have no course code). ISA and assignment
+            numbers come from your results; ESA stays a letter grade and isn&apos;t imported. Review below,
+            then import — you can undo it from the Subjects tab.
+          </p>
+
+          {plan.matched.length === 0 ? (
+            <p className="text-sm text-zinc-400">
+              None of this semester&apos;s subjects could be matched to your current calculator subjects by name.
+              Load the matching semester template in the Subjects tab first, then try again.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {plan.matched.map((m) => (
+                <MatchRow key={m.calcId} m={m} checked={isChecked(m.calcId)} onToggle={() => toggle(m.calcId)} />
+              ))}
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <UnmatchedNote title="On the portal, no calculator match" items={plan.unmatchedPortal.map((u) => u.name)} tone="amber" />
+            <UnmatchedNote title="In your calculator, no portal match this semester" items={plan.unmatchedCalc.map((u) => u.name)} tone="zinc" />
+          </div>
+
+          {plan.matched.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                onClick={doImport}
+                disabled={chosen.length === 0}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Check className="w-4 h-4" />
+                {overwriteCount > 0
+                  ? `Overwrite & import ${chosen.length} subject${chosen.length === 1 ? '' : 's'}`
+                  : `Import ${chosen.length} subject${chosen.length === 1 ? '' : 's'}`}
+              </button>
+              {overwriteCount > 0 && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-amber-300/90">
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                  {overwriteCount} will replace marks you already entered
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FinalResults({ final, provisional, subjects, marks, onImportResults }) {
   const [sel, setSel] = useState(0);
   if (!final || final.length === 0) return <EmptyNote>No final results available yet.</EmptyNote>;
   const cur = final[sel] || final[0];
+  // The provisional semester with the same number, so any numbers the portal
+  // might expose there (today it doesn't) are merged into the import as well.
+  const provSem = (provisional || []).find((p) => String(p.semester) === String(cur.semester)) || null;
   return (
     <div>
       <SemesterPills items={final} selected={sel} onSelect={setSel} labelOf={(s) => s.semesterLabel || `Sem ${s.semester}`} />
@@ -321,6 +588,14 @@ function FinalResults({ final }) {
         {cur.earnedCredits && <Stat label="Credits" value={cur.earnedCredits} accent="zinc" />}
       </div>
       {cur.esaDescription && <p className="text-[11px] text-zinc-500 mb-3">{cur.esaDescription}</p>}
+      <GradeDistribution subjects={cur.subjects} />
+      <ResultsImportPanel
+        finalSem={cur}
+        provisionalSem={provSem}
+        subjects={subjects}
+        marks={marks}
+        onImportResults={onImportResults}
+      />
       <div className="space-y-2.5">
         {cur.subjects.map((s, i) => (
           <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-lg p-3">
@@ -364,6 +639,7 @@ function ProvisionalResults({ provisional }) {
         {cur.taken && <Stat label="Taken" value={cur.taken} accent="zinc" />}
       </div>
       {cur.assessment && <p className="text-[11px] text-zinc-500 mb-3">{cur.assessment}</p>}
+      <GradeDistribution subjects={cur.subjects} />
       <div className="space-y-1.5">
         {cur.subjects.map((s, i) => (
           <div key={i} className="flex items-center justify-between gap-2 bg-white/[0.02] border border-white/[0.05] rounded-lg p-2.5">
@@ -401,7 +677,7 @@ function Stat({ label, value, accent }) {
   );
 }
 
-function ResultsView({ results }) {
+function ResultsView({ results, subjects, marks, onImportResults }) {
   const [mode, setMode] = useState('final');
   if (!results || results.error) return <EmptyNote>No results were found for your account.</EmptyNote>;
   return (
@@ -419,7 +695,17 @@ function ResultsView({ results }) {
           </button>
         ))}
       </div>
-      {mode === 'final' ? <FinalResults final={results.final} /> : <ProvisionalResults provisional={results.provisional} />}
+      {mode === 'final'
+        ? (
+          <FinalResults
+            final={results.final}
+            provisional={results.provisional}
+            subjects={subjects}
+            marks={marks}
+            onImportResults={onImportResults}
+          />
+        )
+        : <ProvisionalResults provisional={results.provisional} />}
     </div>
   );
 }
@@ -534,7 +820,7 @@ const TABS = [
   { key: 'results', label: 'Results', Icon: Award },
 ];
 
-export function PortalData({ status, data, error, onRetry, canRetry, onSendToPlanner }) {
+export function PortalData({ status, data, error, onRetry, canRetry, onSendToPlanner, subjects, marks, onImportResults }) {
   const [view, setView] = useState('timetable');
 
   if (status === 'idle') return null;
@@ -620,7 +906,14 @@ export function PortalData({ status, data, error, onRetry, canRetry, onSendToPla
           onSendToPlanner={onSendToPlanner}
         />
       )}
-      {view === 'results' && <ResultsView results={data?.results} />}
+      {view === 'results' && (
+        <ResultsView
+          results={data?.results}
+          subjects={subjects}
+          marks={marks}
+          onImportResults={onImportResults}
+        />
+      )}
     </div>
   );
 }

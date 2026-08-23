@@ -23,6 +23,8 @@ import {
   fetchCalendarEvents, parseCalendarEvents,
 } from './server/pesuPortal.js';
 import { buildAttendanceProjection } from './src/utils/attendanceProjection.js';
+import { buildImportPlan } from './src/utils/resultsImport.js';
+import { PhysicsCycleDefaults } from './src/constants/presets.js';
 
 function ask(question, { hidden = false } = {}) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -127,6 +129,37 @@ async function main() {
       console.log(`     ${'—'.repeat(3)}\n     ${String(proj.totalSessions).padStart(3)} total across ${proj.perSubject.length} subjects`);
     }
   } catch (e) { console.error('projection error:', e.message); }
+
+  console.log('\n── Step 7: results → calculator import plan (Physics-cycle preset; scores masked) ─');
+  try {
+    const sems = parseSemesterOptions(await fetchResultSemesters(session));
+    const finals = [];
+    for (const s of sems) finals.push(parseResultsFinal(await fetchResultsFinal(session, s.value)));
+    let provisional = [];
+    try { provisional = parseResultsProvisional(await fetchResultsProvisional(session)); } catch { /* provisional is optional */ }
+
+    console.log(`matching against the default Physics-cycle template (${PhysicsCycleDefaults.length} subjects).`);
+    console.log('real scores are hidden — only field/max, match confidence and notes are shown:');
+    for (const finalSem of finals) {
+      const provSem = provisional.find((p) => String(p.semester) === String(finalSem.semester)) || null;
+      const plan = buildImportPlan({ calcSubjects: PhysicsCycleDefaults, finalSem, provisionalSem: provSem });
+      const label = finalSem.semesterLabel || `Sem ${finalSem.semester}`;
+      console.log(`\n  ${label}: ${plan.matched.length} matched, ${plan.unmatchedPortal.length} portal-unmatched, ${plan.unmatchedCalc.length} calc-unmatched`);
+      for (const m of plan.matched) {
+        const keys = ['isa1', 'isa2', 'assignment', 'lab'].filter((k) => m.fields[k] != null);
+        const shown = keys.map((k) => `${k}/${m.fields[k + 'Max'] ?? '?'}`).join(' ') || '(none)';
+        const notes = [
+          m.overwrites.length ? `overwrites:${m.overwrites.join(',')}` : '',
+          m.review ? 'review-lab-sum' : '',
+          (m.labParts.length && m.fields.lab == null) ? `labParts-not-imported:${m.labParts.join('+')}` : '',
+          m.esaGrade ? `ESA:${m.esaGrade}` : '',
+        ].filter(Boolean).join('  ');
+        console.log(`     [${m.confidence}] "${m.portalName}" → "${m.calcName}"  sets: ${shown}${notes ? '   ' + notes : ''}`);
+      }
+      plan.unmatchedPortal.forEach((u) => console.log(`     (portal only) ${u.name}${u.grade ? ` grade=${u.grade}` : ''}`));
+      plan.unmatchedCalc.forEach((u) => console.log(`     (calc only)   ${u.name}`));
+    }
+  } catch (e) { console.error('import-plan error:', e.message); }
 
   console.log('\n✅ Done.');
 }

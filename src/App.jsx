@@ -418,6 +418,36 @@ export default function PES_Universal_Calculator() {
     window.location.hash = '#/attendance';
   };
 
+  // Apply a confirmed results-import plan (from the PESU Academy tab) onto the
+  // Subjects tab. Each item carries { calcId, fields } where `fields` holds the
+  // portal's ISA/assignment/lab scores paired with their maxes (ESA is a letter
+  // grade and never included). We only touch the mark fields present — subject
+  // weights/structure are left intact — and snapshot for undo first, so the
+  // student can revert the whole import from the Subjects tab. Returns the count.
+  const importResultsToSubjects = (resolved) => {
+    if (!Array.isArray(resolved) || resolved.length === 0) return 0;
+    const count = resolved.length;
+    saveStateForUndo();
+    setMarks((prev) => {
+      const next = { ...prev };
+      resolved.forEach((item) => {
+        if (item && item.calcId != null && item.fields) {
+          next[item.calcId] = { ...next[item.calcId], ...item.fields };
+        }
+      });
+      return next;
+    });
+    // Land the student on the Subjects tab to see the filled marks. We set the
+    // tab state directly and sync the URL with history.replaceState (a method
+    // call, not a `location.hash =` assignment — the latter trips the React
+    // Compiler lint rule here), so the address bar and back button stay correct.
+    setActiveTab('subjects');
+    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', '#/subjects');
+    }
+    return count;
+  };
+
   // --- Custom Template Builder State ---
   // --- Shuffle State ---
   const [shuffledResults, setShuffledResults] = useState(null);
@@ -1728,6 +1758,9 @@ export default function PES_Universal_Calculator() {
           loadPreset={loadPreset}
           setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
           onSendToPlanner={sendToAttendancePlanner}
+          subjects={subjects}
+          marks={marks}
+          onImportResults={importResultsToSubjects}
         />
       </div>
 

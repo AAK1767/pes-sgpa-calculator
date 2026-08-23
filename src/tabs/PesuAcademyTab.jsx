@@ -22,7 +22,7 @@ const PROFILE_FIELDS = [
   { key: 'phone', label: 'Phone' },
 ];
 
-export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner }) {
+export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -367,6 +367,9 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
             }}
             canRetry={!!(username.trim() && password)}
             onSendToPlanner={onSendToPlanner}
+            subjects={subjects}
+            marks={marks}
+            onImportResults={onImportResults}
           />
         </>
       )}
