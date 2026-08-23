@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   CalendarDays, CalendarRange, ClipboardList, Award, Clock, RefreshCw,
-  Loader2, AlertCircle, GraduationCap, CheckCircle2, Users
+  Loader2, AlertCircle, GraduationCap, CheckCircle2, Users, Send
 } from 'lucide-react';
+import {
+  buildCurrentAttendanceStats, buildAttendancePlan, parseNonNegativeInt,
+} from '../utils/attendanceCalculations';
+import { buildAttendanceProjection } from '../utils/attendanceProjection';
 
 // Shared dark-palette helpers (matching the rest of the PESU Academy tab).
 const CARD = 'bg-[#0e0e18] border border-white/[0.06] rounded-xl shadow-sm';
@@ -169,39 +173,135 @@ function TimetableView({ tt }) {
 }
 
 /* ------------------------------- Attendance ------------------------------ */
-function AttendanceView({ att }) {
+// One subject → its current attendance, an editable "classes left" estimate
+// (auto-filled from the timetable + calendar projection), a quick 75% outlook,
+// and a button that loads it straight into the main Attendance planner.
+function AttendanceSubjectCard({ s, projectedLeft, onSendToPlanner }) {
+  const hasNumbers = Number.isFinite(s.attended) && Number.isFinite(s.total) && s.total > 0;
+  const defaultLeft = Number.isFinite(projectedLeft) ? projectedLeft : null;
+  const [leftInput, setLeftInput] = useState(defaultLeft != null ? String(defaultLeft) : '');
+
+  const stats = hasNumbers ? buildCurrentAttendanceStats(s.total, s.attended) : { ready: false };
+  const remaining = parseNonNegativeInt(leftInput);
+  const plan = stats.ready && remaining !== null
+    ? buildAttendancePlan(stats.total, stats.attended, remaining, 75)
+    : null;
+
+  return (
+    <div className="bg-white/[0.02] border border-white/[0.05] rounded-lg p-3">
+      <div className="flex items-start justify-between gap-2 mb-2.5">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-zinc-200 leading-tight">{s.name || s.code}</div>
+          <div className="text-[11px] text-zinc-500">{s.code}</div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div className={`text-base font-bold leading-none ${pctColor(s.percentage)}`}>
+            {s.percentage === 'NA' ? '—' : `${s.percentage}%`}
+          </div>
+          <div className="text-[11px] text-zinc-500 mt-0.5">{s.attendedTotal} classes</div>
+        </div>
+      </div>
+
+      {hasNumbers ? (
+        <>
+          <div className="flex flex-wrap items-end gap-2">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold block mb-1">
+                Classes left {defaultLeft != null && <span className="normal-case tracking-normal text-zinc-600">(est. {defaultLeft})</span>}
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={leftInput}
+                onChange={(e) => setLeftInput(e.target.value)}
+                placeholder="est."
+                className="w-24 p-1.5 text-sm font-semibold rounded-lg bg-white/[0.04] border border-white/[0.08] text-zinc-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={() => onSendToPlanner && onSendToPlanner({
+                total: stats.total, attended: stats.attended,
+                classesLeft: remaining, name: s.name || s.code,
+              })}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
+            >
+              <Send className="w-3.5 h-3.5" /> Send to planner
+            </button>
+          </div>
+
+          {plan && remaining > 0 && (
+            <div className="grid grid-cols-3 gap-1.5 mt-2.5">
+              <MiniStat label="Can miss (75%)" value={plan.safeMisses75} />
+              <MiniStat label="Must attend (75%)" value={plan.mustAttendFor75} />
+              <MiniStat
+                label="Final % range"
+                value={`${plan.worstFinalPercentage.toFixed(0)}–${plan.bestFinalPercentage.toFixed(0)}%`}
+              />
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="text-[11px] text-zinc-500">Attendance not recorded yet for this subject.</p>
+      )}
+    </div>
+  );
+}
+
+function MiniStat({ label, value }) {
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.05] rounded-md px-2 py-1.5 text-center">
+      <div className="text-sm font-bold text-zinc-200 leading-none">{value}</div>
+      <div className="text-[9px] uppercase tracking-wide text-zinc-500 font-semibold mt-1 leading-tight">{label}</div>
+    </div>
+  );
+}
+
+function AttendanceView({ att, timetable, calendar, onSendToPlanner }) {
   const [sel, setSel] = useState(0);
+
+  const projection = useMemo(
+    () => buildAttendanceProjection({ timetable, calendar }),
+    [timetable, calendar]
+  );
+
   if (!att || att.error || att.length === 0) {
     return <EmptyNote>No attendance data was found for your account.</EmptyNote>;
   }
   const cur = att[sel] || att[0];
+
   return (
     <div>
       <SemesterPills items={att} selected={sel} onSelect={setSel} labelOf={(s) => s.semester} />
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-[10px] uppercase tracking-wider text-zinc-500 border-b border-white/[0.06]">
-              <th className="text-left font-semibold py-2 pr-2">Course</th>
-              <th className="text-right font-semibold py-2 px-2 whitespace-nowrap">Classes</th>
-              <th className="text-right font-semibold py-2 pl-2">%</th>
-            </tr>
-          </thead>
-          <tbody>
-            {cur.subjects.map((s, i) => (
-              <tr key={i} className="border-b border-white/[0.04]">
-                <td className="py-2 pr-2">
-                  <div className="text-zinc-200 font-medium leading-tight">{s.name || s.code}</div>
-                  <div className="text-[11px] text-zinc-500">{s.code}</div>
-                </td>
-                <td className="py-2 px-2 text-right text-zinc-300 whitespace-nowrap">{s.attendedTotal}</td>
-                <td className={`py-2 pl-2 text-right font-bold ${pctColor(s.percentage)}`}>
-                  {s.percentage === 'NA' ? '—' : `${s.percentage}%`}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      {projection.available ? (
+        <div className="flex items-start gap-2 bg-blue-500/[0.06] border border-blue-500/15 rounded-lg p-2.5 mb-3">
+          <CalendarRange className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+          <p className="text-[11px] text-blue-200/80 leading-relaxed">
+            About <strong>{projection.teachingDayCount}</strong> teaching days left
+            {projection.isa2Start ? ' before ISA 2' : ' this semester'}
+            {' '}(Sat/Sun, holidays and exam windows removed). Per-subject estimates below are
+            pre-filled from your timetable — tweak any number, then send it to the planner.
+          </p>
+        </div>
+      ) : (
+        <div className="flex items-start gap-2 bg-white/[0.03] border border-white/[0.06] rounded-lg p-2.5 mb-3">
+          <AlertCircle className="w-4 h-4 text-zinc-500 flex-shrink-0 mt-0.5" />
+          <p className="text-[11px] text-zinc-500 leading-relaxed">
+            Couldn&apos;t auto-estimate remaining classes (timetable or calendar unavailable). Enter a
+            &quot;classes left&quot; number for any subject and send it to the planner.
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {cur.subjects.map((s, i) => (
+          <AttendanceSubjectCard
+            key={s.code || i}
+            s={s}
+            projectedLeft={projection.byCode[s.code] ?? projection.byCode[s.name]}
+            onSendToPlanner={onSendToPlanner}
+          />
+        ))}
       </div>
     </div>
   );
@@ -434,7 +534,7 @@ const TABS = [
   { key: 'results', label: 'Results', Icon: Award },
 ];
 
-export function PortalData({ status, data, error, onRetry, canRetry }) {
+export function PortalData({ status, data, error, onRetry, canRetry, onSendToPlanner }) {
   const [view, setView] = useState('timetable');
 
   if (status === 'idle') return null;
@@ -512,7 +612,14 @@ export function PortalData({ status, data, error, onRetry, canRetry }) {
 
       {view === 'timetable' && <TimetableView tt={data?.timetable} />}
       {view === 'calendar' && <CalendarView calendar={data?.calendar} />}
-      {view === 'attendance' && <AttendanceView att={data?.attendance} />}
+      {view === 'attendance' && (
+        <AttendanceView
+          att={data?.attendance}
+          timetable={data?.timetable}
+          calendar={data?.calendar}
+          onSendToPlanner={onSendToPlanner}
+        />
+      )}
       {view === 'results' && <ResultsView results={data?.results} />}
     </div>
   );

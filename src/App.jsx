@@ -404,6 +404,20 @@ export default function PES_Universal_Calculator() {
     };
   }, [statusStats, attendanceMissPlannerMode.misses]);
 
+  // Load a subject's live numbers (from the PESU Academy tab) into the attendance
+  // planner: fill Mode 1 (held/attended) + Mode 2 (classes left), then jump there.
+  const sendToAttendancePlanner = ({ total, attended, classesLeft }) => {
+    setAttendanceStatusMode((prev) => ({
+      ...prev,
+      total: total != null ? String(total) : prev.total,
+      attended: attended != null ? String(attended) : prev.attended,
+    }));
+    if (classesLeft != null) {
+      setAttendanceClassesLeftMode({ classesLeft: String(classesLeft) });
+    }
+    window.location.hash = '#/attendance';
+  };
+
   // --- Custom Template Builder State ---
   // --- Shuffle State ---
   const [shuffledResults, setShuffledResults] = useState(null);
@@ -1844,6 +1858,7 @@ export default function PES_Universal_Calculator() {
             themeClasses={themeClasses}
             loadPreset={loadPreset}
             setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
+            onSendToPlanner={sendToAttendancePlanner}
           />
         )}
 

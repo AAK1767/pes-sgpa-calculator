@@ -22,6 +22,7 @@ import {
   parseResultsFinal, parseResultsProvisional, parseSemesterOptions,
   fetchCalendarEvents, parseCalendarEvents,
 } from './server/pesuPortal.js';
+import { buildAttendanceProjection } from './src/utils/attendanceProjection.js';
 
 function ask(question, { hidden = false } = {}) {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -110,6 +111,22 @@ async function main() {
       console.log(`     ${tag} ${span.padEnd(21)} ${e.name}${e.type ? '  (' + e.type + ')' : ''}`);
     });
   } catch (e) { console.error('calendar error:', e.message); }
+
+  console.log('\n── Step 6: attendance projection (remaining classes → planner) ─');
+  try {
+    const tt = parseTimetable(await fetchTimetable(session));
+    const cal = parseCalendarEvents(await fetchCalendarEvents(session));
+    const proj = buildAttendanceProjection({ timetable: tt, calendar: cal });
+    if (!proj.available) {
+      console.log(`projection unavailable (reason: ${proj.reason})`);
+    } else {
+      console.log(`window ${proj.windowStart} → ${proj.windowEnd} (exclusive)  |  ${proj.teachingDayCount} teaching days` +
+        `${proj.isa2Start ? `  |  ISA 2 starts ${proj.isa2Start}` : ''}`);
+      console.log('remaining sessions per subject (Sat/Sun, holidays, ISA/ESA removed; FAM/CCM/PTM kept):');
+      proj.perSubject.forEach((s) => console.log(`     ${String(s.remaining).padStart(3)} left   ${s.code}  ${s.name}`));
+      console.log(`     ${'—'.repeat(3)}\n     ${String(proj.totalSessions).padStart(3)} total across ${proj.perSubject.length} subjects`);
+    }
+  } catch (e) { console.error('projection error:', e.message); }
 
   console.log('\n✅ Done.');
 }
