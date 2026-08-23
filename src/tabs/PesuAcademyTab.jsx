@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 import { mapProfileToPreset } from '../utils/pesuMapping';
+import { PortalData } from '../components/PesuPortalData';
 
 // Fields we know how to show from a PESUAuth profile, in display order.
 // Only the ones actually present in the response are rendered.
@@ -29,6 +30,39 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab 
   const [errorMsg, setErrorMsg] = useState('');
   const [profile, setProfile] = useState(null);
 
+  // Timetable / attendance / results fetched from the portal (separate, slower call).
+  const [portalStatus, setPortalStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
+  const [portalData, setPortalData] = useState(null);
+  const [portalError, setPortalError] = useState('');
+
+  const fetchPortal = async (user, pass) => {
+    setPortalStatus('loading');
+    setPortalError('');
+    try {
+      const res = await fetch('/api/pesu-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+      let data = {};
+      try { data = await res.json(); } catch { data = {}; }
+      if (res.ok && data.ok) {
+        setPortalData(data);
+        setPortalStatus('success');
+        setPassword(''); // portal data is in; the password is no longer needed anywhere
+        trackEvent('pesu_portal', { status: 'success' });
+      } else {
+        setPortalStatus('error');
+        setPortalError(data.error || 'Could not load your academic data.');
+        trackEvent('pesu_portal', { status: 'failed' });
+      }
+    } catch {
+      setPortalStatus('error');
+      setPortalError('Network error — could not reach the portal service.');
+      trackEvent('pesu_portal', { status: 'network_error' });
+    }
+  };
+
   const mapping = useMemo(() => (profile ? mapProfileToPreset(profile) : null), [profile]);
 
   const presentFields = useMemo(() => {
@@ -43,6 +77,9 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab 
     e.preventDefault();
     if (!username.trim() || !password || status === 'submitting') return;
 
+    const user = username.trim();
+    const pass = password; // captured so we can start the portal fetch even after clearing state
+
     setStatus('submitting');
     setErrorMsg('');
 
@@ -50,7 +87,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab 
       const res = await fetch('/api/pesu-auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password, profile: true }),
+        body: JSON.stringify({ username: user, password: pass, profile: true }),
       });
 
       let data = {};
@@ -65,8 +102,11 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab 
       if (success) {
         setProfile(data.profile || {});
         setStatus('success');
-        setPassword(''); // never keep the password around after a successful login
         trackEvent('pesu_login', { status: 'success' });
+        // Kick off the (slower) timetable/attendance/results fetch in parallel.
+        // Password stays in memory until this resolves so a failed fetch can be retried;
+        // fetchPortal clears it on success.
+        fetchPortal(user, pass);
       } else {
         setStatus('error');
         setErrorMsg(data.message || 'Login failed. Please check your credentials and try again.');
@@ -84,6 +124,9 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab 
     setPassword('');
     setStatus('idle');
     setErrorMsg('');
+    setPortalData(null);
+    setPortalStatus('idle');
+    setPortalError('');
   };
 
   const handlePrefill = (presetName) => {
@@ -312,6 +355,18 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab 
               </div>
             )}
           </div>
+
+          {/* Timetable / Attendance / Results */}
+          <PortalData
+            themeClasses={themeClasses}
+            status={portalStatus}
+            data={portalData}
+            error={portalError}
+            onRetry={() => {
+              if (username.trim() && password) fetchPortal(username.trim(), password);
+            }}
+            canRetry={!!(username.trim() && password)}
+          />
         </>
       )}
 
