@@ -328,12 +328,58 @@ export function fetchResultsProvisional(session, fetchImpl = fetch) {
   );
 }
 
+export function fetchCalendarEvents(session, fetchImpl = fetch) {
+  // Calendar of Events for the active batch/semester (holidays, ISA/ESA windows,
+  // FAM/CCM/PTM, festivals). One GET; the events come embedded in the HTML.
+  return controller(
+    session,
+    {
+      method: 'GET',
+      query:
+        'menuId=668&url=studentProfilePESUAdmin&controllerMode=6413&actionType=5&id=0&selectedData=0',
+    },
+    fetchImpl,
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Parsers (pure). Each takes a raw HTML fragment and returns clean JSON.
 // ---------------------------------------------------------------------------
 
 const stripTags = (s) => (s || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ');
 const clean = (s) => stripTags(s).replace(/\s+/g, ' ').trim();
+
+// Date helpers for the Calendar of Events. The portal sends dates like
+// "Aug 3, 2026, 12:00:00 AM"; we normalise to ISO "YYYY-MM-DD". Parsing the
+// month/day/year by hand (rather than `new Date()`) keeps this timezone-safe —
+// a naive Date at local midnight can round the wrong way to the previous day
+// when serialised to a UTC ISO string.
+const MONTHS = {
+  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+};
+
+/** "Aug 3, 2026, 12:00:00 AM" -> "2026-08-03" (null if unparseable). */
+export function toIsoDate(s) {
+  if (!s) return null;
+  const m = String(s).match(/([A-Za-z]{3,})\s+(\d{1,2}),\s*(\d{4})/);
+  if (!m) return null;
+  const mon = MONTHS[m[1].slice(0, 3)];
+  if (mon == null) return null;
+  const day = Number(m[2]);
+  const year = Number(m[3]);
+  if (!day || !year) return null;
+  return `${year}-${String(mon + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/** Add (possibly negative) days to an ISO date, via UTC so no local-TZ drift. */
+export function addDaysIso(iso, delta) {
+  if (!iso) return iso;
+  const [y, mo, d] = iso.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + delta);
+  return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`;
+}
 
 /** `<option value="3523">Sem-3</option>` -> [{ value:'3523', label:'Sem-3' }] */
 export function parseSemesterOptions(html) {
@@ -583,6 +629,70 @@ export function parseResultsProvisional(html) {
 }
 
 // ---------------------------------------------------------------------------
+// Calendar of Events. The portal embeds the events as a JS array inside a
+// <script>:   var obj = JSON.parse(JSON.stringify([ {..event..}, ... ]))
+// Each event carries FullCalendar-style fields. Two important quirks:
+//   • endDate is EXCLUSIVE — it's the day AFTER the event (a single-day event
+//     on Aug 15 comes through as start Aug 15, end Aug 16). We normalise the
+//     end back by one day so it's an INCLUSIVE last-day.
+//   • isClass / eventType are UNRELIABLE for attendance: ISA/ESA exam blocks
+//     are flagged isClass:1 (and typed inconsistently — ISA 1 "Test Schedule",
+//     ISA 2 "University Events"). Downstream attendance logic must key off
+//     isHoliday + the event NAME (ISA/ESA/LWD) + weekday rules, not isClass.
+//
+// Returns { calendar: { name, start, end } | null,
+//           events: [ { name, description, type, start, end, isHoliday,
+//                        isClass, color } ] }  with ISO (YYYY-MM-DD) dates.
+// ---------------------------------------------------------------------------
+
+export function parseCalendarEvents(html) {
+  const result = { calendar: null, events: [] };
+  if (!html) return result;
+  const m = html.match(/JSON\.parse\(JSON\.stringify\((\[[\s\S]*?\])\)\)/);
+  if (!m) return result;
+  let arr;
+  try {
+    arr = JSON.parse(m[1]);
+  } catch {
+    return result;
+  }
+  if (!Array.isArray(arr)) return result;
+
+  for (const e of arr) {
+    if (!e || !e.name) continue;
+    const start = toIsoDate(e.startDate);
+    const endExcl = toIsoDate(e.endDate);
+    // Roll the exclusive end back to an inclusive last-day. Guard against a
+    // missing/degenerate end so single-day events fall back to `start`.
+    const end = start && endExcl && endExcl > start ? addDaysIso(endExcl, -1) : (endExcl || start);
+    result.events.push({
+      name: clean(e.name),
+      description: clean(e.description || e.name),
+      type: clean(e.eventType || ''),
+      start,
+      end,
+      isHoliday: Number(e.isHoliday) === 1,
+      isClass: Number(e.isClass) === 1,
+      color: (e.color || '').trim(),
+    });
+    if (!result.calendar && e.calendarOfEventName) {
+      result.calendar = {
+        name: clean(e.calendarOfEventName),
+        start: toIsoDate(e.coestartdate),
+        end: toIsoDate(e.coeenddate),
+      };
+    }
+  }
+
+  // Chronological order (ISO dates sort lexicographically).
+  result.events.sort((a, b) => {
+    if (a.start && b.start && a.start !== b.start) return a.start < b.start ? -1 : 1;
+    return 0;
+  });
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Orchestrator: log in, then fetch + parse everything.
 // ---------------------------------------------------------------------------
 
@@ -611,13 +721,20 @@ export async function fetchAllPortalData({ username, password }, fetchImpl = fet
     };
   }
 
-  const data = { ok: true, timetable: null, attendance: [], results: { final: [], provisional: [] } };
+  const data = { ok: true, timetable: null, attendance: [], results: { final: [], provisional: [] }, calendar: null };
 
   // Timetable (single request).
   try {
     data.timetable = parseTimetable(await fetchTimetable(session, fetchImpl));
   } catch (e) {
     data.timetable = { error: String(e?.message || e) };
+  }
+
+  // Calendar of Events (single request — holidays, ISA/ESA windows, FAM/CCM/PTM).
+  try {
+    data.calendar = parseCalendarEvents(await fetchCalendarEvents(session, fetchImpl));
+  } catch (e) {
+    data.calendar = { error: String(e?.message || e) };
   }
 
   // Attendance — one table per available semester.

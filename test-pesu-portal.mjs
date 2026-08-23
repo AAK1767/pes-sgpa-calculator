@@ -20,6 +20,7 @@ import {
   fetchAttendanceSemesters, fetchAttendance, parseAttendance,
   fetchResultSemesters, fetchResultsFinal, fetchResultsProvisional,
   parseResultsFinal, parseResultsProvisional, parseSemesterOptions,
+  fetchCalendarEvents, parseCalendarEvents,
 } from './server/pesuPortal.js';
 
 function ask(question, { hidden = false } = {}) {
@@ -95,6 +96,20 @@ async function main() {
       p.subjects.forEach((sub) => console.log(`     ${sub.code} ${sub.name} — ${sub.grade}${sub.reviewStatus ? '  [' + sub.reviewStatus + ']' : ''}`));
     });
   } catch (e) { console.error('results error:', e.message); }
+
+  console.log('\n── Step 5: calendar of events ─────────────────────────────────');
+  try {
+    const cal = parseCalendarEvents(await fetchCalendarEvents(session));
+    if (cal.calendar) console.log(`period: ${cal.calendar.name}  (${cal.calendar.start} → ${cal.calendar.end})`);
+    const holidays = cal.events.filter((e) => e.isHoliday).length;
+    const exams = cal.events.filter((e) => /\b(ISA|ESA)\b/i.test(e.name)).length;
+    console.log(`${cal.events.length} events  |  ${holidays} holidays, ${exams} ISA/ESA days`);
+    cal.events.forEach((e) => {
+      const tag = e.isHoliday ? 'HOLIDAY' : /\b(ISA|ESA)\b/i.test(e.name) ? 'EXAM   ' : 'event  ';
+      const span = e.end && e.end !== e.start ? `${e.start}→${e.end}` : e.start;
+      console.log(`     ${tag} ${span.padEnd(21)} ${e.name}${e.type ? '  (' + e.type + ')' : ''}`);
+    });
+  } catch (e) { console.error('calendar error:', e.message); }
 
   console.log('\n✅ Done.');
 }

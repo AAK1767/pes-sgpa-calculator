@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  CalendarDays, ClipboardList, Award, Clock, RefreshCw,
+  CalendarDays, CalendarRange, ClipboardList, Award, Clock, RefreshCw,
   Loader2, AlertCircle, GraduationCap, CheckCircle2, Users
 } from 'lucide-react';
 
@@ -32,6 +32,69 @@ function pctColor(p) {
   if (n >= 75) return 'text-blue-400';
   if (n >= 65) return 'text-amber-400';
   return 'text-red-400';
+}
+
+/* ------------------------- Calendar date helpers ------------------------- */
+// All work on ISO "YYYY-MM-DD" strings the parser produced. We deliberately
+// avoid `new Date(isoString)` for formatting (it parses as UTC and can shift a
+// day in local time); we split the parts by hand and only use Date(UTC) for the
+// weekday, which is timezone-neutral.
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WEEKDAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function isoParts(iso) {
+  const [y, m, d] = String(iso || '').split('-').map(Number);
+  return { y, m, d };
+}
+function monthKey(iso) {
+  const { y, m } = isoParts(iso);
+  return `${y}-${String(m).padStart(2, '0')}`;
+}
+function monthTitle(iso) {
+  const { y, m } = isoParts(iso);
+  return `${MONTH_NAMES[m - 1]} ${y}`;
+}
+function dayLabel(iso) {
+  const { m, d } = isoParts(iso);
+  return `${MONTH_ABBR[m - 1]} ${d}`;
+}
+function weekdayAbbr(iso) {
+  const { y, m, d } = isoParts(iso);
+  if (!y || !m || !d) return '';
+  return WEEKDAY_ABBR[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+}
+
+// Display category for an event. isClass/eventType are unreliable for exams, so
+// we key off isHoliday and the event NAME (ISA/ESA) + the Test Schedule type.
+function eventKind(e) {
+  if (e.isHoliday) return 'holiday';
+  if (/\b(ISA|ESA)\b/i.test(e.name || '') || /test\s*schedule/i.test(e.type || '')) return 'exam';
+  return 'event';
+}
+
+const KIND_STYLE = {
+  holiday: { label: 'Holiday', bar: 'border-l-red-500/60', dot: 'bg-red-400', badge: 'bg-red-500/10 text-red-300 border-red-500/20' },
+  exam: { label: 'Exam', bar: 'border-l-amber-500/60', dot: 'bg-amber-400', badge: 'bg-amber-500/10 text-amber-300 border-amber-500/20' },
+  event: { label: 'Event', bar: 'border-l-blue-500/60', dot: 'bg-blue-400', badge: 'bg-blue-500/10 text-blue-300 border-blue-500/20' },
+};
+
+// Collapse consecutive same-named events (e.g. the six "ISA 1" day-rows) into
+// one entry spanning first→last, so the list reads as logical events not days.
+function groupEvents(events) {
+  const groups = [];
+  for (const e of events) {
+    const last = groups[groups.length - 1];
+    if (last && last.name === e.name && last.kind === eventKind(e)) {
+      last.end = e.end > last.end ? e.end : last.end;
+      last.days += 1;
+    } else {
+      groups.push({ ...e, kind: eventKind(e), days: 1 });
+    }
+  }
+  return groups;
 }
 
 function SemesterPills({ items, selected, onSelect, labelOf }) {
@@ -261,9 +324,112 @@ function ResultsView({ results }) {
   );
 }
 
+/* -------------------------------- Calendar -------------------------------- */
+function CalSummaryChip({ value, label, accent }) {
+  const accents = {
+    red: 'text-red-400',
+    amber: 'text-amber-400',
+    blue: 'text-blue-400',
+    zinc: 'text-zinc-300',
+  };
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 min-w-[76px]">
+      <div className={`text-lg font-bold leading-tight ${accents[accent] || 'text-zinc-200'}`}>{value}</div>
+      <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">{label}</div>
+    </div>
+  );
+}
+
+function CalendarView({ calendar }) {
+  if (!calendar || calendar.error || !calendar.events || calendar.events.length === 0) {
+    return <EmptyNote>No calendar of events was found for your account.</EmptyNote>;
+  }
+
+  const events = calendar.events;
+  const meta = calendar.calendar;
+  const grouped = groupEvents(events);
+
+  // Summary counts (raw days for holidays/exams; grouped count for other events).
+  const holidayDays = events.filter((e) => eventKind(e) === 'holiday').length;
+  const examDays = events.filter((e) => eventKind(e) === 'exam').length;
+  const otherEvents = grouped.filter((g) => g.kind === 'event').length;
+
+  // Group the collapsed events by calendar month for section headers.
+  const months = [];
+  const seen = {};
+  for (const g of grouped) {
+    const key = monthKey(g.start);
+    if (!seen[key]) {
+      seen[key] = { key, title: monthTitle(g.start), rows: [] };
+      months.push(seen[key]);
+    }
+    seen[key].rows.push(g);
+  }
+
+  return (
+    <div>
+      {meta?.name && (
+        <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-zinc-200">
+          <CalendarRange className="w-4 h-4 text-blue-400" />
+          {meta.name}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        <CalSummaryChip value={holidayDays} label="Holidays" accent="red" />
+        <CalSummaryChip value={examDays} label="Exam days" accent="amber" />
+        <CalSummaryChip value={otherEvents} label="Events" accent="blue" />
+      </div>
+
+      <div className="space-y-5">
+        {months.map((mo) => (
+          <div key={mo.key}>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">{mo.title}</h4>
+            <div className="space-y-1.5">
+              {mo.rows.map((g, i) => {
+                const style = KIND_STYLE[g.kind] || KIND_STYLE.event;
+                const multiDay = g.end && g.end !== g.start;
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-start gap-3 bg-white/[0.02] border border-white/[0.05] border-l-2 ${style.bar} rounded-lg p-2.5`}
+                  >
+                    <div className="w-[74px] flex-shrink-0 pt-0.5">
+                      <div className="text-sm font-semibold text-zinc-200 leading-tight">{dayLabel(g.start)}</div>
+                      <div className="text-[10px] text-zinc-500">
+                        {multiDay ? `– ${dayLabel(g.end)}` : weekdayAbbr(g.start)}
+                      </div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-zinc-200 leading-tight">{g.name}</div>
+                      {g.type && <div className="text-[11px] text-zinc-500">{g.type}</div>}
+                    </div>
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border flex-shrink-0 ${style.badge}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                      {style.label}
+                      {multiDay ? ` · ${g.days}d` : ''}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-[10px] text-zinc-600 mt-4 leading-relaxed">
+        Holidays and exam windows (ISA/ESA) have no regular classes; Saturdays are also off, while FAM,
+        CCM and PTM are normal class days. First-year calendars can differ, and extra or cancelled classes
+        aren&apos;t always shown here — adjust totals manually in the Attendance tab if needed.
+      </p>
+    </div>
+  );
+}
+
 /* -------------------------------- Container ------------------------------- */
 const TABS = [
   { key: 'timetable', label: 'Timetable', Icon: CalendarDays },
+  { key: 'calendar', label: 'Calendar', Icon: CalendarRange },
   { key: 'attendance', label: 'Attendance', Icon: ClipboardList },
   { key: 'results', label: 'Results', Icon: Award },
 ];
@@ -325,14 +491,14 @@ export function PortalData({ status, data, error, onRetry, canRetry }) {
         <CheckCircle2 className="w-4 h-4 text-emerald-400/70" />
       </div>
 
-      <div className="flex gap-1 mb-5 border-b border-white/[0.06]">
+      <div className="flex gap-1 mb-5 border-b border-white/[0.06] overflow-x-auto">
         {TABS.map((tab) => {
           const Icon = tab.Icon;
           return (
             <button
               key={tab.key}
               onClick={() => setView(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px whitespace-nowrap flex-shrink-0 transition-all cursor-pointer ${
                 view === tab.key
                   ? 'border-blue-500 text-blue-400'
                   : 'border-transparent text-zinc-500 hover:text-zinc-300'
@@ -345,6 +511,7 @@ export function PortalData({ status, data, error, onRetry, canRetry }) {
       </div>
 
       {view === 'timetable' && <TimetableView tt={data?.timetable} />}
+      {view === 'calendar' && <CalendarView calendar={data?.calendar} />}
       {view === 'attendance' && <AttendanceView att={data?.attendance} />}
       {view === 'results' && <ResultsView results={data?.results} />}
     </div>

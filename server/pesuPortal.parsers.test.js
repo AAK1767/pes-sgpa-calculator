@@ -6,6 +6,9 @@ import {
   parseAttendance,
   parseResultsFinal,
   parseResultsProvisional,
+  parseCalendarEvents,
+  toIsoDate,
+  addDaysIso,
 } from './pesuPortal.js';
 
 // NOTE: all fixtures below are synthetic — they mirror the real PESU portal HTML shapes
@@ -149,5 +152,70 @@ describe('parseResultsProvisional', () => {
     expect(blocks[0].subjects).toHaveLength(2);
     expect(blocks[0].subjects[0]).toMatchObject({ code: 'UE99XX101A', grade: 'A', reviewStatus: 'Verified' });
     expect(blocks[1].subjects[0]).toMatchObject({ code: 'UE99XX001A', grade: 'S' });
+  });
+});
+
+describe('toIsoDate / addDaysIso', () => {
+  it('parses the portal date format to ISO without timezone drift', () => {
+    expect(toIsoDate('Aug 3, 2026, 12:00:00 AM')).toBe('2026-08-03');
+    expect(toIsoDate('Dec 25, 2026, 12:00:00 AM')).toBe('2026-12-25');
+    expect(toIsoDate('')).toBeNull();
+    expect(toIsoDate('not a date')).toBeNull();
+  });
+
+  it('adds/subtracts days across month boundaries', () => {
+    expect(addDaysIso('2026-08-16', -1)).toBe('2026-08-15');
+    expect(addDaysIso('2026-09-01', -1)).toBe('2026-08-31');
+    expect(addDaysIso('2026-12-31', 1)).toBe('2027-01-01');
+  });
+});
+
+describe('parseCalendarEvents', () => {
+  // Mirrors the real shape: events embedded in a <script> as
+  // var obj = JSON.parse(JSON.stringify([ ...events... ])). endDate is EXCLUSIVE.
+  const evt = (o) => ({
+    calendarEventDetailId: 1, calendarEventId: 1, calendarOfEventId: 54,
+    eventTypeId: 25, isHolidayNull: false, isClassNull: false, status: 0,
+    batchId: 98, instId: 1, calendarOfEventName: 'Aug 2026 - Dec 2026',
+    coestartdate: 'Jul 30, 2026, 12:00:00 AM', coeenddate: 'Dec 31, 2026, 12:00:00 AM',
+    istoday: 0, ...o,
+  });
+  const events = [
+    evt({ name: 'FAM 1', description: 'FAM 1', eventType: 'University Events', color: '#257e4a',
+      startDate: 'Aug 19, 2026, 12:00:00 AM', endDate: 'Aug 20, 2026, 12:00:00 AM', isHoliday: 0, isClass: 1 }),
+    evt({ name: 'Independence Day', description: 'Independence Day', eventType: 'National Festival', color: '#b12000',
+      startDate: 'Aug 15, 2026, 12:00:00 AM', endDate: 'Aug 16, 2026, 12:00:00 AM', isHoliday: 1, isClass: 0 }),
+    evt({ name: 'ISA 1', description: 'ISA 1', eventType: 'Test Schedule', color: '#333',
+      startDate: 'Sep 19, 2026, 12:00:00 AM', endDate: 'Sep 20, 2026, 12:00:00 AM', isHoliday: 0, isClass: 1 }),
+  ];
+  const html = `<div id="studentpesucalendar_wrap"></div>
+    <script> var obj = JSON.parse(JSON.stringify(${JSON.stringify(events)})); renderCal(obj); </script>`;
+
+  it('extracts events, converts dates to ISO and rolls the exclusive end back one day', () => {
+    const { events: out } = parseCalendarEvents(html);
+    expect(out).toHaveLength(3);
+    // Sorted chronologically — Independence Day (Aug 15) comes before FAM 1 (Aug 19).
+    const ind = out.find((e) => e.name === 'Independence Day');
+    expect(ind).toMatchObject({ start: '2026-08-15', end: '2026-08-15', isHoliday: true, isClass: false });
+    const fam = out.find((e) => e.name === 'FAM 1');
+    expect(fam).toMatchObject({ start: '2026-08-19', end: '2026-08-19', type: 'University Events', color: '#257e4a' });
+  });
+
+  it('exposes the calendar-period metadata', () => {
+    const { calendar } = parseCalendarEvents(html);
+    expect(calendar).toEqual({ name: 'Aug 2026 - Dec 2026', start: '2026-07-30', end: '2026-12-31' });
+  });
+
+  it('keeps isClass:1 on exam blocks (the flag is unreliable for attendance)', () => {
+    // Documents the known quirk: ISA is flagged isClass:1 even though no classes run.
+    const { events: out } = parseCalendarEvents(html);
+    const isa = out.find((e) => e.name === 'ISA 1');
+    expect(isa.isClass).toBe(true);
+    expect(isa.isHoliday).toBe(false);
+  });
+
+  it('returns an empty shape when no calendar script is present', () => {
+    expect(parseCalendarEvents('<div>nothing here</div>')).toEqual({ calendar: null, events: [] });
+    expect(parseCalendarEvents('')).toEqual({ calendar: null, events: [] });
   });
 });
