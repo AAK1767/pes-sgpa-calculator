@@ -1711,6 +1711,26 @@ export default function PES_Universal_Calculator() {
         </div>
       </div>
 
+      {/* ==================== PESU ACADEMY TAB ==================== */}
+      {/*
+        Rendered OUTSIDE (and before) the keyed motion.div below. That wrapper is keyed
+        on activeTab, so React remounts its ENTIRE subtree on every tab switch — which
+        would wipe this tab's in-memory login/profile/portal state each time. Keeping the
+        PESU tab here — always mounted, merely CSS-hidden when inactive — preserves the
+        login session, fetched data, per-subject edits, and the selected sub-tab across
+        tab switches. Credentials are still never persisted: only in-session memory
+        survives, and it's gone on refresh/close. The layout classes mirror the
+        motion.div so the tab sits in the same place with the same width/padding.
+      */}
+      <div className={`max-w-4xl mx-auto p-4 space-y-6 ${activeTab === 'pesu' ? '' : 'hidden'}`}>
+        <PesuAcademyTab
+          themeClasses={themeClasses}
+          loadPreset={loadPreset}
+          setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
+          onSendToPlanner={sendToAttendancePlanner}
+        />
+      </div>
+
       <motion.div
         key={activeTab}
         className="max-w-4xl mx-auto p-4 space-y-6"
@@ -1852,15 +1872,13 @@ export default function PES_Universal_Calculator() {
           />
         )}
 
-        {/* ==================== PESU ACADEMY TAB ==================== */}
-        {activeTab === 'pesu' && (
-          <PesuAcademyTab
-            themeClasses={themeClasses}
-            loadPreset={loadPreset}
-            setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
-            onSendToPlanner={sendToAttendancePlanner}
-          />
-        )}
+        {/*
+          NOTE: The PESU Academy tab is NOT rendered here. It lives OUTSIDE this
+          motion.div (just above it) because this wrapper is keyed on activeTab and
+          therefore remounts its whole subtree on every tab switch — which would wipe
+          the PESU tab's in-memory login/profile/portal state. See the always-mounted
+          block above the navigation's content wrapper.
+        */}
 
         {/* ==================== GUIDE TAB ==================== */}
         {activeTab === 'guide' && (
