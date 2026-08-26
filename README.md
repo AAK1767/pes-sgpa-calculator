@@ -48,6 +48,9 @@
 - **Mobile Responsive** - Works perfectly on phones and tablets
 - **Service Worker** - Offline functionality via PWA support
 
+### 🦅 Companion Tools
+- **[PESUClaw](https://github.com/AAK1767/PESUClaw)** - Browser extension for Chrome and Firefox to bulk download course slides, notes, assignments, question banks, and merged PDFs directly from PESU Academy.
+
 ### 🎓 Comprehensive Preset Support
 - **First-Year Cycles** - Chemistry Cycle, Physics Cycle (PES Sem 1-2)
 - **CSE Semesters** - Sem 3-8 with specialized capstone projects and internship tracks
@@ -417,7 +420,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- PES University for the grading scheme reference
+- PES University for the grading scheme and academy portal reference
+- [pesudev](https://github.com/pesudev) for developer resources and community inspiration
+- [PESUClaw](https://github.com/AAK1767/PESUClaw) for companion academy downloading capabilities
 - [Lucide](https://lucide.dev/) for beautiful icons
 - [Tailwind CSS](https://tailwindcss.com/) for the utility-first framework
 - All the students who provided feedback
