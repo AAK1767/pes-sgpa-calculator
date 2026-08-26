@@ -6,8 +6,12 @@ import {
   nameSimilarity,
   extractMarkFields,
   hasImportableFields,
+  creditsFromCode,
+  subjectDefForCredits,
+  portalSubjectToDef,
   mergeSemesterSubjects,
   buildImportPlan,
+  findBestPreset,
   summarizeGrades,
 } from "./resultsImport";
 
@@ -82,19 +86,21 @@ describe("extractMarkFields", () => {
     expect(fields.lab).toBeUndefined(); // ESA never becomes a number
   });
 
-  it("folds multi-part labs into `lab` and flags review (subject hasLab)", () => {
+  it("folds MATLAB 1/2 into assignment scaled to 10 marks", () => {
     const { fields, labParts, review } = extractMarkFields(finalEee, { hasLab: true });
     expect(fields.isa1).toBe("28");
-    expect(fields.lab).toBe("15");   // 8 + 7
-    expect(fields.labMax).toBe(20);  // 10 + 10
-    expect(labParts).toEqual(["MATLAB 1", "MATLAB 2"]);
-    expect(review).toBe(true);
+    expect(fields.assignment).toBe("8.00"); // (9 + 8 + 7) / 30 * 10
+    expect(fields.assignmentMax).toBe(10);
+    expect(fields.lab).toBeUndefined();
+    expect(labParts).toEqual([]);
+    expect(review).toBe(false);
   });
 
-  it("does NOT invent a lab mark on a theory-only subject", () => {
+  it("does not invent a lab mark from MATLAB rows", () => {
     const { fields, labParts } = extractMarkFields(finalEee, { hasLab: false });
     expect(fields.lab).toBeUndefined();
-    expect(labParts).toEqual(["MATLAB 1", "MATLAB 2"]); // still surfaced for the preview
+    expect(fields.assignmentMax).toBe(10);
+    expect(labParts).toEqual([]);
   });
 
   it("treats a single component literally named Lab as non-review", () => {
@@ -110,6 +116,92 @@ describe("hasImportableFields", () => {
     expect(hasImportableFields({ isa1: "10" })).toBe(true);
     expect(hasImportableFields({ isa1Max: 40 })).toBe(false);
     expect(hasImportableFields({})).toBe(false);
+  });
+});
+
+describe("creditsFromCode", () => {
+  it("reads the credit from the second-to-last digit of the code", () => {
+    // Real PES codes verified against the portal.
+    expect(creditsFromCode("UE25MA141B")).toBe(4);
+    expect(creditsFromCode("UE25PH151B")).toBe(5);
+    expect(creditsFromCode("UE25EE141B")).toBe(4);
+    expect(creditsFromCode("UE25ME141B")).toBe(4);
+    expect(creditsFromCode("UE25CS151B")).toBe(5);
+    expect(creditsFromCode("UE25EV121B")).toBe(2);
+    expect(creditsFromCode("UZ25UZ221A")).toBe(2);
+  });
+  it("is robust to a missing trailing letter and to junk", () => {
+    expect(creditsFromCode("UE25MA141")).toBe(4); // no trailing section letter
+    expect(creditsFromCode("")).toBeNull();
+    expect(creditsFromCode(null)).toBeNull();
+    expect(creditsFromCode("XX")).toBeNull(); // no digits
+  });
+});
+
+describe("subjectDefForCredits", () => {
+  it("builds a 5-credit lab course", () => {
+    expect(subjectDefForCredits(5)).toMatchObject({
+      credits: 5, hasLab: true, hasAssignment: true,
+      isaWeight: 20, assignmentWeight: 10, labWeight: 20, esaWeight: 50,
+      isa1Max: 40, isa2Max: 40, esaMax: 100,
+    });
+  });
+  it("builds a 4/3-credit theory course (no lab)", () => {
+    expect(subjectDefForCredits(4)).toMatchObject({ credits: 4, hasLab: false, hasAssignment: true, labWeight: 0, esaMax: 100 });
+    expect(subjectDefForCredits(3)).toMatchObject({ credits: 3, hasLab: false, hasAssignment: true });
+  });
+  it("builds a 1/2-credit light course (no assignment, /30 ISA, /50 ESA)", () => {
+    expect(subjectDefForCredits(2)).toMatchObject({ credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, isa1Max: 30, isa2Max: 30, esaMax: 50 });
+    expect(subjectDefForCredits(1)).toMatchObject({ credits: 1, hasAssignment: false, esaMax: 50 });
+  });
+  it("falls back to a 4-credit theory template for unknown credits", () => {
+    expect(subjectDefForCredits(null)).toMatchObject({ credits: 4, hasLab: false, hasAssignment: true });
+  });
+});
+
+describe("portalSubjectToDef", () => {
+  it("derives credits + structure from the code and imports MATLAB as assignment", () => {
+    const eee5 = { ...finalEee, code: "UE23EE151B" }; // second-to-last digit 5 → lab course
+    const def = portalSubjectToDef(eee5);
+    expect(def.credits).toBe(5);
+    expect(def.subject.hasLab).toBe(true);
+    expect(def.fields.assignment).toBe("8.00");  // (9 + 8 + 7) / 30 * 10
+    expect(def.fields.assignmentMax).toBe(10);
+    expect(def.fields.lab).toBeUndefined();
+    expect(def.fields.isa1).toBe("28");
+    expect(def.name).toBe("Elements of Electrical Engineering");
+  });
+  it("maps MATLAB to assignment on a 4-credit subject", () => {
+    const mathWithMatlab = {
+      code: "UE23MA141B", // second-to-last digit 4 → theory, no lab
+      name: "Engineering Mathematics II",
+      components: [
+        { label: "ISA 1", score: 30, max: 40 },
+        { label: "ISA 2", score: 31, max: 40 },
+        { label: "MATLAB 1", score: 9, max: 10 },
+      ],
+    };
+    const def = portalSubjectToDef(mathWithMatlab);
+    expect(def.credits).toBe(4);
+    expect(def.subject.hasLab).toBe(false);
+    expect(def.fields.lab).toBeUndefined();
+    expect(def.fields.assignment).toBe("9.00");
+    expect(def.fields.assignmentMax).toBe(10);
+    expect(def.labParts).toEqual([]);
+  });
+  it("aligns the subject's ISA maxes with the imported marks (e.g. /30 for a 2-credit course)", () => {
+    const evs = {
+      code: "UE23EV121B", // 2 credits
+      name: "Environmental Studies",
+      components: [
+        { label: "ISA 1", score: 24, max: 30 },
+        { label: "ISA 2", score: 25, max: 30 },
+      ],
+    };
+    const def = portalSubjectToDef(evs);
+    expect(def.credits).toBe(2);
+    expect(def.subject.isa1Max).toBe(30);
+    expect(def.subject.isa2Max).toBe(30);
   });
 });
 
@@ -165,6 +257,42 @@ describe("buildImportPlan", () => {
     const plan = buildImportPlan({ calcSubjects, finalSem: null, provisionalSem: provisionalOnly });
     expect(plan.matched).toHaveLength(0);
     expect(plan.unmatchedPortal.some((p) => p.grade === "B")).toBe(true);
+  });
+
+  it("offers `toCreate` for unmatched portal subjects and `rebuild` for the whole semester", () => {
+    // Only Maths is in the calculator; EEE is not → EEE should appear in toCreate,
+    // while rebuild carries BOTH as fresh definitions (credits from the code).
+    const calcMathOnly = [{ id: 1, name: "Mathematics - I/II", hasLab: false }];
+    const plan = buildImportPlan({ calcSubjects: calcMathOnly, finalSem });
+    expect(plan.matched).toHaveLength(1);
+    expect(plan.toCreate).toHaveLength(1);
+    expect(plan.toCreate[0].name).toBe("Elements of Electrical Engineering");
+    expect(plan.toCreate[0].credits).toBe(5); // UE23EE151B → 5-credit lab course
+    expect(plan.toCreate[0].subject.hasLab).toBe(true);
+    expect(plan.toCreate[0].fields.assignment).toBe("8.00");
+
+    // rebuild = every portal subject, independent of what the calculator holds.
+    expect(plan.rebuild).toHaveLength(2);
+    const mathDef = plan.rebuild.find((d) => d.name === "Engineering Mathematics I");
+    expect(mathDef.credits).toBe(4); // UE23MA141B → 4-credit theory
+    expect(mathDef.subject.hasLab).toBe(false);
+    expect(mathDef.fields.isa1).toBe("32");
+  });
+});
+
+describe("findBestPreset", () => {
+  it("recognizes a known semester from names even without numeric marks", () => {
+    const portalSubjects = [
+      { name: "Mathematics - I/II" },
+      { name: "Engineering Physics" },
+      { name: "Elements of Electrical Engineering" },
+      { name: "Mechanical Engineering Sciences" },
+      { name: "Python for Computational Problem Solving/Problem Solving with C" },
+      { name: "Environmental Studies" },
+    ];
+    const preset = findBestPreset(portalSubjects);
+    expect(preset.name).toBe("Physics Cycle");
+    expect(preset.matched).toBe(6);
   });
 });
 

@@ -418,29 +418,105 @@ export default function PES_Universal_Calculator() {
     window.location.hash = '#/attendance';
   };
 
+  // Turn a create/rebuild item from the results plan into a calculator subject
+  // (fresh id + name + structural def from the course-code credit rule) plus its
+  // marks in the calculator's shape, with the portal's imported scores overlaid.
+  const buildImportedSubject = (item, id) => {
+    const def = (item && item.subject) || {};
+    const subject = {
+      id,
+      name: (item && item.name) || 'Imported Subject',
+      credits: def.credits ?? 4,
+      hasLab: def.hasLab ?? false,
+      hasAssignment: def.hasAssignment ?? true,
+      isaWeight: def.isaWeight ?? 20,
+      assignmentWeight: def.assignmentWeight ?? (def.hasAssignment === false ? 0 : 10),
+      labWeight: def.labWeight ?? (def.hasLab ? 20 : 0),
+      esaWeight: def.esaWeight ?? 50,
+      isa1Max: def.isa1Max ?? 40,
+      isa2Max: def.isa2Max ?? 40,
+      assignmentMax: def.assignmentMax ?? 10,
+      labMax: def.labMax ?? 20,
+      esaMax: def.esaMax ?? 100,
+    };
+    const subjectMarks = {
+      isa1: '', isa1Max: subject.isa1Max,
+      isa2: '', isa2Max: subject.isa2Max,
+      assignment: '', assignmentMax: subject.assignmentMax,
+      lab: '', labMax: subject.labMax,
+      esa: '', esaMax: subject.esaMax,
+      ...(item && item.fields ? item.fields : {}),
+    };
+    return { subject, subjectMarks };
+  };
+
   // Apply a confirmed results-import plan (from the PESU Academy tab) onto the
-  // Subjects tab. Each item carries { calcId, fields } where `fields` holds the
-  // portal's ISA/assignment/lab scores paired with their maxes (ESA is a letter
-  // grade and never included). We only touch the mark fields present — subject
-  // weights/structure are left intact — and snapshot for undo first, so the
-  // student can revert the whole import from the Subjects tab. Returns the count.
-  const importResultsToSubjects = (resolved) => {
-    if (!Array.isArray(resolved) || resolved.length === 0) return 0;
-    const count = resolved.length;
-    saveStateForUndo();
-    setMarks((prev) => {
-      const next = { ...prev };
-      resolved.forEach((item) => {
-        if (item && item.calcId != null && item.fields) {
-          next[item.calcId] = { ...next[item.calcId], ...item.fields };
-        }
+  // Subjects tab. The payload is { mode, fills, creates }:
+  //   • mode 'merge'  — keep the current subjects; fill each fill's { calcId,
+  //     fields } into existing marks, and APPEND any `creates` as brand-new
+  //     subjects (used when the shown subjects already match a preset).
+  //   • mode 'rebuild' — REPLACE the whole subject list with `creates` (each is
+  //     { subject, name, fields }, credits/structure derived from the course
+  //     code), reset marks/locks/shuffle (used when nothing matches, so we clear
+  //     and import the semester as a fresh client-only set).
+  // `fields` holds ISA/assignment/lab scores paired with their maxes (ESA is a
+  // letter grade and never included). Snapshots for undo first, so the student
+  // can revert the whole import from the Subjects tab. Returns the count changed.
+  // A bare array is still accepted (treated as merge fills) for back-compat.
+  const importResultsToSubjects = (payload) => {
+    const plan = Array.isArray(payload)
+      ? { mode: 'merge', fills: payload, creates: [] }
+      : (payload || {});
+    const mode = plan.mode === 'rebuild' ? 'rebuild' : 'merge';
+    const fills = Array.isArray(plan.fills) ? plan.fills : [];
+    const creates = Array.isArray(plan.creates) ? plan.creates : [];
+    // Fresh, collision-free ids: one past the current max subject id. (A pure
+    // computation, unlike Date.now(), which the React Compiler lint flags as an
+    // impure call in this scope; the result is deterministic and never clashes
+    // with an existing id when appending.)
+    const baseId = subjects.reduce((mx, s) => Math.max(mx, Number(s && s.id) || 0), 0) + 1;
+    let count = 0;
+
+    if (mode === 'rebuild') {
+      if (creates.length === 0) return 0;
+      saveStateForUndo();
+      const newSubjects = [];
+      const newMarks = {};
+      creates.forEach((item, i) => {
+        const { subject, subjectMarks } = buildImportedSubject(item, baseId + i);
+        newSubjects.push(subject);
+        newMarks[subject.id] = subjectMarks;
       });
-      return next;
-    });
-    // Land the student on the Subjects tab to see the filled marks. We set the
-    // tab state directly and sync the URL with history.replaceState (a method
-    // call, not a `location.hash =` assignment — the latter trips the React
-    // Compiler lint rule here), so the address bar and back button stay correct.
+      setSubjects(newSubjects);
+      setMarks(newMarks);
+      setLockedSubjects({});
+      setShuffledResults(null);
+      count = newSubjects.length;
+    } else {
+      if (fills.length === 0 && creates.length === 0) return 0;
+      saveStateForUndo();
+      const appended = creates.map((item, i) => buildImportedSubject(item, baseId + i));
+      setMarks((prev) => {
+        const next = { ...prev };
+        fills.forEach((item) => {
+          if (item && item.calcId != null && item.fields) {
+            next[item.calcId] = { ...next[item.calcId], ...item.fields };
+          }
+        });
+        appended.forEach(({ subject, subjectMarks }) => { next[subject.id] = subjectMarks; });
+        return next;
+      });
+      if (appended.length) {
+        setSubjects((prev) => [...prev, ...appended.map((a) => a.subject)]);
+      }
+      count = fills.length + appended.length;
+    }
+
+    if (count === 0) return 0;
+    // Land the student on the Subjects tab to see the result. We set the tab
+    // state directly and sync the URL with history.replaceState (a method call,
+    // not a `location.hash =` assignment — the latter trips the React Compiler
+    // lint rule here), so the address bar and back button stay correct.
     setActiveTab('subjects');
     if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
       window.history.replaceState(null, '', '#/subjects');

@@ -23,7 +23,7 @@ import {
   fetchCalendarEvents, parseCalendarEvents,
 } from './server/pesuPortal.js';
 import { buildAttendanceProjection } from './src/utils/attendanceProjection.js';
-import { buildImportPlan } from './src/utils/resultsImport.js';
+import { buildImportPlan, creditsFromCode } from './src/utils/resultsImport.js';
 import { PhysicsCycleDefaults } from './src/constants/presets.js';
 
 function ask(question, { hidden = false } = {}) {
@@ -144,7 +144,10 @@ async function main() {
       const provSem = provisional.find((p) => String(p.semester) === String(finalSem.semester)) || null;
       const plan = buildImportPlan({ calcSubjects: PhysicsCycleDefaults, finalSem, provisionalSem: provSem });
       const label = finalSem.semesterLabel || `Sem ${finalSem.semester}`;
-      console.log(`\n  ${label}: ${plan.matched.length} matched, ${plan.unmatchedPortal.length} portal-unmatched, ${plan.unmatchedCalc.length} calc-unmatched`);
+      const preset = plan.preset ? `${plan.preset.name} (${plan.preset.matched}/${plan.preset.total} names)` : 'no known preset';
+      console.log(`\n  ${label}: ${plan.matched.length} matched, ${plan.toCreate.length} to create, ${plan.unmatchedCalc.length} calc-unmatched`);
+      console.log(`     detected preset: ${preset}`);
+      console.log(`     suggested mode: ${plan.preset && plan.preset.matched * 2 >= plan.rebuild.length && plan.matched.length * 2 >= plan.rebuild.length ? 'merge' : 'rebuild'}`);
       for (const m of plan.matched) {
         const keys = ['isa1', 'isa2', 'assignment', 'lab'].filter((k) => m.fields[k] != null);
         const shown = keys.map((k) => `${k}/${m.fields[k + 'Max'] ?? '?'}`).join(' ') || '(none)';
@@ -156,9 +159,13 @@ async function main() {
         ].filter(Boolean).join('  ');
         console.log(`     [${m.confidence}] "${m.portalName}" → "${m.calcName}"  sets: ${shown}${notes ? '   ' + notes : ''}`);
       }
-      plan.unmatchedPortal.forEach((u) => console.log(`     (portal only) ${u.name}${u.grade ? ` grade=${u.grade}` : ''}`));
+      plan.toCreate.forEach((u) => console.log(`     (create) ${u.code || '(no code)'}  credits=${u.credits}  ${u.subject.hasLab ? 'theory+lab' : 'theory'}  ${u.name}`));
+      console.log(`     rebuild plan: ${plan.rebuild.length} subjects`);
+      plan.rebuild.forEach((u) => console.log(`       ${u.code || '(no code)'}  credits=${u.credits}  ${u.subject.hasLab ? 'theory+lab' : 'theory'}  ${u.name}`));
+      plan.unmatchedPortal.forEach((u) => console.log(`     (portal only; included in create/rebuild) ${u.name}${u.grade ? ` grade=${u.grade}` : ''}`));
       plan.unmatchedCalc.forEach((u) => console.log(`     (calc only)   ${u.name}`));
     }
+    console.log('credit rule check: third-from-last course-code character is used; e.g. UE25MA141B → ' + creditsFromCode('UE25MA141B'));
   } catch (e) { console.error('import-plan error:', e.message); }
 
   console.log('\n✅ Done.');

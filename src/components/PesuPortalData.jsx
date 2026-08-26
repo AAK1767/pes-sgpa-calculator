@@ -459,6 +459,38 @@ function UnmatchedNote({ title, items, tone }) {
   );
 }
 
+function ImportDefinitionRow({ item }) {
+  const fieldKeys = ['isa1', 'isa2', 'assignment', 'lab'].filter((k) => item.fields[k] != null);
+  const structure = item.subject.hasLab ? 'theory + lab' : 'theory';
+  return (
+    <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-2.5">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-zinc-200 leading-tight">{item.name || item.code}</div>
+          <div className="text-[11px] text-zinc-500">{item.code || 'No course code'} · {item.credits} credits · {structure}</div>
+        </div>
+        {item.esaGrade && (
+          <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded border flex-shrink-0 ${gradeColor(item.esaGrade)}`}>
+            ESA {item.esaGrade}
+          </span>
+        )}
+      </div>
+      {fieldKeys.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {fieldKeys.map((key) => (
+            <span key={key} className="text-[11px] rounded px-1.5 py-0.5 border bg-white/[0.03] text-zinc-300 border-white/[0.06]">
+              {FIELD_LABEL[key]}: <span className="font-semibold text-zinc-100">{item.fields[key]}{item.fields[`${key}Max`] ? `/${item.fields[`${key}Max`]}` : ''}</span>
+            </span>
+          ))}
+        </div>
+      )}
+      {item.labParts?.length > 0 && item.fields.lab == null && (
+        <div className="text-[10px] text-zinc-500 mt-1">Lab marks found ({item.labParts.join(' + ')}) but no lab slot was created.</div>
+      )}
+    </div>
+  );
+}
+
 // Preview + confirm panel mapping this semester's results onto the calculator's
 // Subjects tab. Numbers are read from the final results and merged with the
 // matching provisional semester, so if the portal ever surfaces ISA numbers in
@@ -466,7 +498,6 @@ function UnmatchedNote({ title, items, tone }) {
 // until the student ticks subjects and confirms; the import is undoable.
 function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImportResults }) {
   const [open, setOpen] = useState(false);
-  const [deselected, setDeselected] = useState(() => new Set());
   const [done, setDone] = useState(0);
 
   const plan = useMemo(
@@ -481,20 +512,13 @@ function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImpor
 
   if (!subjects || !onImportResults) return null;
 
-  const isChecked = (id) => !deselected.has(id);
-  const toggle = (id) => setDeselected((prev) => {
-    const next = new Set(prev);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
-
-  const chosen = plan.matched.filter((m) => isChecked(m.calcId));
-  const overwriteCount = chosen.filter((m) => m.overwrites.length > 0).length;
+  const rebuildCreates = plan.rebuild;
 
   const doImport = () => {
-    if (!chosen.length) return;
-    const n = onImportResults(chosen);
-    setDone(typeof n === 'number' ? n : chosen.length);
+    if (!rebuildCreates.length) return;
+    const n = onImportResults({ mode: 'rebuild', fills: [], creates: rebuildCreates });
+    const expected = rebuildCreates.length;
+    setDone(typeof n === 'number' ? n : expected);
     setOpen(false);
   };
 
@@ -528,42 +552,34 @@ function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImpor
             then import — you can undo it from the Subjects tab.
           </p>
 
-          {plan.matched.length === 0 ? (
-            <p className="text-sm text-zinc-400">
-              None of this semester&apos;s subjects could be matched to your current calculator subjects by name.
-              Load the matching semester template in the Subjects tab first, then try again.
+          {plan.preset && plan.preset.matched * 2 >= plan.rebuild.length && (
+            <p className="text-[11px] text-emerald-300/80">
+              Detected semester template: {plan.preset.name}. The current Subjects list will be replaced with these portal subjects.
             </p>
-          ) : (
-            <div className="space-y-2">
-              {plan.matched.map((m) => (
-                <MatchRow key={m.calcId} m={m} checked={isChecked(m.calcId)} onToggle={() => toggle(m.calcId)} />
-              ))}
-            </div>
           )}
+
+          <div className="text-xs font-semibold text-zinc-300">Replace current subjects with {rebuildCreates.length} from {finalSem.semesterLabel || `semester ${finalSem.semester}`}</div>
+          <div className="space-y-2">{rebuildCreates.map((item) => <ImportDefinitionRow key={item.code || item.name} item={item} />)}</div>
 
           <div className="space-y-1.5">
             <UnmatchedNote title="On the portal, no calculator match" items={plan.unmatchedPortal.map((u) => u.name)} tone="amber" />
             <UnmatchedNote title="In your calculator, no portal match this semester" items={plan.unmatchedCalc.map((u) => u.name)} tone="zinc" />
           </div>
 
-          {plan.matched.length > 0 && (
+          {rebuildCreates.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <button
                 onClick={doImport}
-                disabled={chosen.length === 0}
+                disabled={rebuildCreates.length === 0}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-bold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Check className="w-4 h-4" />
-                {overwriteCount > 0
-                  ? `Overwrite & import ${chosen.length} subject${chosen.length === 1 ? '' : 's'}`
-                  : `Import ${chosen.length} subject${chosen.length === 1 ? '' : 's'}`}
+                Replace subjects with {rebuildCreates.length}
               </button>
-              {overwriteCount > 0 && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-amber-300/90">
-                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                  {overwriteCount} will replace marks you already entered
-                </span>
-              )}
+              <span className="inline-flex items-center gap-1 text-[11px] text-amber-300/90">
+                <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                This replaces the current Subjects list and is undoable.
+              </span>
             </div>
           )}
         </div>
@@ -814,14 +830,14 @@ function CalendarView({ calendar }) {
 
 /* -------------------------------- Container ------------------------------- */
 const TABS = [
+  { key: 'results', label: 'Results', Icon: Award },
+  { key: 'attendance', label: 'Attendance', Icon: ClipboardList },
   { key: 'timetable', label: 'Timetable', Icon: CalendarDays },
   { key: 'calendar', label: 'Calendar', Icon: CalendarRange },
-  { key: 'attendance', label: 'Attendance', Icon: ClipboardList },
-  { key: 'results', label: 'Results', Icon: Award },
 ];
 
 export function PortalData({ status, data, error, onRetry, canRetry, onSendToPlanner, subjects, marks, onImportResults }) {
-  const [view, setView] = useState('timetable');
+  const [view, setView] = useState('results');
 
   if (status === 'idle') return null;
 
