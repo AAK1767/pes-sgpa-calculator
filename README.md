@@ -16,6 +16,43 @@
 
 ---
 
+## 📑 Table of Contents
+
+- [✨ Features](#-features)
+  - [🎯 Core Functionality](#-core-functionality)
+  - [🎓 PESU Academy Portal Integration](#-pesu-academy-portal-integration)
+  - [🔧 Advanced Tools](#-advanced-tools)
+  - [💾 Quality of Life](#-quality-of-life)
+  - [🦅 Companion Tools](#-companion-tools)
+  - [🎓 Comprehensive Preset Support](#-comprehensive-preset-support)
+- [🚀 Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Build for Production](#build-for-production)
+- [📖 User Guide](#-user-guide)
+  - [Tab Overview](#tab-overview)
+  - [Presets Overview](#presets-overview)
+  - [Quick Start](#quick-start)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
+  - [Understanding "Momentum"](#understanding-momentum)
+  - [Custom Templates](#custom-templates-vtu-iit-or-any-college)
+  - [Available Grading Schemes](#available-grading-schemes)
+- [🏗️ Project Structure](#️-project-structure)
+- [🔧 Tech Stack](#-tech-stack)
+- [📊 Grading Logic & Calculations](#-grading-logic--calculations)
+  - [Default PES Scheme](#default-pes-scheme)
+  - [SGPA Formula](#sgpa-formula)
+  - [Component Scaling & CIE Calculation](#component-scaling--cie-calculation)
+  - [5-Credit Course Scaling](#5-credit-course-scaling)
+  - [Momentum Scoring](#momentum-scoring)
+- [🤝 Contributing](#-contributing)
+- [🐛 Known Issues](#-known-issues)
+- [📝 Changelog](#-changelog)
+- [📄 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+
+---
+
 ## ✨ Features
 
 ### 🎯 Core Functionality
