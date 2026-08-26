@@ -28,6 +28,12 @@
 - **CGPA Calculator** - Track cumulative GPA across semesters with graduation credit tracking (160 Cr)
 - **CGPA Target Planner** - Plan required future SGPAs to reach a target CGPA
 
+### 🎓 PESU Academy Portal Integration
+- **Direct Portal Sync** - Log in with your PESU Academy credentials to fetch live academic records
+- **One-Click Results Import** - Automatically detect semester presets, map subjects, and load ISA/ESA scores into the calculator
+- **Live Attendance & Bunk Planner** - View per-course attendance stats, safe bunk margins, and class recovery estimates for 75% and 85% thresholds
+- **Academic Schedule & Events** - View instructional days, exams, and holidays directly from the academy calendar
+
 ### 🔧 Advanced Tools
 - **Grade Curve Adjustments** - Customize grade cutoffs per subject when exams are hard
 - **Attendance Calculator** - Track and plan your 75% attendance requirement
@@ -103,6 +109,7 @@ npm run preview  # Preview the build locally
 | **Reverse Calc** | Set target SGPA, lock fixed subjects, see required ESA scores with multiple strategy paths |
 | **CGPA** | Calculate cumulative GPA across semesters (up to 8 semesters), track progress toward target |
 | **Attendance** | Track classes and plan attendance to meet 75% requirement |
+| **PESU Academy** | Sync live portal attendance, academic calendar, and import results directly into calculator |
 | **Guide** | In-app documentation and help |
 
 ### Presets Overview
@@ -197,7 +204,12 @@ When you leave a field empty (like ISA2), most calculators treat it as 0. This a
 ```
 pes-sgpa-calculator/
 ├── api/
-│   └── feedback.js                 # Feedback API handler
+│   ├── feedback.js                 # Feedback API handler
+│   ├── pesu-auth.js                # PESU Academy authentication endpoint
+│   └── pesu-portal.js              # PESU Academy data scraping endpoint
+├── server/
+│   ├── pesuPortal.js               # PESU Academy scraper engine
+│   └── pesuPortal.parsers.test.js  # Scraper & parser tests
 ├── public/
 │   ├── robots.txt
 │   └── sitemap.xml
@@ -208,6 +220,8 @@ pes-sgpa-calculator/
 │   ├── main.jsx                    # React entry point
 │   ├── sw.js                       # Service worker (offline support)
 │   ├── assets/                     # Static assets
+│   ├── components/
+│   │   └── PesuPortalData.jsx      # PESU Portal dashboard & attendance UI
 │   ├── constants/
 │   │   └── presets.js              # PES preset configurations
 │   ├── hooks/
@@ -217,13 +231,16 @@ pes-sgpa-calculator/
 │   │   ├── AttendanceTab.jsx       # Attendance tracker
 │   │   ├── CgpaTab.jsx             # CGPA calculator
 │   │   ├── GuideTab.jsx            # In-app help & documentation
+│   │   ├── PesuAcademyTab.jsx      # PESU Academy integration tab
 │   │   ├── ReverseTab.jsx          # Reverse SGPA calculator
 │   │   └── SubjectsTab.jsx         # Subject configuration & marks entry
 │   └── utils/
 │       ├── analytics.js            # Analytics tracking
 │       ├── attendanceCalculations.js # Attendance logic
+│       ├── attendanceProjection.js # Future attendance & bunk projections
 │       ├── calculations.js         # Core SGPA/CGPA calculations
-│       └── calculations.test.js    # Unit tests
+│       ├── pesuMapping.js          # PESU course mapping & preset detection
+│       └── resultsImport.js        # Results extraction & import pipeline
 ├── CALCULATION_GUIDE.md            # Detailed calculation algorithms
 ├── eslint.config.js                # ESLint configuration
 ├── fix-dark-mode.cjs               # Dark mode utilities
@@ -231,7 +248,7 @@ pes-sgpa-calculator/
 ├── package.json
 ├── postcss.config.js               # PostCSS configuration
 ├── tailwind.config.js              # Tailwind CSS configuration
-├── vite.config.js                  # Vite build configuration
+├── vite.config.js                  # Vite build & proxy configuration
 ├── vercel.json                     # Vercel deployment config
 └── README.md
 ```
@@ -241,15 +258,15 @@ pes-sgpa-calculator/
 ## 🔧 Tech Stack
 
 - **Framework:** React 19.2 with Hooks & Function Components
-- **Build Tool:** Vite 7.2 (Lightning-fast dev server)
+- **Build Tool:** Vite 7.2 (Lightning-fast dev server with proxy support)
 - **Styling:** Tailwind CSS 3.4 + PostCSS & Autoprefixer
 - **Animations:** Framer Motion 12.3
 - **Icons:** Lucide React 0.561
 - **Analytics:** Vercel Analytics & Speed Insights
-- **Storage:** Browser localStorage (no backend required)
+- **Storage:** Browser localStorage (no backend database required)
 - **PWA:** Service Worker support for offline functionality
-- **Testing:** Vitest for unit testing
-- **Linting:** ESLint with React plugins
+- **Testing:** Vitest for unit & regression testing (80+ tests)
+- **Linting:** ESLint with React plugins & React Compiler rules
 - **Deployment:** Vercel (optimized serverless functions)
 
 ---
@@ -349,7 +366,17 @@ Contributions are welcome! Here's how:
 
 ## 📝 Changelog
 
-### v4.0 (Current)
+### v6.0 (Current)
+- ✨ Added **PESU Academy Portal Integration** (`PesuAcademyTab` & `PesuPortalData`):
+  - Direct login and profile fetching from PESU Academy
+  - Live attendance tracking with safe bunk margins and catch-up class projections (75% / 85% goals)
+  - Academic calendar integration for schedule and holiday tracking
+  - One-click results import directly into SGPA calculator with automatic preset mapping and custom subject synthesis
+- ⚡ Maintained portal state across tab switching for seamless user experience
+- ⚡ Full React 19 & React Compiler compatibility and ESLint cleanup
+- 🧪 Added comprehensive test suites for scraper parsers, attendance projections, and results import (83 passing tests)
+
+### v4.0
 - ✨ Added **CGPA Target Planner (Reverse CGPA)** inside CGPA tab with graduation credit progress tracking (160 credits bar)
 - ✨ Added **ISA 2 Target Planner** collapsible block in the Analysis tab with global and per-subject assumed ESA override inputs
 - ✨ Removed visual clutter (GP badges in recommendation lists, GP Cushion cards) from the Analysis tab
