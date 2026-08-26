@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
@@ -85,13 +85,13 @@ export default function PES_Universal_Calculator() {
   // --- GA Refs ---
   const markTrackTimersRef = useRef({});
   const lastTrackedSgpaRef = useRef(null);
+  const MotionDiv = motion.div;
 
   // --- Theme State ---
-  const darkMode = true;
 
   const [subjects, setSubjects] = useState(() => {
     // --- THE RESET LOGIC ---
-    const CURRENT_VERSION = '2026_AUG_v5.2'; // Change this string whenever you want to nuke again
+    const CURRENT_VERSION = '2026_AUG_v6'; // Change this string whenever you want to nuke again
     const savedVersion = localStorage.getItem('pes_version');
 
     if (savedVersion !== CURRENT_VERSION) {
@@ -155,9 +155,8 @@ export default function PES_Universal_Calculator() {
   const [simpleCgpa, setSimpleCgpa] = useState({ prevCgpa: '', prevCredits: '', currSgpa: '', currCredits: '' });
 
   // --- UI State ---
-  const [sgpa, setSgpa] = useState(0);
-  const [expandedSubject, setExpandedSubject] = useState(null);
   const [targetSgpa, setTargetSgpa] = useState(9.0);
+  const [expandedSubject, setExpandedSubject] = useState(null);
 
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#/', '');
@@ -554,12 +553,13 @@ export default function PES_Universal_Calculator() {
     localStorage.setItem('pes_reverse_locked_subjects', JSON.stringify(lockedSubjects));
   }, [lockedSubjects]);
 
+  const initialPresetNameRef = useRef(getCyclePresetName(subjects));
   useEffect(() => {
     document.documentElement.classList.add('dark');
     localStorage.setItem('pes_theme', 'dark'); // Ensure it stays dark
 
     // Set GA user properties
-    const activePresetName = getCyclePresetName(subjects);
+    const activePresetName = initialPresetNameRef.current;
     setUserProperties({
       calculator_version: '2026_MAY_V4.5',
       initial_cycle: activePresetName
@@ -637,28 +637,28 @@ export default function PES_Universal_Calculator() {
 
 
   // --- Undo/Redo Functions ---
-  const saveStateForUndo = () => {
+  const saveStateForUndo = useCallback(() => {
     setUndoStack(prev => [...prev.slice(-20), { marks: JSON.parse(JSON.stringify(marks)), subjects: JSON.parse(JSON.stringify(subjects)) }]);
     setRedoStack([]);
-  };
+  }, [marks, setRedoStack, setUndoStack, subjects]);
 
-  const undo = () => {
+  const undo = useCallback(() => {
     if (undoStack.length === 0) return;
     const prev = undoStack[undoStack.length - 1];
     setRedoStack(r => [...r, { marks: JSON.parse(JSON.stringify(marks)), subjects: JSON.parse(JSON.stringify(subjects)) }]);
     setMarks(prev.marks);
     setSubjects(prev.subjects);
     setUndoStack(u => u.slice(0, -1));
-  };
+  }, [marks, setMarks, setRedoStack, setSubjects, setUndoStack, subjects, undoStack]);
 
-  const redo = () => {
+  const redo = useCallback(() => {
     if (redoStack.length === 0) return;
     const next = redoStack[redoStack.length - 1];
     setUndoStack(u => [...u, { marks: JSON.parse(JSON.stringify(marks)), subjects: JSON.parse(JSON.stringify(subjects)) }]);
     setMarks(next.marks);
     setSubjects(next.subjects);
     setRedoStack(r => r.slice(0, -1));
-  };
+  }, [marks, redoStack, setMarks, setRedoStack, setSubjects, setUndoStack, subjects]);
 
   // --- Custom Template Builder State ---
   const {
@@ -686,29 +686,11 @@ export default function PES_Universal_Calculator() {
         modified_grading_schemes: subjects.some(s => s.customGradeMap)
       });
     }
-  }, [customTemplate]);
+  }, [customTemplate, subjects]);
 
 
 
   // --- Mark & Subject Handlers ---
-  useEffect(() => {
-    const newMarks = { ...marks };
-    let changed = false;
-    subjects.forEach(sub => {
-      if (!newMarks[sub.id]) {
-        newMarks[sub.id] = {
-          isa1: '', isa1Max: sub.isa1Max || 40,
-          isa2: '', isa2Max: sub.isa2Max || 40,
-          assignment: '', assignmentMax: sub.assignmentMax || 10,
-          lab: '', labMax: sub.labMax || 20,
-          esa: '', esaMax: sub.esaMax || 100
-        };
-        changed = true;
-      }
-    });
-    if (changed) setMarks(newMarks);
-  }, [subjects.length]);
-
   const handleMarkChange = (id, field, value) => {
     // Debounced GA4 mark entry tracking
     const subject = subjects.find(s => s.id === id);
@@ -855,18 +837,6 @@ export default function PES_Universal_Calculator() {
     }
   };
 
-  const resetToDefault = () => {
-    if (window.confirm("This will erase your custom subjects and restore the Physics Cycle defaults. Continue?")) {
-      saveStateForUndo();
-      setSubjects(PhysicsCycleDefaults);
-      setMarks({});
-      setLockedSubjects({});
-      setShuffledResults(null);
-
-      trackEvent('data_action', { type: 'restore_defaults' });
-    }
-  };
-
   const clearAll = () => {
     if (window.confirm("Clear all subjects and start fresh? ")) {
       saveStateForUndo();
@@ -919,7 +889,7 @@ export default function PES_Universal_Calculator() {
   };
 
   // --- Export/Import Functions ---
-  const exportData = () => {
+  const exportData = useCallback(() => {
     const data = {
       subjects,
       marks,
@@ -935,7 +905,7 @@ export default function PES_Universal_Calculator() {
     URL.revokeObjectURL(url);
 
     trackEvent('data_action', { type: 'export', subject_count: subjects.length });
-  };
+  }, [marks, subjects]);
 
   const importData = (event) => {
     const file = event.target.files[0];
@@ -993,23 +963,22 @@ export default function PES_Universal_Calculator() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [expandedSubject, undoStack, redoStack, marks, subjects, undo, redo, exportData]);
+  }, [expandedSubject, undo, redo, exportData]);
 
   // --- Calculations ---
-  // --- Calculations ---
-  const getSubjectMetrics = (subject) => getSubjectMetricsPure(subject, marks);
-  const getRequiredESAForGrade = (subject, targetScore, withSafetyMargin = true, options = {}) =>
-    getRequiredESAForGradePure(subject, targetScore, withSafetyMargin, options, marks);
-  const getRequiredISA2ForGrade = (subject, targetScore, options = {}) =>
-    getRequiredISA2ForGradePure(subject, targetScore, options, marks);
-  const getRequiredISA2ForPass = (subject) =>
-    getRequiredISA2ForPassPure(subject, marks);
-  const getGradePoint = (totalMarks, subject = null) =>
-    getGradePointPure(totalMarks, subject, GradeMap);
-  const getGradeInfo = (score, subject = null) =>
-    getGradeInfoPure(score, subject, GradeMap);
-  const getFinalIsaSummary = (subject) =>
-    getFinalIsaSummaryPure(subject, marks);
+  const getSubjectMetrics = useCallback((subject) => getSubjectMetricsPure(subject, marks), [marks]);
+  const getRequiredESAForGrade = useCallback((subject, targetScore, withSafetyMargin = true, options = {}) =>
+    getRequiredESAForGradePure(subject, targetScore, withSafetyMargin, options, marks), [marks]);
+  const getRequiredISA2ForGrade = useCallback((subject, targetScore, options = {}) =>
+    getRequiredISA2ForGradePure(subject, targetScore, options, marks), [marks]);
+  const getRequiredISA2ForPass = useCallback((subject) =>
+    getRequiredISA2ForPassPure(subject, marks), [marks]);
+  const getGradePoint = useCallback((totalMarks, subject = null) =>
+    getGradePointPure(totalMarks, subject, GradeMap), []);
+  const getGradeInfo = useCallback((score, subject = null) =>
+    getGradeInfoPure(score, subject, GradeMap), []);
+  const getFinalIsaSummary = useCallback((subject) =>
+    getFinalIsaSummaryPure(subject, marks), [marks]);
 
   const isSubjectMarksComplete = (subject, m) => {
     if (!m) return false;
@@ -1021,8 +990,7 @@ export default function PES_Universal_Calculator() {
     return true;
   };
 
-  // --- SGPA Calculation ---
-  useEffect(() => {
+  const sgpa = useMemo(() => {
     let totalCredits = 0;
     let weightedPoints = 0;
 
@@ -1033,13 +1001,13 @@ export default function PES_Universal_Calculator() {
       totalCredits += sub.credits;
     });
 
-    const calculatedSgpa = totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : 0;
-    setSgpa(calculatedSgpa);
+    return totalCredits > 0 ? (weightedPoints / totalCredits).toFixed(2) : '0';
+  }, [subjects, getSubjectMetrics, getGradePoint]);
 
-    // Track SGPA summary if complete and changed
+  useEffect(() => {
     const allComplete = subjects.every(sub => isSubjectMarksComplete(sub, marks[sub.id]));
-    if (allComplete && lastTrackedSgpaRef.current !== calculatedSgpa) {
-      lastTrackedSgpaRef.current = calculatedSgpa;
+    if (allComplete && lastTrackedSgpaRef.current !== sgpa) {
+      lastTrackedSgpaRef.current = sgpa;
 
       const getSGPABucket = (val) => {
         const num = parseFloat(val);
@@ -1051,12 +1019,12 @@ export default function PES_Universal_Calculator() {
       };
 
       trackEvent('calculation_summary', {
-        sgpa_bucket: getSGPABucket(calculatedSgpa),
+        sgpa_bucket: getSGPABucket(sgpa),
         subject_count: subjects.length,
         preset_name: getCyclePresetName(subjects)
       });
     }
-  }, [marks, subjects]);
+  }, [marks, sgpa, subjects]);
 
   // --- Analysis Calculations ---
   const calculateAnalysis = () => {
@@ -1072,8 +1040,6 @@ export default function PES_Universal_Calculator() {
     subjects.forEach(sub => {
       const {
         finalScore,
-        currentInternals,
-        totalWeight,
         momentumScore,
         momentumIsa2Marks,
         momentumAssignmentMarks,
@@ -1147,7 +1113,7 @@ export default function PES_Universal_Calculator() {
       const {
         cieRounded, labRounded,
         projectedCieRounded, projectedLabRounded,
-        totalWeight, esaWeight, projectedInternals
+        totalWeight, esaWeight
       } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
 
@@ -1243,10 +1209,9 @@ export default function PES_Universal_Calculator() {
 
         if (requiredEsa > sub.esaMax) return;
 
-        const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
 
-        const efficiency = gpGain / (markCost <= 0 ? 0.0001 : markCost);
+        const efficiency = gpGain / (requiredEsa <= 0 ? 0.0001 : requiredEsa);
 
         if (efficiency > maxEfficiency) {
           maxEfficiency = efficiency;
@@ -1299,7 +1264,7 @@ export default function PES_Universal_Calculator() {
       const {
         cieRounded, labRounded,
         projectedCieRounded, projectedLabRounded,
-        totalWeight, esaWeight, projectedInternals
+        totalWeight, esaWeight
       } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
 
@@ -1388,11 +1353,10 @@ export default function PES_Universal_Calculator() {
 
         if (requiredEsa > sub.esaMax) return;
 
-        const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
 
         const bias = subjectBias[sub.id];
-        const biasedCost = (markCost <= 0 ? 0.0001 : markCost) * bias;
+        const biasedCost = (requiredEsa <= 0 ? 0.0001 : requiredEsa) * bias;
 
         const efficiency = gpGain / biasedCost;
 
@@ -1434,7 +1398,7 @@ export default function PES_Universal_Calculator() {
       const {
         cieRounded, labRounded,
         projectedCieRounded, projectedLabRounded,
-        totalWeight, esaWeight, projectedInternals
+        totalWeight, esaWeight
       } = getSubjectMetrics(sub);
       const esaMax = m.esaMax || 100;
 
@@ -1522,7 +1486,6 @@ export default function PES_Universal_Calculator() {
 
         if (requiredEsa > sub.esaMax) return;
 
-        const markCost = requiredEsa - sub.requiredEsa;
         const gpGain = (nextGrade.gp - sub.currentGP) * sub.credits;
 
         const currentStrain = Math.pow(Math.max(0, sub.requiredEsa), 2);
@@ -1563,7 +1526,6 @@ export default function PES_Universal_Calculator() {
   // --- Minimum Passing Table Logic ---
   const getMinimumPassingTable = () => {
     return subjects.map(sub => {
-      const { currentInternals, totalWeight, esaWeight } = getSubjectMetrics(sub);
       const esaMax = marks[sub.id]?.esaMax || 100;
       const activeMap = sub.customGradeMap || GradeMap;
 
@@ -1676,7 +1638,7 @@ export default function PES_Universal_Calculator() {
       min: totalCredits > 0 ? (minWeightedGP / totalCredits).toFixed(2) : 0,
       max: totalCredits > 0 ? (maxWeightedGP / totalCredits).toFixed(2) : 10
     };
-  }, [subjects, marks]);
+  }, [subjects, marks, getGradePoint]);
 
   const metrics = calculateAnalysis();
   const strategy = getSmartSuggestionsPure(subjects, marks, targetSgpa);
@@ -1692,44 +1654,7 @@ export default function PES_Universal_Calculator() {
       dist[gradeInfo.grade]++;
     });
     return dist;
-  }, [subjects, marks]);
-
-  // Alerts Calculation
-  const alerts = useMemo(() => {
-    const alertList = [];
-    subjects.forEach(sub => {
-      const { finalScore } = getSubjectMetrics(sub);
-      const m = marks[sub.id] || {};
-      const activeMap = sub.customGradeMap || GradeMap;
-      const passScore = activeMap[activeMap.length - 2]?.min || 40;
-
-      // Critical: Failing
-      if (finalScore < passScore && (m.isa1 !== '' || m.isa2 !== '')) {
-        alertList.push({
-          type: 'critical',
-          subject: sub.name,
-          message: `Currently at score ${finalScore}. Risk of failing!`
-        });
-      }
-
-      // Opportunity: Easy grade jump
-      const currentGP = getGradePoint(finalScore, sub);
-      const nextGrade = activeMap.slice().reverse().find(g => g.gp > currentGP);
-      if (nextGrade) {
-        const esaMax = m.esaMax || 100;
-        const requiredEsa = getRequiredESAForGrade(sub, nextGrade.min, false);
-
-        if (requiredEsa !== null && requiredEsa > 0 && requiredEsa <= 40 && !m.esa) {
-          alertList.push({
-            type: 'opportunity',
-            subject: sub.name,
-            message: `Just ${requiredEsa}/${esaMax} in ESA gets you ${nextGrade.grade} grade!`
-          });
-        }
-      }
-    });
-    return alertList;
-  }, [subjects, marks]);
+  }, [subjects, getSubjectMetrics, getGradeInfo]);
 
 
 
@@ -1840,7 +1765,7 @@ export default function PES_Universal_Calculator() {
         />
       </div>
 
-      <motion.div
+      <MotionDiv
         key={activeTab}
         className="max-w-4xl mx-auto p-4 space-y-6"
         initial={{ opacity: 0, y: 10 }}
@@ -1999,7 +1924,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v5.2 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v6.0 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}
@@ -2162,7 +2087,7 @@ export default function PES_Universal_Calculator() {
           </div>
         )}
 
-      </motion.div>
+      </MotionDiv>
 
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-[#08080e]/95 backdrop-blur-2xl border-t border-white/[0.06] md:hidden z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
