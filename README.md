@@ -376,6 +376,15 @@ Contributions are welcome! Here's how:
 - ⚡ Full React 19 & React Compiler compatibility and ESLint cleanup
 - 🧪 Added comprehensive test suites for scraper parsers, attendance projections, and results import (83 passing tests)
 
+### v5.0
+- ✨ **Branch & Semester Presets Expansion**: Added complete presets for CSE (Sem 3–8), AIML (Sem 3–8), and ECE (Sem 3–6) including Capstone Projects (Phases 1–4) and Internship tracks
+- ✨ **Smart Suggestions for Grade Planning**: Added actionable recommendations in Analysis tab for grade improvement and risk alerts
+- ⚡ **Codebase Modularization**: Refactored monolithic tab structure into individual modular components (`src/tabs/`) with hash routing
+- 🐛 **Input Sanitization & Half-Marks**: Added `step=0.5` support for precise half-mark inputs and regex sanitization to block invalid characters
+- 🐛 **Course Weight Adjustments**: Fine-tuned ISA/Assignment weights for Operating Systems and Computer Networks; updated Sem 7 & 8 CGPA default credits
+- 📈 **Enhanced Analytics**: Added granular GA4 tracking for component average marks and active preset cycle names
+- 📖 **Guide Update**: Added PESUClaw extension documentation and developer resources
+
 ### v4.0
 - ✨ Added **CGPA Target Planner (Reverse CGPA)** inside CGPA tab with graduation credit progress tracking (160 credits bar)
 - ✨ Added **ISA 2 Target Planner** collapsible block in the Analysis tab with global and per-subject assumed ESA override inputs
