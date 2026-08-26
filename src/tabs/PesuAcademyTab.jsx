@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   GraduationCap, LogIn, LogOut, Eye, EyeOff, Loader2, ShieldCheck,
-  AlertCircle, CheckCircle2, ArrowRight, Github, Info
+  AlertCircle, CheckCircle2, ArrowRight, Github, Info, RefreshCw, X
 } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 import { mapProfileToPreset } from '../utils/pesuMapping';
@@ -22,18 +22,74 @@ const PROFILE_FIELDS = [
   { key: 'phone', label: 'Phone' },
 ];
 
+function formatLastSynced(iso) {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+}
+
 export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults }) {
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem('pesu_username') || '';
+  });
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [status, setStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
+  const [profile, setProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_profile');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [status, setStatus] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_profile');
+      return saved ? 'success' : 'idle';
+    } catch {
+      return 'idle';
+    }
+  });
   const [errorMsg, setErrorMsg] = useState('');
-  const [profile, setProfile] = useState(null);
 
   // Timetable / attendance / results fetched from the portal (separate, slower call).
-  const [portalStatus, setPortalStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
-  const [portalData, setPortalData] = useState(null);
+  const [portalData, setPortalData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_portal_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [portalStatus, setPortalStatus] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_portal_data');
+      return saved ? 'success' : 'idle';
+    } catch {
+      return 'idle';
+    }
+  });
+  const [lastSynced, setLastSynced] = useState(() => {
+    return localStorage.getItem('pesu_last_synced') || '';
+  });
   const [portalError, setPortalError] = useState('');
+
+  // Re-sync modal state
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncPassword, setSyncPassword] = useState('');
+  const [showSyncPassword, setShowSyncPassword] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState('');
 
   const fetchPortal = async (user, pass) => {
     setPortalStatus('loading');
@@ -49,6 +105,10 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       if (res.ok && data.ok) {
         setPortalData(data);
         setPortalStatus('success');
+        const now = new Date().toISOString();
+        setLastSynced(now);
+        localStorage.setItem('pesu_portal_data', JSON.stringify(data));
+        localStorage.setItem('pesu_last_synced', now);
         setPassword(''); // portal data is in; the password is no longer needed anywhere
         trackEvent('pesu_portal', { status: 'success' });
       } else {
@@ -100,12 +160,13 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       const success = data.status === true || (res.ok && !!data.profile && data.status !== false);
 
       if (success) {
-        setProfile(data.profile || {});
+        const prof = data.profile || {};
+        setProfile(prof);
         setStatus('success');
+        localStorage.setItem('pesu_profile', JSON.stringify(prof));
+        localStorage.setItem('pesu_username', user);
         trackEvent('pesu_login', { status: 'success' });
         // Kick off the (slower) timetable/attendance/results fetch in parallel.
-        // Password stays in memory until this resolves so a failed fetch can be retried;
-        // fetchPortal clears it on success.
         fetchPortal(user, pass);
       } else {
         setStatus('error');
@@ -119,6 +180,44 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
     }
   };
 
+  const handleSyncSubmit = async (e) => {
+    e.preventDefault();
+    if (!syncPassword || isSyncing) return;
+    setIsSyncing(true);
+    setSyncError('');
+
+    try {
+      const user = username.trim();
+      const pass = syncPassword;
+      const res = await fetch('/api/pesu-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+      let data = {};
+      try { data = await res.json(); } catch { data = {}; }
+      if (res.ok && data.ok) {
+        setPortalData(data);
+        setPortalStatus('success');
+        const now = new Date().toISOString();
+        setLastSynced(now);
+        localStorage.setItem('pesu_portal_data', JSON.stringify(data));
+        localStorage.setItem('pesu_last_synced', now);
+        setShowSyncModal(false);
+        setSyncPassword('');
+        trackEvent('pesu_portal_sync', { status: 'success' });
+      } else {
+        setSyncError(data.error || 'Sync failed. Please check your password and try again.');
+        trackEvent('pesu_portal_sync', { status: 'failed' });
+      }
+    } catch {
+      setSyncError('Network error — could not reach the portal service.');
+      trackEvent('pesu_portal_sync', { status: 'network_error' });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleLogout = () => {
     setProfile(null);
     setPassword('');
@@ -127,6 +226,10 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
     setPortalData(null);
     setPortalStatus('idle');
     setPortalError('');
+    setLastSynced('');
+    localStorage.removeItem('pesu_profile');
+    localStorage.removeItem('pesu_portal_data');
+    localStorage.removeItem('pesu_last_synced');
   };
 
   const handlePrefill = (presetName) => {
@@ -267,19 +370,34 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
         /* ---------------- PROFILE + PREFILL ---------------- */
         <>
           <div className={`${themeClasses.card} border rounded-xl p-5 shadow-sm`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 font-bold text-zinc-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2 font-bold text-zinc-200">
                 <span className="bg-emerald-500/10 text-emerald-400 w-8 h-8 rounded-full flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4" />
                 </span>
                 <span>Signed in</span>
+                {lastSynced && (
+                  <span className="text-[11px] font-normal text-zinc-500 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.04]">
+                    Synced: {formatLastSynced(lastSynced)}
+                  </span>
+                )}
               </div>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/[0.06] transition-all"
-              >
-                <LogOut className="w-3.5 h-3.5" /> Sign out
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSyncModal(true)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
+                  title="Fetch latest attendance and results"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Re-sync
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/[0.06] transition-all cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" /> Sign out
+                </button>
+              </div>
             </div>
 
             {presentFields.length > 0 ? (
@@ -363,15 +481,112 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
             data={portalData}
             error={portalError}
             onRetry={() => {
-              if (username.trim() && password) fetchPortal(username.trim(), password);
+              if (username.trim() && password) {
+                fetchPortal(username.trim(), password);
+              } else {
+                setShowSyncModal(true);
+              }
             }}
-            canRetry={!!(username.trim() && password)}
+            canRetry={true}
             onSendToPlanner={onSendToPlanner}
             subjects={subjects}
             marks={marks}
             onImportResults={onImportResults}
           />
         </>
+      )}
+
+      {/* Re-sync Modal */}
+      {showSyncModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#0e0e18] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+                <RefreshCw className={`w-4 h-4 text-blue-400 ${isSyncing ? 'animate-spin' : ''}`} /> Re-sync with PESU Academy
+              </h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSyncModal(false);
+                  setSyncPassword('');
+                  setSyncError('');
+                }}
+                disabled={isSyncing}
+                className="text-zinc-500 hover:text-zinc-300 p-1 rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Enter the password for <strong className="text-zinc-200">{username}</strong> to pull the latest attendance records and published exam marks.
+            </p>
+
+            <form onSubmit={handleSyncSubmit} className="space-y-3.5">
+              <div className="flex flex-col space-y-1.5">
+                <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showSyncPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="PESU Academy Password"
+                    value={syncPassword}
+                    onChange={(e) => setSyncPassword(e.target.value)}
+                    disabled={isSyncing}
+                    autoFocus
+                    className={`w-full text-sm p-2.5 pr-10 rounded-lg ${themeClasses.input} transition-all`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSyncPassword((s) => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 cursor-pointer"
+                  >
+                    {showSyncPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {syncError && (
+                <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-2.5">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{syncError}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSyncModal(false);
+                    setSyncPassword('');
+                    setSyncError('');
+                  }}
+                  disabled={isSyncing}
+                  className="flex-1 py-2 text-xs font-semibold rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 border border-white/[0.06] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSyncing || !syncPassword}
+                  className="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-800 disabled:text-zinc-500 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  {isSyncing ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Syncing…
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5" /> Sync Now
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Attribution & disclaimer */}
