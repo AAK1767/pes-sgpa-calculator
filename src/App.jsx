@@ -1913,6 +1913,8 @@ export default function PES_Universal_Calculator() {
             ATTENDANCE_MIN_PERCENT={ATTENDANCE_MIN_PERCENT}
             pesuProfile={pesuProfile}
             portalData={portalData}
+            subjects={subjects}
+            marks={marks}
             setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
           />
         )}

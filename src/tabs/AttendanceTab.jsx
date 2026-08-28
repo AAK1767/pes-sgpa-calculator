@@ -1,7 +1,9 @@
 import React from 'react';
 import {
-  CheckCircle2, ChevronDown, TrendingUp, Activity, AlertCircle, RefreshCw
+  CheckCircle2, ChevronDown, TrendingUp, Activity, AlertCircle, RefreshCw, CalendarRange, Layers
 } from 'lucide-react';
+import { CalendarView } from '../components/PesuPortalData';
+import InteractiveAttendancePlanner from '../components/InteractiveAttendancePlanner';
 
 export default function AttendanceTab({
   themeClasses,
@@ -25,7 +27,9 @@ export default function AttendanceTab({
   ATTENDANCE_MIN_PERCENT,
   pesuProfile,
   portalData,
-  setActiveTab
+  setActiveTab,
+  subjects,
+  marks
 }) {
   const isLoggedIn = !!pesuProfile;
 
@@ -50,9 +54,19 @@ export default function AttendanceTab({
 
       {isLoggedIn && portalData && (
         <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-xs text-amber-200/80">
-          PESU data detected: Calendar view & Timetable-based planning is active. (Manual entries still work).
+          PESU data detected: Interactive Planner & Calendar view is active. Adjust attendance projections with bunked days!
         </div>
       )}
+
+      {/* NEW PLANNER SECTION */}
+      <InteractiveAttendancePlanner
+         portalData={portalData}
+         pesuProfile={pesuProfile}
+         calcSubjects={subjects}
+         calcMarks={marks}
+         setActiveTab={setActiveTab}
+         themeClasses={themeClasses}
+      />
 
       <details className={`${themeClasses.card} border rounded-xl group`} open>
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
@@ -486,6 +500,21 @@ export default function AttendanceTab({
           )}
         </div>
       </details>
+      
+      {isLoggedIn && portalData?.calendar && (
+        <details className={`${themeClasses.card} border rounded-xl group`}>
+          <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+            <div className="flex items-center gap-2">
+              <CalendarRange className="w-4 h-4 text-zinc-400" />
+              <span className="text-sm font-bold text-zinc-400">Calendar of Events</span>
+            </div>
+            <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="p-4 pt-0">
+            <CalendarView calendar={portalData.calendar} />
+          </div>
+        </details>
+      )}
     </div>
   );
 }

@@ -742,7 +742,7 @@ function CalSummaryChip({ value, label, accent }) {
   );
 }
 
-function CalendarView({ calendar }) {
+export function CalendarView({ calendar }) {
   if (!calendar || calendar.error || !calendar.events || calendar.events.length === 0) {
     return <EmptyNote>No calendar of events was found for your account.</EmptyNote>;
   }
