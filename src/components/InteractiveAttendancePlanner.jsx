@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
-  Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2,
+  Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2,
   AlertCircle, RefreshCw, Send, Plus, Trash2, Edit2, RotateCcw,
   Sparkles, Download, Layers, ShieldCheck, Check, AlertTriangle, BookOpen,
   LogIn, Clock, Eye, EyeOff
@@ -51,6 +51,7 @@ function statusColor(pct) {
 
 export default function InteractiveAttendancePlanner({
   portalData,
+  setPortalData,
   pesuProfile,
   calcSubjects,
   calcMarks,
@@ -94,7 +95,7 @@ export default function InteractiveAttendancePlanner({
 
   useEffect(() => {
     localStorage.setItem('pes_bunked_dates', JSON.stringify(bunkedDates));
-  }, [bunkedDates]);
+  }, [bunkedDates, pesuProfile, portalData]);
 
   // --- Resync Modal State ---
   const [showSyncModal, setShowSyncModal] = useState(false);
@@ -411,10 +412,13 @@ export default function InteractiveAttendancePlanner({
           <div className="flex items-center gap-2">
             <input
               type="number"
-              min="75"
-              max="99"
+              min="0"
+              max="100"
               value={targetBuffer}
-              onChange={(e) => setTargetBuffer(parseTargetPercent(e.target.value, 80))}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                setTargetBuffer(Number.isFinite(val) ? val : 80);
+              }}
               className="w-16 p-1.5 font-bold rounded-lg bg-white/[0.04] border border-white/[0.08] text-center text-blue-400 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
             <span className="text-zinc-500 font-semibold">%</span>
@@ -485,80 +489,88 @@ export default function InteractiveAttendancePlanner({
       )}
 
       {/* ================= ALL SUBJECTS TABULAR PLANNER ================= */}
-      <div className="bg-[#0e0e18] border border-white/[0.06] rounded-xl p-4 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-2">
+      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl group" open>
+        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+          <div className="flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-emerald-400" />
-            Subject Attendance Overview
-          </h4>
-          <span className="text-[11px] text-zinc-500">
-            {tableRows.length} subjects loaded
-          </span>
-        </div>
-
-        {tableRows.length === 0 ? (
-          <div className="text-center py-8 text-zinc-500 text-xs">
-            No subjects found. Connect PESU Academy or add subjects in the Subjects tab.
+            <span className="text-sm font-bold text-zinc-100">Subject Attendance Overview</span>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-white/[0.08] text-zinc-400 font-semibold uppercase text-[10px] tracking-wider">
-                  <th className="py-2.5 px-3">Subject</th>
-                  <th className="py-2.5 px-3 text-center">Current</th>
-                  <th className="py-2.5 px-3 text-center">Classes Left</th>
-                  <th className="py-2.5 px-3 text-center">Bunked</th>
-                  <th className="py-2.5 px-3 text-center">Projected %</th>
-                  <th className="py-2.5 px-3 text-center">75% Skips Left</th>
-                  <th className="py-2.5 px-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.04]">
-                {tableRows.map((row) => {
-                  const key = row.key;
-                  return (
-                    <tr key={key} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-3 px-3">
-                        <div className="font-semibold text-zinc-200">{row.name}</div>
-                        {row.code && <div className="text-[10px] text-zinc-500">{row.code}</div>}
-                      </td>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-zinc-500">
+              {tableRows.length} subjects loaded
+            </span>
+            <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
+          </div>
+        </summary>
+        
+        <div className="p-4 pt-0 space-y-4">
+          <p className="text-[10px] text-zinc-500 italic">
+            Click the <strong className="text-blue-400">Action (Send)</strong> button next to any subject to copy its data to the individual modes below for deeper calculation.
+          </p>
 
-                      <td className="py-3 px-3 text-center">
-                        <div className="font-bold text-zinc-200">{row.attended}/{row.total}</div>
-                        <div className="text-[10px] text-zinc-500">{row.currentPct.toFixed(1)}%</div>
-                      </td>
+          {tableRows.length === 0 ? (
+            <div className="text-center py-8 text-zinc-500 text-xs">
+              No subjects found. Connect PESU Academy or add subjects in the Subjects tab.
+            </div>
+          ) : (
+            <div className="overflow-x-auto -mx-5 sm:mx-0 px-5 sm:px-0 scrollbar-hide">
+              <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-white/[0.08] text-zinc-400 font-semibold uppercase text-[10px] tracking-wider">
+                <th className="py-2.5 px-3">Subject</th>
+                <th className="py-2.5 px-3 text-center">Current</th>
+                <th className="py-2.5 px-3 text-center">Classes Left</th>
+                <th className="py-2.5 px-3 text-center">Bunked</th>
+                <th className="py-2.5 px-3 text-center">Projected %</th>
+                <th className="py-2.5 px-3 text-center">75% Skips Left</th>
+                <th className="py-2.5 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.04]">
+              {tableRows.map((row) => {
+                const key = row.key;
+                return (
+                  <tr key={key} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 px-3 min-w-[120px]">
+                      <div className="font-semibold text-zinc-200">{row.name}</div>
+                      {row.code && <div className="text-[10px] text-zinc-500">{row.code}</div>}
+                    </td>
 
-                      <td className="py-3 px-3 text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          value={manualOverrides[key]?.classesLeft !== undefined ? manualOverrides[key].classesLeft : row.classesLeft}
-                          onChange={(e) => updateSubjectOverride(key, 'classesLeft', e.target.value)}
-                          className="w-16 p-1 text-center font-semibold rounded bg-white/[0.04] border border-white/[0.08] text-zinc-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                          title="Edit estimated classes left"
-                        />
-                      </td>
+                    <td className="py-3 px-3 text-center min-w-[70px]">
+                      <div className="font-bold text-zinc-200">{row.attended}/{row.total}</div>
+                      <div className="text-[10px] text-zinc-500">{row.currentPct.toFixed(1)}%</div>
+                    </td>
 
-                      <td className="py-3 px-3 text-center font-bold text-purple-400">
-                        {row.selectedBunks > 0 ? `-${row.selectedBunks}` : '0'}
-                      </td>
+                    <td className="py-3 px-3 text-center min-w-[90px]">
+                      <input
+                        type="number"
+                        min="0"
+                        value={manualOverrides[key]?.classesLeft !== undefined ? manualOverrides[key].classesLeft : row.classesLeft}
+                        onChange={(e) => updateSubjectOverride(key, 'classesLeft', e.target.value)}
+                        className="w-16 p-1 text-center font-semibold rounded bg-white/[0.04] border border-white/[0.08] text-zinc-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                        title="Edit estimated classes left"
+                      />
+                    </td>
 
-                      <td className="py-3 px-3 text-center">
-                        <span className={`px-2 py-0.5 rounded border font-bold ${statusColor(row.projectedPct)}`}>
-                          {row.projectedPct.toFixed(1)}%
-                        </span>
-                      </td>
+                    <td className="py-3 px-3 text-center font-bold text-purple-400 min-w-[70px]">
+                      {row.selectedBunks > 0 ? `-${row.selectedBunks}` : '0'}
+                    </td>
 
-                      <td className="py-3 px-3 text-center">
-                        {row.safeMisses75 > 0 ? (
-                          <span className="text-emerald-400 font-bold">+{row.safeMisses75} safe</span>
-                        ) : (
-                          <span className="text-red-400 font-bold">Must attend {row.mustAttend75}</span>
-                        )}
-                      </td>
+                    <td className="py-3 px-3 text-center min-w-[80px]">
+                      <span className={`px-2 py-0.5 rounded border font-bold whitespace-nowrap ${statusColor(row.projectedPct)}`}>
+                        {row.projectedPct.toFixed(1)}%
+                      </span>
+                    </td>
 
-                      <td className="py-3 px-3 text-right">
+                    <td className="py-3 px-3 text-center min-w-[100px]">
+                      {row.safeMisses75 > 0 ? (
+                        <span className="text-emerald-400 font-bold">+{row.safeMisses75} safe</span>
+                      ) : (
+                        <span className="text-red-400 font-bold whitespace-nowrap">Attend {row.mustAttend75}</span>
+                      )}
+                    </td>
+
+                    <td className="py-3 px-3 text-right">
                         <button
                           onClick={() => onSendToPlanner && onSendToPlanner({
                             total: row.total,
@@ -567,7 +579,7 @@ export default function InteractiveAttendancePlanner({
                             name: row.name
                           })}
                           className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-all cursor-pointer"
-                          title="Open detailed single-subject planner"
+                          title="Send to Mode 1 Planner"
                         >
                           <Send className="w-3.5 h-3.5" />
                         </button>
@@ -579,56 +591,66 @@ export default function InteractiveAttendancePlanner({
             </table>
           </div>
         )}
-      </div>
+        </div>
+      </details>
 
       {/* ================= INTERACTIVE GRID CALENDAR ================= */}
-      <div className="bg-[#0e0e18] border border-white/[0.06] rounded-xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
+      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl group" open>
+        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
           <div className="flex items-center gap-2">
-            <button
-              onClick={prevMonth}
-              className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-colors cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <h4 className="text-sm font-bold text-zinc-200 min-w-[140px] text-center">
-              {MONTH_NAMES[currentMonth]} {currentYear}
-            </h4>
-            <button
-              onClick={nextMonth}
-              className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-colors cursor-pointer"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            <CalendarIcon className="w-5 h-5 text-blue-400" />
+            <span className="text-sm font-bold text-zinc-100">Full-Semester Calendar</span>
+          </div>
+          <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
+        </summary>
+        
+        <div className="p-4 pt-0 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={prevMonth}
+                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <h4 className="text-sm font-bold text-zinc-200 min-w-[140px] text-center">
+                {MONTH_NAMES[currentMonth]} {currentYear}
+              </h4>
+              <button
+                onClick={nextMonth}
+                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-end gap-3 text-[11px]">
+              <span className="flex items-center gap-1 text-zinc-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600 inline-block" /> Weekend
+              </span>
+              <span className="flex items-center gap-1 text-red-300/60">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> Holiday
+              </span>
+              <span className="flex items-center gap-1 text-red-300/60">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> After ISA2
+              </span>
+              <span className="flex items-center gap-1 text-amber-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Exam
+              </span>
+              <span className="flex items-center gap-1 text-purple-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block" /> Bunked
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-[11px]">
-            <span className="flex items-center gap-1 text-zinc-400">
-              <span className="w-2.5 h-2.5 rounded-full bg-zinc-600 inline-block" /> Weekend
-            </span>
-            <span className="flex items-center gap-1 text-red-300/60">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> Holiday
-            </span>
-            <span className="flex items-center gap-1 text-red-300/60">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> After ISA2
-            </span>
-            <span className="flex items-center gap-1 text-amber-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Exam
-            </span>
-            <span className="flex items-center gap-1 text-purple-300">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block" /> Bunked
-            </span>
-          </div>
-        </div>
+          {/* Instruction */}
+          <p className="text-xs text-purple-300/80 font-medium flex items-center gap-1.5">
+            <CalendarIcon className="w-3.5 h-3.5" />
+            Click on any teaching day to mark it as bunked. Your attendance projections will update instantly.
+          </p>
 
-        {/* Instruction */}
-        <p className="text-xs text-purple-300/80 font-medium flex items-center gap-1.5">
-          <CalendarIcon className="w-3.5 h-3.5" />
-          Click on any teaching day to mark it as bunked. Your attendance projections will update instantly.
-        </p>
-
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-1.5 text-center">
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-1.5 text-center">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
             <div key={d} className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 py-1">
               {d}
@@ -682,8 +704,9 @@ export default function InteractiveAttendancePlanner({
               </button>
             );
           })}
+          </div>
         </div>
-      </div>
+      </details>
     </div>
   );
 }

@@ -27,11 +27,35 @@ export default function AttendanceTab({
   ATTENDANCE_MIN_PERCENT,
   pesuProfile,
   portalData,
+  setPortalData,
   setActiveTab,
   subjects,
-  marks
+  marks,
+  onSendToPlanner
 }) {
   const isLoggedIn = !!pesuProfile;
+
+  const sendToAttendancePlanner = ({ total, attended, classesLeft, name }) => {
+    setAttendanceStatusMode((prev) => ({
+      ...prev,
+      total: total != null ? String(total) : prev.total,
+      attended: attended != null ? String(attended) : prev.attended,
+    }));
+    if (classesLeft != null) {
+      setAttendanceClassesLeftMode({ classesLeft: String(classesLeft) });
+    }
+    
+    // Auto-open Mode 1 and Mode 2, then scroll to Mode 1
+    const mode1 = document.getElementById('mode-1-details');
+    const mode2 = document.getElementById('mode-2-details');
+    if (mode1) {
+      mode1.open = true;
+      setTimeout(() => mode1.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+    if (mode2) mode2.open = true;
+
+    setActiveTab('attendance');
+  };
 
   return (
     <div className="space-y-6">
@@ -61,14 +85,16 @@ export default function AttendanceTab({
       {/* NEW PLANNER SECTION */}
       <InteractiveAttendancePlanner
          portalData={portalData}
+         setPortalData={setPortalData}
          pesuProfile={pesuProfile}
          calcSubjects={subjects}
          calcMarks={marks}
          setActiveTab={setActiveTab}
          themeClasses={themeClasses}
+         onSendToPlanner={sendToAttendancePlanner}
       />
 
-      <details className={`${themeClasses.card} border rounded-xl group`} open={!isLoggedIn}>
+      <details id="mode-1-details" className={`${themeClasses.card} border rounded-xl group`} open={!isLoggedIn}>
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -239,7 +265,7 @@ export default function AttendanceTab({
         </div>
       </details>
 
-      <details className={`${themeClasses.card} border rounded-xl group`}>
+      <details id="mode-2-details" className={`${themeClasses.card} border rounded-xl group`}>
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-blue-400" />
@@ -298,8 +324,65 @@ export default function AttendanceTab({
       <details className={`${themeClasses.card} border rounded-xl group`}>
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
           <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-amber-400" />
+            <span className="text-sm font-bold">Mode 3 — Miss Impact Planner</span>
+          </div>
+          <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
+        </summary>
+
+        <div className="p-4 pt-0 space-y-4">
+          <div className={`text-[10px] ${themeClasses.muted}`}>
+            {statusStats.ready
+              ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%).`
+              : 'Fill Mode 1 first to unlock this planner.'}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>How many classes do you want to miss?</label>
+              <input
+                type="number"
+                value={attendanceMissPlannerMode.misses}
+                onChange={(e) => setAttendanceMissPlannerMode(prev => ({ ...prev, misses: e.target.value }))}
+                placeholder="e.g. 3"
+                className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none ${themeClasses.input}`}
+              />
+            </div>
+          </div>
+
+          {missImpactPlan && statusStats.ready ? (
+            <div className="space-y-2">
+              <div className={`grid ${missImpactPlan.isBelowAfterMisses ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-2`}>
+                <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
+                  <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing {missImpactPlan.plannedMisses} Class(es)</div>
+                  <div className={`text-sm font-bold mt-1 ${missImpactPlan.isBelowAfterMisses ? 'text-red-400' : ''}`}>{missImpactPlan.attendanceAfterPlannedMisses.toFixed(2)}%</div>
+                </div>
+                {missImpactPlan.isBelowAfterMisses && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 sm:p-3">
+                    <div className="text-[10px] uppercase font-bold opacity-60 text-red-300">Classes You Must Then Attend to Recover 75%</div>
+                    <div className="text-sm font-bold mt-1 text-red-400">{missImpactPlan.classesToRecoverAfterMisses}</div>
+                  </div>
+                )}
+              </div>
+              {missImpactPlan.isBelowAfterMisses && (
+                <div className="text-xs text-red-400/80">
+                  Missing {missImpactPlan.plannedMisses} class(es) will drop you below 75%. You would need to attend {missImpactPlan.classesToRecoverAfterMisses} consecutive classes after that to recover.
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
+              {statusStats.ready ? 'Enter planned missed classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
+            </div>
+          )}
+        </div>
+      </details>
+
+      <details className={`${themeClasses.card} border rounded-xl group`}>
+        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+          <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-bold">Mode 3 — Plan Using Total Semester Classes</span>
+            <span className="text-sm font-bold">Mode 4 — Plan Using Total Semester Classes</span>
           </div>
           <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
         </summary>
@@ -367,7 +450,7 @@ export default function AttendanceTab({
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-violet-400" />
-            <span className="text-sm font-bold">Mode 4 — Weekly Class Range Planner</span>
+            <span className="text-sm font-bold">Mode 5 — Weekly Class Range Planner</span>
           </div>
           <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
         </summary>
@@ -444,63 +527,6 @@ export default function AttendanceTab({
         </div>
       </details>
 
-      <details className={`${themeClasses.card} border rounded-xl group`}>
-        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-amber-400" />
-            <span className="text-sm font-bold">Mode 5 — Miss Impact Planner</span>
-          </div>
-          <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
-        </summary>
-
-        <div className="p-4 pt-0 space-y-4">
-          <div className={`text-[10px] ${themeClasses.muted}`}>
-            {statusStats.ready
-              ? `Using Mode 1 baseline: ${statusStats.attended}/${statusStats.total} (${statusStats.currentPercentage.toFixed(2)}%).`
-              : 'Fill Mode 1 first to unlock this planner.'}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div>
-              <label className={`text-[10px] ${themeClasses.muted} block mb-1`}>How many classes do you want to miss?</label>
-              <input
-                type="number"
-                value={attendanceMissPlannerMode.misses}
-                onChange={(e) => setAttendanceMissPlannerMode(prev => ({ ...prev, misses: e.target.value }))}
-                placeholder="e.g. 3"
-                className={`w-full max-w-[180px] sm:max-w-none p-2 border rounded-lg text-sm font-semibold focus:ring-2 focus:ring-amber-500 focus:outline-none ${themeClasses.input}`}
-              />
-            </div>
-          </div>
-
-          {missImpactPlan && statusStats.ready ? (
-            <div className="space-y-2">
-              <div className={`grid ${missImpactPlan.isBelowAfterMisses ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-2`}>
-                <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
-                  <div className="text-[10px] uppercase font-bold opacity-60">Attendance After Missing {missImpactPlan.plannedMisses} Class(es)</div>
-                  <div className={`text-sm font-bold mt-1 ${missImpactPlan.isBelowAfterMisses ? 'text-red-400' : ''}`}>{missImpactPlan.attendanceAfterPlannedMisses.toFixed(2)}%</div>
-                </div>
-                {missImpactPlan.isBelowAfterMisses && (
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2 sm:p-3">
-                    <div className="text-[10px] uppercase font-bold opacity-60 text-red-300">Classes You Must Then Attend to Recover 75%</div>
-                    <div className="text-sm font-bold mt-1 text-red-400">{missImpactPlan.classesToRecoverAfterMisses}</div>
-                  </div>
-                )}
-              </div>
-              {missImpactPlan.isBelowAfterMisses && (
-                <div className="text-xs text-red-400/80">
-                  Missing {missImpactPlan.plannedMisses} class(es) will drop you below 75%. You would need to attend {missImpactPlan.classesToRecoverAfterMisses} consecutive classes after that to recover.
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className={`text-center py-4 ${themeClasses.muted} text-xs`}>
-              {statusStats.ready ? 'Enter planned missed classes to see the result.' : 'Complete Mode 1 first to use this planner.'}
-            </div>
-          )}
-        </div>
-      </details>
-      
       {isLoggedIn && portalData?.calendar && (
         <details className={`${themeClasses.card} border rounded-xl group`}>
           <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
