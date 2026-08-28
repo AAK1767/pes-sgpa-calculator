@@ -923,12 +923,14 @@ export function PortalData({ status, data, error, onRetry, canRetry, onSendToPla
         />
       )}
       {view === 'results' && (
-        <ResultsView
-          results={data?.results}
-          subjects={subjects}
-          marks={marks}
-          onImportResults={onImportResults}
-        />
+        <div id="results-section">
+          <ResultsView
+            results={data?.results}
+            subjects={subjects}
+            marks={marks}
+            onImportResults={onImportResults}
+          />
+        </div>
       )}
     </div>
   );

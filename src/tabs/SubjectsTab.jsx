@@ -3,7 +3,7 @@ import {
   Settings, ChevronDown, ChevronUp, Undo2, Redo2,
   Download, Upload, Eraser, BarChart3, Scale, Plus,
   Trash2, RotateCcw, Target, Activity, Zap, AlertTriangle,
-  AlertCircle, GraduationCap
+  AlertCircle, GraduationCap, LogIn
 } from 'lucide-react';
 
 export default function SubjectsTab({
@@ -53,16 +53,34 @@ export default function SubjectsTab({
 }) {
   const isLoggedIn = !!pesuProfile;
 
+  const handlePesuImport = () => {
+    if (!isLoggedIn) {
+      setActiveTab('pesu');
+    } else {
+      // First ensure user is on the PESU tab
+      setActiveTab('pesu');
+      // Delay to allow DOM update of tab transition
+      setTimeout(() => {
+        const section = document.getElementById('academic-data-section');
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   return (
     <>
-      {!isLoggedIn && (
-        <div className="flex items-center gap-2 p-3 mb-4 bg-blue-500/10 rounded-lg border border-blue-500/20 text-xs">
-          <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
-          <span className="text-blue-200">Log in to PESU Academy to instantly import your semester's subjects. (optional)</span>
-          <button onClick={() => setActiveTab('pesu')} className="ml-auto text-blue-400 font-bold hover:underline cursor-pointer">Login</button>
-        </div>
-      )}
-      
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handlePesuImport}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/20 transition-colors"
+        >
+          <LogIn className="w-3.5 h-3.5" />
+          {isLoggedIn ? 'Import from PESU Academy' : 'Login to PESU Academy'}
+        </button>
+      </div>
+
       {/* Helper Banner (Optimized for both Mobile & Desktop) */}
       <div className={`${themeClasses.card} border rounded-xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
 
