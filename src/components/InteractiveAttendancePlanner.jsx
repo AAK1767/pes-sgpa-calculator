@@ -68,20 +68,27 @@ export default function InteractiveAttendancePlanner({
   // If not logged in, show login prompt instead of the full planner
   if (!isLoggedIn) {
     return (
-      <div className="bg-[#0e0e18] border border-white/[0.06] rounded-xl p-8 shadow-sm text-center">
-        <AlertCircle className="w-12 h-12 text-blue-400 mx-auto mb-4 opacity-60" />
-        <h3 className="text-lg font-bold text-zinc-200 mb-2">Connect PESU Academy to Unlock</h3>
-        <p className="text-zinc-400 text-sm mb-4 max-w-md mx-auto">
-          Sign in with your PESU Academy credentials to access the interactive attendance planner, calendar with bunk selection, and auto-calculated projections from your timetable.
-        </p>
-        <button
-          onClick={() => setActiveTab('pesu')}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors cursor-pointer"
-        >
-          <LogIn className="w-4 h-4" />
-          Login to PESU Academy
-        </button>
-      </div>
+      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl shadow-sm group" open>
+        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-blue-400" />
+            <h3 className="text-sm font-bold text-zinc-100">Connect PESU Academy to Unlock</h3>
+          </div>
+          <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="p-6 pt-2 text-center border-t border-white/[0.06]">
+          <p className="text-zinc-400 text-sm mb-4 max-w-md mx-auto">
+            Sign in with your PESU Academy credentials to access the interactive attendance planner, calendar with bunk selection, and auto-calculated projections from your timetable. (You can still use the calculator mode without logging in, but it won't have your actual timetable or attendance data.)
+          </p>
+          <button
+            onClick={() => setActiveTab('pesu')}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors cursor-pointer"
+          >
+            <LogIn className="w-4 h-4" />
+            Login to PESU Academy
+          </button>
+        </div>
+      </details>
     );
   }
 
@@ -529,6 +536,7 @@ export default function InteractiveAttendancePlanner({
                 <th className="py-2.5 px-3 text-center">Bunked</th>
                 <th className="py-2.5 px-3 text-center">Projected %</th>
                 <th className="py-2.5 px-3 text-center">75% Skips Left</th>
+                <th className="py-2.5 px-3 text-center">Buffer Skips</th>
                 <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
             </thead>
@@ -573,6 +581,14 @@ export default function InteractiveAttendancePlanner({
                         <span className="text-emerald-400 font-bold">+{row.safeMisses75} safe</span>
                       ) : (
                         <span className="text-red-400 font-bold whitespace-nowrap">Attend {row.mustAttend75}</span>
+                      )}
+                    </td>
+
+                    <td className="py-3 px-3 text-center min-w-[100px]">
+                      {row.safeMissesBuffer > 0 ? (
+                        <span className="text-emerald-400 font-bold">+{row.safeMissesBuffer} safe</span>
+                      ) : (
+                        <span className="text-red-400 font-bold whitespace-nowrap">Attend {row.mustAttendBuffer}</span>
                       )}
                     </td>
 

@@ -59,7 +59,7 @@ export default function SubjectsTab({
       {!isLoggedIn && (
         <div className="flex items-center gap-2 p-3 mb-4 bg-blue-500/10 rounded-lg border border-blue-500/20 text-xs">
           <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
-          <span className="text-blue-200">Log in to PESU Academy to instantly import your semester's subjects.</span>
+          <span className="text-blue-200">Log in to PESU Academy to instantly import your semester's subjects. (optional)</span>
           <button onClick={() => setActiveTab('pesu')} className="ml-auto text-blue-400 font-bold hover:underline cursor-pointer">Login</button>
         </div>
       )}
