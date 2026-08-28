@@ -154,6 +154,20 @@ export default function PES_Universal_Calculator() {
   // State for Quick CGPA
   const [simpleCgpa, setSimpleCgpa] = useState({ prevCgpa: '', prevCredits: '', currSgpa: '', currCredits: '' });
 
+  // --- PESU Auth State ---
+  const [pesuProfile, setPesuProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_profile');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  const [portalData, setPortalData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_portal_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+
   // --- UI State ---
   const [targetSgpa, setTargetSgpa] = useState(9.0);
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -1762,6 +1776,10 @@ export default function PES_Universal_Calculator() {
           subjects={subjects}
           marks={marks}
           onImportResults={importResultsToSubjects}
+          pesuProfile={pesuProfile}
+          setPesuProfile={setPesuProfile}
+          portalData={portalData}
+          setPortalData={setPortalData}
         />
       </div>
 
@@ -1819,6 +1837,8 @@ export default function PES_Universal_Calculator() {
             removeCustomGrade={removeCustomGrade}
             applyCustomTemplate={applyCustomTemplate}
             applyGradingSchemeToAll={applyGradingSchemeToAll}
+            pesuProfile={pesuProfile}
+            portalData={portalData}
           />
         )}
 
@@ -1891,6 +1911,9 @@ export default function PES_Universal_Calculator() {
             weeklyPlan={weeklyPlan}
             missImpactPlan={missImpactPlan}
             ATTENDANCE_MIN_PERCENT={ATTENDANCE_MIN_PERCENT}
+            pesuProfile={pesuProfile}
+            portalData={portalData}
+            setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
           />
         )}
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  CheckCircle2, ChevronDown, TrendingUp, Activity
+  CheckCircle2, ChevronDown, TrendingUp, Activity, AlertCircle, RefreshCw
 } from 'lucide-react';
 
 export default function AttendanceTab({
@@ -22,10 +22,23 @@ export default function AttendanceTab({
   semesterPlan,
   weeklyPlan,
   missImpactPlan,
-  ATTENDANCE_MIN_PERCENT
+  ATTENDANCE_MIN_PERCENT,
+  pesuProfile,
+  portalData,
+  setActiveTab
 }) {
+  const isLoggedIn = !!pesuProfile;
+
   return (
     <div className="space-y-6">
+      {!isLoggedIn && (
+        <div className="flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 text-xs shadow-sm">
+          <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
+          <span className="text-blue-200">Connect to PESU Academy to automatically track attendance with your own timetable and calendar data.</span>
+          <button onClick={() => setActiveTab('pesu')} className="ml-auto text-blue-400 font-bold hover:underline cursor-pointer">Login</button>
+        </div>
+      )}
+
       <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200">
         <h2 className="text-lg font-bold flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Overall Attendance
@@ -34,6 +47,12 @@ export default function AttendanceTab({
           One subject at a time. Mode 1 is the base, and all planning modes use it automatically.
         </p>
       </div>
+
+      {isLoggedIn && portalData && (
+        <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-xs text-amber-200/80">
+          PESU data detected: Calendar view & Timetable-based planning is active. (Manual entries still work).
+        </div>
+      )}
 
       <details className={`${themeClasses.card} border rounded-xl group`} open>
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
@@ -107,6 +126,15 @@ export default function AttendanceTab({
                   <div className="text-[10px] uppercase font-bold opacity-60">Attendance Entered (Attended / Held)</div>
                   <div className="text-sm font-bold mt-1">{statusStats.attended}/{statusStats.total}</div>
                 </div>
+                {isLoggedIn && (
+                  <button
+                    onClick={() => setActiveTab('pesu')}
+                    className="bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 rounded-lg p-2 sm:p-3 flex flex-col justify-center items-center text-blue-300 transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4 mb-1" />
+                    <span className="text-[10px] font-bold uppercase">Sync Data</span>
+                  </button>
+                )}
                 <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                   <div className="text-[10px] uppercase font-bold opacity-60">Maximum Consecutive Classes You Can Miss Right Now</div>
                   <div className="text-sm font-bold mt-1">{statusStats.maxConsecutiveSkipsNow}</div>

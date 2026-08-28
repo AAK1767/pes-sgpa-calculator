@@ -38,7 +38,7 @@ function formatLastSynced(iso) {
   }
 }
 
-export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults }) {
+export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, pesuProfile, setPesuProfile, portalData: parentPortalData, setPortalData: setParentPortalData }) {
   const [username, setUsername] = useState(() => {
     return localStorage.getItem('pesu_username') || '';
   });
@@ -104,6 +104,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       try { data = await res.json(); } catch { data = {}; }
       if (res.ok && data.ok) {
         setPortalData(data);
+        setParentPortalData && setParentPortalData(data);
         setPortalStatus('success');
         const now = new Date().toISOString();
         setLastSynced(now);
@@ -162,6 +163,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       if (success) {
         const prof = data.profile || {};
         setProfile(prof);
+        setPesuProfile && setPesuProfile(prof);
         setStatus('success');
         localStorage.setItem('pesu_profile', JSON.stringify(prof));
         localStorage.setItem('pesu_username', user);
@@ -198,6 +200,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       try { data = await res.json(); } catch { data = {}; }
       if (res.ok && data.ok) {
         setPortalData(data);
+        setParentPortalData && setParentPortalData(data);
         setPortalStatus('success');
         const now = new Date().toISOString();
         setLastSynced(now);
