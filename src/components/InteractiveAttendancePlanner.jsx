@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2,
   AlertCircle, RefreshCw, Send, Plus, Trash2, Edit2, RotateCcw,
-  Sparkles, Download, Layers, ShieldCheck, Check, AlertTriangle, BookOpen
+  Sparkles, Download, Layers, ShieldCheck, Check, AlertTriangle, BookOpen,
+  LogIn, Clock, Eye, EyeOff
 } from 'lucide-react';
 import {
   buildCurrentAttendanceStats, buildAttendancePlan, parseNonNegativeInt, parseTargetPercent
@@ -56,9 +57,30 @@ export default function InteractiveAttendancePlanner({
   onSendToPlanner,
   setActiveTab,
   themeClasses,
-  onImportResults
+  onImportResults,
+  onResync
 }) {
   const isLoggedIn = !!pesuProfile;
+
+  // If not logged in, show login prompt instead of the full planner
+  if (!isLoggedIn) {
+    return (
+      <div className="bg-[#0e0e18] border border-white/[0.06] rounded-xl p-8 shadow-sm text-center">
+        <AlertCircle className="w-12 h-12 text-blue-400 mx-auto mb-4 opacity-60" />
+        <h3 className="text-lg font-bold text-zinc-200 mb-2">Connect PESU Academy to Unlock</h3>
+        <p className="text-zinc-400 text-sm mb-4 max-w-md mx-auto">
+          Sign in with your PESU Academy credentials to access the interactive attendance planner, calendar with bunk selection, and auto-calculated projections from your timetable.
+        </p>
+        <button
+          onClick={() => setActiveTab('pesu')}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors cursor-pointer"
+        >
+          <LogIn className="w-4 h-4" />
+          Login to PESU Academy
+        </button>
+      </div>
+    );
+  }
 
   // --- Bunked Dates State ---
   const [bunkedDates, setBunkedDates] = useState(() => {
@@ -73,6 +95,49 @@ export default function InteractiveAttendancePlanner({
   useEffect(() => {
     localStorage.setItem('pes_bunked_dates', JSON.stringify(bunkedDates));
   }, [bunkedDates]);
+
+  // --- Resync Modal State ---
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncPassword, setSyncPassword] = useState('');
+  const [showSyncPassword, setShowSyncPassword] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState('');
+
+  const handleSyncSubmit = async (e) => {
+    e.preventDefault();
+    if (!syncPassword || isSyncing) return;
+    setIsSyncing(true);
+    setSyncError('');
+
+    try {
+      const user = localStorage.getItem('pesu_username') || '';
+      const pass = syncPassword;
+      const res = await fetch('/api/pesu-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+      let data = {};
+      try { data = await res.json(); } catch { data = {}; }
+      if (res.ok && data.ok) {
+        // We need to update the parent portalData state
+        // Since we're passed as children, we can't directly set it
+        // But we can trigger a storage event or just reload the page
+        localStorage.setItem('pesu_portal_data', JSON.stringify(data));
+        localStorage.setItem('pesu_last_synced', new Date().toISOString());
+        setShowSyncModal(false);
+        setSyncPassword('');
+        // Force page refresh to pick up new data
+        window.location.reload();
+      } else {
+        setSyncError(data.error || 'Sync failed. Please check your password and try again.');
+      }
+    } catch {
+      setSyncError('Network error — could not reach the portal service.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const toggleBunkDate = (iso) => {
     setBunkedDates((prev) =>
@@ -302,21 +367,32 @@ export default function InteractiveAttendancePlanner({
               All-Subject Attendance & Bunk Planner
             </h3>
             <p className="text-xs text-zinc-400 mt-1">
-              Select dates on the calendar to simulate bunking. See updated attendance, remaining safe misses, and 75% target impact for all subjects at once.
+              Click dates on the calendar below to simulate bunking. See updated attendance, remaining safe misses, and 75% target impact for all subjects at once.
             </p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {isLoggedIn && (
-              <button
-                onClick={() => onImportResults && onImportResults({ mode: 'rebuild', fills: [], creates: [] })}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition-all cursor-pointer"
-                title="Import portal subjects to calculator"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Import All Subjects
-              </button>
-            )}
+            {(() => {
+              const ls = localStorage.getItem('pesu_last_synced');
+              if (!ls) return null;
+              try {
+                return (
+                  <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 bg-white/[0.03] rounded-lg px-3 py-1.5 border border-white/[0.06]">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Last synced: {new Date(ls).toLocaleString()}</span>
+                  </div>
+                );
+              } catch { return null; }
+            })()}
+
+            <button
+               onClick={() => setShowSyncModal(true)}
+               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition-all cursor-pointer"
+               title="Resync data from PESU Academy"
+            >
+               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+               Resync
+            </button>
 
             {(bunkedDates.length > 0 || Object.keys(manualOverrides).length > 0) && (
               <button
@@ -345,6 +421,68 @@ export default function InteractiveAttendancePlanner({
           </div>
         </div>
       </div>
+
+      {/* ==================== RESYNC MODAL ==================== */}
+      {showSyncModal && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setShowSyncModal(false)}
+        >
+          <div
+            className="relative bg-[#111118] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-zinc-200 mb-4">Resync Portal Data</h3>
+            <p className="text-xs text-zinc-400 mb-4">Enter your password to refresh timetable and calendar data.</p>
+            <form onSubmit={handleSyncSubmit} className="space-y-4">
+              <div className="relative">
+                <input
+                  type={showSyncPassword ? 'text' : 'password'}
+                  placeholder="PESU Academy Password"
+                  value={syncPassword}
+                  onChange={(e) => setSyncPassword(e.target.value)}
+                  className="w-full p-2.5 rounded-lg bg-[#0a0a12] border border-white/[0.08] text-sm text-zinc-200 pr-10"
+                  required
+                  disabled={isSyncing}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSyncPassword((p) => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                >
+                  {showSyncPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {syncError && (
+                <p className="text-xs text-red-400">{syncError}</p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowSyncModal(false); setSyncPassword(''); setSyncError(''); }}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-zinc-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSyncing}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white disabled:opacity-50"
+                >
+                  {isSyncing ? (
+                    <span className="flex items-center gap-1.5">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      Syncing...
+                    </span>
+                  ) : (
+                    'Sync Now'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ================= ALL SUBJECTS TABULAR PLANNER ================= */}
       <div className="bg-[#0e0e18] border border-white/[0.06] rounded-xl p-4 shadow-sm space-y-4">
@@ -482,6 +620,12 @@ export default function InteractiveAttendancePlanner({
             </span>
           </div>
         </div>
+
+        {/* Instruction */}
+        <p className="text-xs text-purple-300/80 font-medium flex items-center gap-1.5">
+          <CalendarIcon className="w-3.5 h-3.5" />
+          Click on any teaching day to mark it as bunked. Your attendance projections will update instantly.
+        </p>
 
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-1.5 text-center">

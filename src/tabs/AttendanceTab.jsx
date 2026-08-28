@@ -68,7 +68,7 @@ export default function AttendanceTab({
          themeClasses={themeClasses}
       />
 
-      <details className={`${themeClasses.card} border rounded-xl group`} open>
+      <details className={`${themeClasses.card} border rounded-xl group`} open={!isLoggedIn}>
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
