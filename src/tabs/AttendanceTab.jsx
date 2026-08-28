@@ -168,15 +168,6 @@ export default function AttendanceTab({
                   <div className="text-[10px] uppercase font-bold opacity-60">Attendance Entered (Attended / Held)</div>
                   <div className="text-sm font-bold mt-1">{statusStats.attended}/{statusStats.total}</div>
                 </div>
-                {isLoggedIn && (
-                  <button
-                    onClick={() => setActiveTab('pesu')}
-                    className="bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 rounded-lg p-2 sm:p-3 flex flex-col justify-center items-center text-blue-300 transition-colors"
-                  >
-                    <RefreshCw className="w-4 h-4 mb-1" />
-                    <span className="text-[10px] font-bold uppercase">Sync Data</span>
-                  </button>
-                )}
                 <div className="bg-white/[0.04] rounded-lg p-2 sm:p-3">
                   <div className="text-[10px] uppercase font-bold opacity-60">Maximum Consecutive Classes You Can Miss Right Now</div>
                   <div className="text-sm font-bold mt-1">{statusStats.maxConsecutiveSkipsNow}</div>
