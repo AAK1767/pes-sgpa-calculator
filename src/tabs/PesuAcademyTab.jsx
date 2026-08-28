@@ -38,7 +38,7 @@ function formatLastSynced(iso) {
   }
 }
 
-export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, pesuProfile, setPesuProfile, portalData: parentPortalData, setPortalData: setParentPortalData }) {
+export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, setPesuProfile, setPortalData: setParentPortalData }) {
   const [username, setUsername] = useState(() => {
     return localStorage.getItem('pesu_username') || '';
   });

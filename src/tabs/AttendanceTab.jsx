@@ -30,12 +30,11 @@ export default function AttendanceTab({
   setPortalData,
   setActiveTab,
   subjects,
-  marks,
-  onSendToPlanner
+  marks
 }) {
   const isLoggedIn = !!pesuProfile;
 
-  const sendToAttendancePlanner = ({ total, attended, classesLeft, name }) => {
+  const sendToAttendancePlanner = ({ total, attended, classesLeft }) => {
     setAttendanceStatusMode((prev) => ({
       ...prev,
       total: total != null ? String(total) : prev.total,

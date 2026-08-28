@@ -49,8 +49,7 @@ export default function SubjectsTab({
   removeCustomGrade,
   applyCustomTemplate,
   applyGradingSchemeToAll,
-  pesuProfile,
-  portalData
+  pesuProfile
 }) {
   const isLoggedIn = !!pesuProfile;
 

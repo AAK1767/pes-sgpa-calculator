@@ -6,10 +6,10 @@ import {
   LogIn, Clock, Eye, EyeOff
 } from 'lucide-react';
 import {
-  buildCurrentAttendanceStats, buildAttendancePlan, parseNonNegativeInt, parseTargetPercent
+  buildAttendancePlan, parseNonNegativeInt
 } from '../utils/attendanceCalculations';
 import {
-  buildAttendanceProjection, todayIsoLocal, isoWeekday, addDaysIso, excludedDateSet, findIsa2Start
+  buildAttendanceProjection, todayIsoLocal, isoWeekday, addDaysIso, findIsa2Start
 } from '../utils/attendanceProjection';
 
 /* ------------------------------- Date Helpers ------------------------------- */
@@ -51,23 +51,80 @@ function statusColor(pct) {
 
 export default function InteractiveAttendancePlanner({
   portalData,
-  setPortalData,
   pesuProfile,
   calcSubjects,
-  calcMarks,
-  onSendToPlanner,
   setActiveTab,
-  themeClasses,
-  onImportResults,
-  onResync,
   bufferPercent,
   setBufferPercent
 }) {
   const isLoggedIn = !!pesuProfile;
 
-  // If not logged in, show login prompt instead of the full planner
+  // --- Bunked Dates State ---
+  const [bunkedDates, setBunkedDates] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pes_bunked_dates');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pes_bunked_dates', JSON.stringify(bunkedDates));
+  }, [bunkedDates, pesuProfile, portalData]);
+
+  // --- Resync Modal State ---
+  const [showSyncModal, setShowSyncModal] = useState(false);
+  const [syncPassword, setSyncPassword] = useState('');
+  const [showSyncPassword, setShowSyncPassword] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState('');
+
+  // --- Active Month Navigation ---
+  const todayStr = useMemo(() => todayIsoLocal(), []);
+  const [currentYear, setCurrentYear] = useState(() => parseInt(todayStr.split('-')[0], 10));
+  const [currentMonth, setCurrentMonth] = useState(() => parseInt(todayStr.split('-')[1], 10) - 1);
+
+  const [manualOverrides, setManualOverrides] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pes_attendance_manual_overrides');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('pes_attendance_manual_overrides', JSON.stringify(manualOverrides));
+  }, [manualOverrides]);
+
+  const clearAllBunks = () => {
+    if (window.confirm('Clear all selected bunk dates?')) {
+      setBunkedDates([]);
+    }
+  };
+
+  const prevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear((y) => y - 1);
+    } else {
+      setCurrentMonth((m) => m - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear((y) => y + 1);
+    } else {
+      setCurrentMonth((m) => m + 1);
+    }
+  };
+
+  // --- Login prompt (before render, return here) ---
   if (!isLoggedIn) {
-    return (
+     return (
       <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl shadow-sm group" open>
         <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
           <div className="flex items-center gap-2">
@@ -92,27 +149,6 @@ export default function InteractiveAttendancePlanner({
     );
   }
 
-  // --- Bunked Dates State ---
-  const [bunkedDates, setBunkedDates] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pes_bunked_dates');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('pes_bunked_dates', JSON.stringify(bunkedDates));
-  }, [bunkedDates, pesuProfile, portalData]);
-
-  // --- Resync Modal State ---
-  const [showSyncModal, setShowSyncModal] = useState(false);
-  const [syncPassword, setSyncPassword] = useState('');
-  const [showSyncPassword, setShowSyncPassword] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncError, setSyncError] = useState('');
-
   const handleSyncSubmit = async (e) => {
     e.preventDefault();
     if (!syncPassword || isSyncing) return;
@@ -130,14 +166,10 @@ export default function InteractiveAttendancePlanner({
       let data = {};
       try { data = await res.json(); } catch { data = {}; }
       if (res.ok && data.ok) {
-        // We need to update the parent portalData state
-        // Since we're passed as children, we can't directly set it
-        // But we can trigger a storage event or just reload the page
         localStorage.setItem('pesu_portal_data', JSON.stringify(data));
         localStorage.setItem('pesu_last_synced', new Date().toISOString());
         setShowSyncModal(false);
         setSyncPassword('');
-        // Force page refresh to pick up new data
         window.location.reload();
       } else {
         setSyncError(data.error || 'Sync failed. Please check your password and try again.');
@@ -153,35 +185,6 @@ export default function InteractiveAttendancePlanner({
     setBunkedDates((prev) =>
       prev.includes(iso) ? prev.filter((d) => d !== iso) : [...prev, iso]
     );
-  };
-
-  const clearAllBunks = () => {
-    if (window.confirm('Clear all selected bunk dates?')) {
-      setBunkedDates([]);
-    }
-  };
-
-  // --- Active Month Navigation ---
-  const todayStr = todayIsoLocal();
-  const [currentYear, setCurrentYear] = useState(() => parseInt(todayStr.split('-')[0], 10));
-  const [currentMonth, setCurrentMonth] = useState(() => parseInt(todayStr.split('-')[1], 10) - 1);
-
-  const prevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  };
-
-  const nextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
   };
 
   const targetBuffer = bufferPercent;
@@ -229,19 +232,6 @@ export default function InteractiveAttendancePlanner({
   }, [timetable]);
 
   // --- Subjects Data state (Supports portal attendance OR calculator subjects OR custom) ---
-  const [manualOverrides, setManualOverrides] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pes_attendance_manual_overrides');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('pes_attendance_manual_overrides', JSON.stringify(manualOverrides));
-  }, [manualOverrides]);
-
   const updateSubjectOverride = (key, field, value) => {
     setManualOverrides((prev) => ({
       ...prev,
