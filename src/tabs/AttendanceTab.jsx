@@ -92,6 +92,8 @@ export default function AttendanceTab({
          setActiveTab={setActiveTab}
          themeClasses={themeClasses}
          onSendToPlanner={sendToAttendancePlanner}
+         bufferPercent={attendanceStatusMode.bufferPercent}
+         setBufferPercent={(val) => setAttendanceStatusMode(prev => ({ ...prev, bufferPercent: val }))}
       />
 
       <details id="mode-1-details" className={`${themeClasses.card} border rounded-xl group`} open={!isLoggedIn}>

@@ -59,7 +59,9 @@ export default function InteractiveAttendancePlanner({
   setActiveTab,
   themeClasses,
   onImportResults,
-  onResync
+  onResync,
+  bufferPercent,
+  setBufferPercent
 }) {
   const isLoggedIn = !!pesuProfile;
 
@@ -175,8 +177,8 @@ export default function InteractiveAttendancePlanner({
     }
   };
 
-  // --- Target Buffer % State ---
-  const [targetBuffer, setTargetBuffer] = useState(80);
+  const targetBuffer = bufferPercent;
+  const setTargetBuffer = setBufferPercent;
 
   // --- Timetable & Calendar Projection ---
   const timetable = portalData?.timetable;
@@ -417,7 +419,11 @@ export default function InteractiveAttendancePlanner({
               value={targetBuffer}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
-                setTargetBuffer(Number.isFinite(val) ? val : 80);
+                if (Number.isFinite(val)) {
+                  setTargetBuffer(Math.min(100, Math.max(0, val)));
+                } else {
+                  setTargetBuffer(''); // Allow temporary empty state for typing
+                }
               }}
               className="w-16 p-1.5 font-bold rounded-lg bg-white/[0.04] border border-white/[0.08] text-center text-blue-400 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
