@@ -55,7 +55,8 @@ export default function InteractiveAttendancePlanner({
   calcSubjects,
   setActiveTab,
   bufferPercent,
-  setBufferPercent
+  setBufferPercent,
+  onSendToPlanner
 }) {
   const isLoggedIn = !!pesuProfile;
 
@@ -121,33 +122,6 @@ export default function InteractiveAttendancePlanner({
       setCurrentMonth((m) => m + 1);
     }
   };
-
-  // --- Login prompt (before render, return here) ---
-  if (!isLoggedIn) {
-     return (
-      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl shadow-sm group" open>
-        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-blue-400" />
-            <h3 className="text-sm font-bold text-zinc-100">Connect PESU Academy to Unlock</h3>
-          </div>
-          <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
-        </summary>
-        <div className="p-6 pt-2 text-center border-t border-white/[0.06]">
-          <p className="text-zinc-400 text-sm mb-4 max-w-md mx-auto">
-            Sign in with your PESU Academy credentials to access the interactive attendance planner, calendar with bunk selection, and auto-calculated projections from your timetable. (You can still use the calculator mode without logging in, but it won't have your actual timetable or attendance data.)
-          </p>
-          <button
-            onClick={() => setActiveTab('pesu')}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors cursor-pointer"
-          >
-            <LogIn className="w-4 h-4" />
-            Login to PESU Academy
-          </button>
-        </div>
-      </details>
-    );
-  }
 
   const handleSyncSubmit = async (e) => {
     e.preventDefault();
@@ -355,6 +329,33 @@ export default function InteractiveAttendancePlanner({
   const gridDays = useMemo(() => {
     return getMonthDays(currentYear, currentMonth);
   }, [currentYear, currentMonth]);
+
+  // --- Login prompt (before render, return here) ---
+  if (!isLoggedIn) {
+     return (
+      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl shadow-sm group" open>
+        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-blue-400" />
+            <h3 className="text-sm font-bold text-zinc-100">Connect PESU Academy to Unlock</h3>
+          </div>
+          <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="p-6 pt-2 text-center border-t border-white/[0.06]">
+          <p className="text-zinc-400 text-sm mb-4 max-w-md mx-auto">
+            Sign in with your PESU Academy credentials to access the interactive attendance planner, calendar with bunk selection, and auto-calculated projections from your timetable. (You can still use the calculator mode without logging in, but it won't have your actual timetable or attendance data.)
+          </p>
+          <button
+            onClick={() => setActiveTab('pesu')}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors cursor-pointer"
+          >
+            <LogIn className="w-4 h-4" />
+            Login to PESU Academy
+          </button>
+        </div>
+      </details>
+    );
+  }
 
   return (
     <div className="space-y-6">
