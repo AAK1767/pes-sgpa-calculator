@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  BookOpen, HelpCircle, Github, Download, Zap, Target, Dice5, Scale, Lock, Activity, Lightbulb, AlertTriangle, MessageSquare, Star
+  BookOpen, HelpCircle, Github, Download, Zap, Target, Dice5, Scale, Lock, Activity, Lightbulb, AlertTriangle, MessageSquare, Star, CalendarRange
 } from 'lucide-react';
 
 export default function GuideTab({
@@ -51,13 +51,42 @@ export default function GuideTab({
       <div className="bg-gradient-to-br from-[#0e0e18] to-[#0a0a12] border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 relative overflow-hidden">
         <div className="relative z-10">
           <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
-            <BookOpen className="w-6 h-6 text-yellow-300" /> User Guide & Pro Features
+            <BookOpen className="w-6 h-6 text-yellow-300" /> User Guide & Attendance Pro Features
           </h2>
           <p className="text-violet-100 opacity-90 max-w-2xl">
-            Everything you need to know: from keyboard shortcuts to the "Momentum" logic.
+            Everything you need to know: from keyboard shortcuts and momentum logic to the live PESU Academy attendance planner.
           </p>
         </div>
         <HelpCircle className="absolute right-[-20px] bottom-[-40px] w-40 h-40 text-zinc-200 opacity-10 rotate-12" />
+      </div>
+
+      <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
+        <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
+          <span className="bg-blue-500/10 text-blue-400 w-8 h-8 rounded-full flex items-center justify-center text-sm">
+            <CalendarRange className="w-4 h-4" />
+          </span>
+          <span>PESU Academy + Attendance Planner</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-zinc-300">
+          <div className="bg-white/[0.04] rounded-lg p-3 border border-white/[0.06]">
+            <div className="font-bold text-blue-300 mb-1">Live Sync</div>
+            <p className={`${themeClasses.muted} leading-relaxed`}>
+              Sign in with your PESU Academy credentials to fetch your profile, timetable, attendance, calendar, and subject list.
+            </p>
+          </div>
+          <div className="bg-white/[0.04] rounded-lg p-3 border border-white/[0.06]">
+            <div className="font-bold text-emerald-300 mb-1">Smart Planning</div>
+            <p className={`${themeClasses.muted} leading-relaxed`}>
+              Use the attendance planner to model safe skips, class-left targets, and the effect of missed classes on your 75% threshold.
+            </p>
+          </div>
+          <div className="bg-white/[0.04] rounded-lg p-3 border border-white/[0.06]">
+            <div className="font-bold text-violet-300 mb-1">Results Import</div>
+            <p className={`${themeClasses.muted} leading-relaxed`}>
+              One-click result import maps your marks into the calculator automatically, saving time and reducing manual errors.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="text-[10px] opacity-30 text-right pr-1">
@@ -500,15 +529,16 @@ export default function GuideTab({
         </div>
         <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>
           <p>
-            The attendance tool helps you maintain the mandatory <strong>75% attendance</strong>.
+            The attendance tool helps you maintain the mandatory <strong>75% attendance</strong> and visualize the effect of skipped classes before you bunk them.
           </p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li><strong>Mode 1 First:</strong> Enter current held and attended classes once, and the planners reuse it automatically.</li>
-            <li><strong>Clear Results:</strong> Every mode explains how many classes you can miss and how many you must attend to stay above your target.</li>
-            <li><strong>Buffer Target:</strong> Set a stricter target (like 80%) in Mode 1, and all planning modes use it.</li>
+            <li><strong>Interactive Planner:</strong> The current branch adds a calendar-aware attendance planner with per-subject projections, bunk windows, and class-left tracking.</li>
+            <li><strong>Miss Impact + Buffer:</strong> Every mode explains how many classes you can miss and how many you must attend to stay above your target; set a stricter buffer for safety.</li>
+            <li><strong>PESU Academy Sync:</strong> When connected, it can pull timetable and attendance data, then send those numbers into the planner with one click.</li>
           </ul>
           <p className="mt-2 text-xs italic opacity-70">
-            Attendance inputs are saved locally in your browser.
+            Attendance inputs are saved locally in your browser; live portal data remains in-session only unless you re-sync.
           </p>
         </div>
       </div>

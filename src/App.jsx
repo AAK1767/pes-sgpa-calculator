@@ -154,6 +154,20 @@ export default function PES_Universal_Calculator() {
   // State for Quick CGPA
   const [simpleCgpa, setSimpleCgpa] = useState({ prevCgpa: '', prevCredits: '', currSgpa: '', currCredits: '' });
 
+  // --- PESU Auth State ---
+  const [pesuProfile, setPesuProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_profile');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+  const [portalData, setPortalData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('pesu_portal_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+
   // --- UI State ---
   const [targetSgpa, setTargetSgpa] = useState(9.0);
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -1762,6 +1776,10 @@ export default function PES_Universal_Calculator() {
           subjects={subjects}
           marks={marks}
           onImportResults={importResultsToSubjects}
+          pesuProfile={pesuProfile}
+          setPesuProfile={setPesuProfile}
+          portalData={portalData}
+          setPortalData={setPortalData}
         />
       </div>
 
@@ -1819,6 +1837,8 @@ export default function PES_Universal_Calculator() {
             removeCustomGrade={removeCustomGrade}
             applyCustomTemplate={applyCustomTemplate}
             applyGradingSchemeToAll={applyGradingSchemeToAll}
+            pesuProfile={pesuProfile}
+            portalData={portalData}
           />
         )}
 
@@ -1891,6 +1911,13 @@ export default function PES_Universal_Calculator() {
             weeklyPlan={weeklyPlan}
             missImpactPlan={missImpactPlan}
             ATTENDANCE_MIN_PERCENT={ATTENDANCE_MIN_PERCENT}
+            pesuProfile={pesuProfile}
+            portalData={portalData}
+            setPortalData={setPortalData}
+            subjects={subjects}
+            marks={marks}
+            setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}
+            onSendToPlanner={sendToAttendancePlanner}
           />
         )}
 
@@ -1924,7 +1951,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v6.0 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v6.1 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}

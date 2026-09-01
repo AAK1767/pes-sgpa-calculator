@@ -66,14 +66,16 @@
 - **CGPA Target Planner** - Plan required future SGPAs to reach a target CGPA
 
 ### 🎓 PESU Academy Portal Integration
-- **Direct Portal Sync** - Log in with your PESU Academy credentials to fetch live academic records
+- **Direct Portal Sync** - Log in with your PESU Academy credentials to fetch live profile, timetable, attendance, and academic events
 - **One-Click Results Import** - Automatically detect semester presets, map subjects, and load ISA/ESA scores into the calculator
-- **Live Attendance & Bunk Planner** - View per-course attendance stats, safe bunk margins, and class recovery estimates for 75% and 85% thresholds
-- **Academic Schedule & Events** - View instructional days, exams, and holidays directly from the academy calendar
+- **Interactive Attendance Planner** - Use the live timetable and calendar data to model bunked days, safe margins, and class recovery across the semester
+- **Academic Schedule & Events** - View instructional days, exams, holidays, and subject-level attendance snapshots directly from the academy calendar
+- **Auto-Import Presets** - Prefill the app with your branch and semester subjects from PESU Academy in one click
 
 ### 🔧 Advanced Tools
 - **Grade Curve Adjustments** - Customize grade cutoffs per subject when exams are hard
-- **Attendance Calculator** - Track and plan your 75% attendance requirement
+- **Attendance Calculator** - Track and plan your 75% attendance requirement with mode-based planners and a shared buffer target
+- **Interactive Bunk Planning** - Work with calendar-based attendance projections and per-subject target planning to decide safe skips
 - **CIE Component Scaling** - Automatic scaling of continuous internal evaluation components
 - **Lab & Assignment Tracking** - Weighted component system for realistic calculations
 
@@ -148,9 +150,9 @@ npm run preview  # Preview the build locally
 | **Analysis** | View SGPA predictions, minimum ESA requirements, ISA 2 planner with custom assumptions |
 | **Reverse Calc** | Set target SGPA, lock fixed subjects, see required ESA scores with multiple strategy paths |
 | **CGPA** | Calculate cumulative GPA across semesters (up to 8 semesters), track progress toward target |
-| **Attendance** | Track classes and plan attendance to meet 75% requirement |
-| **PESU Academy** | Sync live portal attendance, academic calendar, and import results directly into calculator |
-| **Guide** | In-app documentation and help |
+| **Attendance** | Track classes and plan attendance with the shared baseline, class-left planner, miss-impact planner, and live timetable projections |
+| **PESU Academy** | Sign in to fetch your branch/semester data, timetable, attendance, calendar, and import results directly into the calculator |
+| **Guide** | In-app documentation, feature walkthroughs, and support links |
 
 ### Presets Overview
 
@@ -199,6 +201,11 @@ npm run preview  # Preview the build locally
    - Lock subjects with fixed marks
    - Choose strategy: Efficient, Balanced, or Randomized
    - See exactly what you need to score in each subject
+
+5. **Use the Attendance Planner**
+   - Open the Attendance tab and enter your current held/attended classes
+   - If you are logged in to PESU Academy, use the live timetable and calendar projection tools
+   - Review safe bunk windows, miss impact, and class-left estimates before skipping a lecture
 
 ### Keyboard Shortcuts
 

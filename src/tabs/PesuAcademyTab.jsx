@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
   GraduationCap, LogIn, LogOut, Eye, EyeOff, Loader2, ShieldCheck,
-  AlertCircle, CheckCircle2, ArrowRight, Github, Info, RefreshCw, X
+  AlertCircle, CheckCircle2, ArrowRight, Github, Info, RefreshCw, X, ChevronDown
 } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 import { mapProfileToPreset } from '../utils/pesuMapping';
@@ -38,7 +38,7 @@ function formatLastSynced(iso) {
   }
 }
 
-export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults }) {
+export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, setPesuProfile, setPortalData: setParentPortalData }) {
   const [username, setUsername] = useState(() => {
     return localStorage.getItem('pesu_username') || '';
   });
@@ -104,6 +104,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       try { data = await res.json(); } catch { data = {}; }
       if (res.ok && data.ok) {
         setPortalData(data);
+        setParentPortalData && setParentPortalData(data);
         setPortalStatus('success');
         const now = new Date().toISOString();
         setLastSynced(now);
@@ -162,6 +163,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       if (success) {
         const prof = data.profile || {};
         setProfile(prof);
+        setPesuProfile && setPesuProfile(prof);
         setStatus('success');
         localStorage.setItem('pesu_profile', JSON.stringify(prof));
         localStorage.setItem('pesu_username', user);
@@ -198,6 +200,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       try { data = await res.json(); } catch { data = {}; }
       if (res.ok && data.ok) {
         setPortalData(data);
+        setParentPortalData && setParentPortalData(data);
         setPortalStatus('success');
         const now = new Date().toISOString();
         setLastSynced(now);
@@ -419,26 +422,28 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
           </div>
 
           {/* Prefill action card */}
-          <div className={`${themeClasses.card} border rounded-xl p-5 shadow-sm`}>
-            <div className="flex items-center gap-2 font-bold text-zinc-200 mb-2">
+          <details className="group">
+            <summary className="flex items-center gap-2 font-bold text-zinc-400 mb-2 cursor-pointer list-none select-none hover:text-zinc-300">
               <span className="bg-purple-500/10 text-purple-400 w-8 h-8 rounded-full flex items-center justify-center">
                 <GraduationCap className="w-4 h-4" />
               </span>
-              <span>Prefill the calculator</span>
-            </div>
-            <p className="text-xs text-zinc-500 leading-relaxed mb-4 flex items-start gap-1.5">
-              <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-              <span>{mapping?.message}</span>
-            </p>
+              <span>Detect and load your current sem preset in the calculator</span>
+              <ChevronDown className="w-4 h-4 ml-auto opacity-50 group-open:rotate-180" />
+            </summary>
+            <div className={`${themeClasses.card} border rounded-xl p-5 shadow-sm`}>
+              <p className="text-xs text-zinc-500 leading-relaxed mb-4 flex items-start gap-1.5">
+                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                <span>{mapping?.message}</span>
+              </p>
 
-            {mapping?.status === 'matched' && (
-              <button
-                onClick={() => handlePrefill(mapping.presetName)}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all cursor-pointer"
-              >
-                Load {mapping.presetName} into calculator <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
+              {mapping?.status === 'matched' && (
+                <button
+                  onClick={() => handlePrefill(mapping.presetName)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all cursor-pointer"
+                >
+                  Load {mapping.presetName} into calculator <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
 
             {mapping?.status === 'cycle-choice' && (
               <div className="flex flex-wrap gap-2">
@@ -472,27 +477,34 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
                 </button>
               </div>
             )}
-          </div>
+            </div>
+          </details>
 
-          {/* Timetable / Attendance / Results */}
-          <PortalData
-            themeClasses={themeClasses}
-            status={portalStatus}
-            data={portalData}
-            error={portalError}
-            onRetry={() => {
-              if (username.trim() && password) {
-                fetchPortal(username.trim(), password);
-              } else {
-                setShowSyncModal(true);
-              }
-            }}
-            canRetry={true}
-            onSendToPlanner={onSendToPlanner}
-            subjects={subjects}
-            marks={marks}
-            onImportResults={onImportResults}
-          />
+          {/* Academic data section */}
+          <div id="academic-data-section" className="mt-6">
+            <h2 className="text-sm font-bold text-zinc-300 mb-3">Academic Data</h2>
+            <p className="text-xs text-zinc-500 mb-4 bg-blue-500/5 p-3 rounded-lg border border-blue-500/10">
+              To prefill your ISA marks, scroll down and select "Import marks to calculator" below.
+            </p>
+            <PortalData
+              themeClasses={themeClasses}
+              status={portalStatus}
+              data={portalData}
+              error={portalError}
+              onRetry={() => {
+                if (username.trim() && password) {
+                  fetchPortal(username.trim(), password);
+                } else {
+                  setShowSyncModal(true);
+                }
+              }}
+              canRetry={true}
+              onSendToPlanner={onSendToPlanner}
+              subjects={subjects}
+              marks={marks}
+              onImportResults={onImportResults}
+            />
+          </div>
         </>
       )}
 
