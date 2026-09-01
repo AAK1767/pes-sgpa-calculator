@@ -1951,7 +1951,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v6.0 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v6.1 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}
