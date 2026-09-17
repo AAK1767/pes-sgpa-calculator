@@ -142,6 +142,20 @@ export default function InteractiveAttendancePlanner({
       if (res.ok && data.ok) {
         localStorage.setItem('pesu_portal_data', JSON.stringify(data));
         localStorage.setItem('pesu_last_synced', new Date().toISOString());
+        try {
+          const savedOverrides = JSON.parse(localStorage.getItem('pes_attendance_manual_overrides') || '{}');
+          const refreshedOverrides = Object.fromEntries(
+            Object.entries(savedOverrides)
+              .map(([key, override]) => {
+                const { classesLeft, ...manualValues } = override || {};
+                return [key, manualValues];
+              })
+              .filter(([, override]) => Object.keys(override).length > 0)
+          );
+          localStorage.setItem('pes_attendance_manual_overrides', JSON.stringify(refreshedOverrides));
+        } catch {
+          localStorage.removeItem('pes_attendance_manual_overrides');
+        }
         setShowSyncModal(false);
         setSyncPassword('');
         window.location.reload();
