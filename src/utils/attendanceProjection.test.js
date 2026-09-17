@@ -4,6 +4,8 @@ import {
   isoWeekday,
   addDaysIso,
   findIsa2Start,
+  filterAttendanceCalendar,
+  filterAttendanceCalendarForDisplay,
   excludedDateSet,
   computeTeachingDates,
   buildAttendanceProjection,
@@ -59,6 +61,44 @@ describe("findIsa2Start", () => {
     expect(findIsa2Start([{ name: "ISA-2", start: "2026-10-10" }])).toBe("2026-10-10");
     expect(findIsa2Start([{ name: "ISA2", start: "2026-10-11" }])).toBe("2026-10-11");
     expect(findIsa2Start([{ name: "ISA 1", start: "2026-09-01" }])).toBeNull();
+  });
+});
+
+describe("filterAttendanceCalendar", () => {
+  const withSAndH = {
+    calendar: { name: "test" },
+    events: [
+      { name: "ISA 2", start: "2026-11-23" },
+      { name: "S&H", start: "2026-12-01" },
+      { name: "FAM 1", start: "2026-12-02" },
+    ],
+  };
+
+  it("keeps S&H for semesters 1 and 2", () => {
+    expect(filterAttendanceCalendar(withSAndH, "Sem 1").events).toHaveLength(3);
+    expect(filterAttendanceCalendar(withSAndH, "Semester 2").events).toHaveLength(3);
+  });
+
+  it("removes S&H from other or unknown semesters", () => {
+    expect(filterAttendanceCalendar(withSAndH, "Sem 3").events.map((e) => e.name)).toEqual([
+      "ISA 2", "FAM 1",
+    ]);
+    expect(filterAttendanceCalendar(withSAndH).events.map((e) => e.name)).toEqual([
+      "ISA 2", "FAM 1",
+    ]);
+  });
+
+  it("hides standard ISA and ESA rows from semester 1 and 2 displays", () => {
+    const visible = filterAttendanceCalendarForDisplay({
+      ...withSAndH,
+      events: [
+        ...withSAndH.events,
+        { name: "ISA 1", start: "2026-09-01" },
+        { name: "ISA 2 S&H", start: "2026-11-23" },
+        { name: "ESA", start: "2026-12-10" },
+      ],
+    }, "Sem 1");
+    expect(visible.events.map((e) => e.name)).toEqual(["S&H", "FAM 1", "ISA 2 S&H"]);
   });
 });
 

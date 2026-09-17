@@ -67,6 +67,31 @@ export function findIsa2Start(events) {
   return firstStartMatching(events, ISA2_NAME_RE);
 }
 
+export function filterAttendanceCalendar(calendar, semester) {
+  if (!calendar || !Array.isArray(calendar.events)) return calendar;
+
+  const semesterNumber = String(semester || '').match(/\d+/)?.[0];
+  const keepSportsAndHealth = semesterNumber === '1' || semesterNumber === '2';
+  const events = calendar.events.filter((event) => {
+    if (!/\bS\s*&\s*H\b/i.test(event?.name || '')) return true;
+    return keepSportsAndHealth;
+  });
+
+  return events.length === calendar.events.length ? calendar : { ...calendar, events };
+}
+
+export function filterAttendanceCalendarForDisplay(calendar, semester) {
+  const filtered = filterAttendanceCalendar(calendar, semester);
+  const semesterNumber = String(semester || '').match(/\d+/)?.[0];
+  if (semesterNumber !== '1' && semesterNumber !== '2') return filtered;
+
+  const events = filtered.events.filter((event) => {
+    const name = event?.name || '';
+    return /\bS\s*&\s*H\b/i.test(name) || !/\b(ISA|ESA)\s*-?\s*[12]?\b/i.test(name);
+  });
+  return events.length === filtered.events.length ? filtered : { ...filtered, events };
+}
+
 // Inclusive list of ISO dates spanning an event (start..end).
 function eachIso(startIso, endIso) {
   const out = [];
