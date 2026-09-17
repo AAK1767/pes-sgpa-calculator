@@ -4,6 +4,10 @@ import {
 } from 'lucide-react';
 import { CalendarView } from '../components/PesuPortalData';
 import InteractiveAttendancePlanner from '../components/InteractiveAttendancePlanner';
+import {
+  filterAttendanceCalendar,
+  filterAttendanceCalendarForDisplay,
+} from '../utils/attendanceProjection';
 
 export default function AttendanceTab({
   themeClasses,
@@ -33,6 +37,12 @@ export default function AttendanceTab({
   marks
 }) {
   const isLoggedIn = !!pesuProfile;
+  const activeAttendanceSemester = portalData?.attendance?.[0]?.semester;
+  const attendanceCalendar = filterAttendanceCalendar(portalData?.calendar, activeAttendanceSemester);
+  const displayAttendanceCalendar = filterAttendanceCalendarForDisplay(
+    portalData?.calendar,
+    activeAttendanceSemester,
+  );
 
   const sendToAttendancePlanner = ({ total, attended, classesLeft }) => {
     setAttendanceStatusMode((prev) => ({
@@ -83,7 +93,7 @@ export default function AttendanceTab({
 
       {/* NEW PLANNER SECTION */}
       <InteractiveAttendancePlanner
-         portalData={portalData}
+        portalData={portalData && { ...portalData, calendar: attendanceCalendar }}
          setPortalData={setPortalData}
          pesuProfile={pesuProfile}
          calcSubjects={subjects}
@@ -529,7 +539,7 @@ export default function AttendanceTab({
             <ChevronDown className="w-4 h-4 opacity-60 transition-transform group-open:rotate-180" />
           </summary>
           <div className="p-4 pt-0">
-            <CalendarView calendar={portalData.calendar} />
+            <CalendarView calendar={displayAttendanceCalendar} />
           </div>
         </details>
       )}

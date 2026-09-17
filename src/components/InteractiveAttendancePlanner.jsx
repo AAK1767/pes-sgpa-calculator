@@ -617,16 +617,16 @@ export default function InteractiveAttendancePlanner({
           <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
         </summary>
         
-        <div className="p-4 pt-0 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center justify-center gap-2 sm:justify-start">
               <button
                 onClick={prevMonth}
                 className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <h4 className="text-sm font-bold text-zinc-200 min-w-[140px] text-center">
+              <h4 className="text-sm font-bold text-zinc-200 min-w-0 w-[124px] sm:w-[140px] text-center">
                 {MONTH_NAMES[currentMonth]} {currentYear}
               </h4>
               <button
@@ -637,7 +637,7 @@ export default function InteractiveAttendancePlanner({
               </button>
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-3 text-[11px]">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-3 sm:text-[11px]">
               <span className="flex items-center gap-1 text-zinc-400">
                 <span className="w-2.5 h-2.5 rounded-full bg-zinc-600 inline-block" /> Weekend
               </span>
@@ -657,22 +657,22 @@ export default function InteractiveAttendancePlanner({
           </div>
 
           {/* Instruction */}
-          <p className="text-xs text-purple-300/80 font-medium flex items-center gap-1.5">
+          <p className="text-[11px] sm:text-xs text-purple-300/80 font-medium flex items-start gap-1.5">
             <CalendarIcon className="w-3.5 h-3.5" />
             Click on any teaching day to mark it as bunked. Your attendance projections will update instantly.
           </p>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1.5 text-center">
+          <div className="grid grid-cols-7 gap-1 text-center sm:gap-1.5">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-            <div key={d} className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 py-1">
+            <div key={d} className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-zinc-500 py-1">
               {d}
             </div>
           ))}
 
           {gridDays.map((cell, idx) => {
             if (!cell) {
-              return <div key={`empty-${idx}`} className="h-14 rounded-lg bg-white/[0.01]" />;
+                return <div key={`empty-${idx}`} className="h-12 sm:h-14 rounded-md sm:rounded-lg bg-white/[0.01]" />;
             }
 
             const iso = cell.date;
@@ -701,14 +701,14 @@ export default function InteractiveAttendancePlanner({
                 key={iso}
                 disabled={!canBunk}
                 onClick={() => canBunk && toggleBunkDate(iso)}
-                className={`h-14 p-1 rounded-lg border flex flex-col justify-between transition-all text-left ${bgClass} ${canBunk ? 'cursor-pointer' : ''}`}
+                className={`h-12 sm:h-14 p-1 rounded-md sm:rounded-lg border flex flex-col justify-between transition-all text-left ${bgClass} ${canBunk ? 'cursor-pointer' : ''}`}
               >
                 <div className="flex items-center justify-between w-full">
-                  <span className="text-xs font-semibold">{cell.dayNumber}</span>
-                  {isBunked && <span className="text-[9px] bg-purple-500 text-white font-bold px-1 rounded">BUNK</span>}
+                  <span className="text-[11px] sm:text-xs font-semibold">{cell.dayNumber}</span>
+                  {isBunked && <span className="text-[8px] sm:text-[9px] bg-purple-500 text-white font-bold px-1 rounded">BUNK</span>}
                 </div>
 
-                <div className="text-[9px] truncate opacity-80 leading-tight">
+                <div className="text-[8px] sm:text-[9px] truncate opacity-80 leading-tight">
                   {isHoliday ? (dayEvents.find(e=>e.isHoliday)?.name || 'Holiday') :
                    isExam ? (dayEvents.find(e=>/\b(ISA|ESA)\b/i.test(e.name||''))?.name || 'Exam') :
                    isAfterISA2 ? 'Teaching Ends' :
@@ -717,6 +717,10 @@ export default function InteractiveAttendancePlanner({
               </button>
             );
           })}
+          </div>
+
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2.5 text-[10px] sm:text-[11px] leading-relaxed text-amber-200/80">
+            <strong className="text-amber-200">Projection disclaimer:</strong> Calendar-based estimates may not be fully accurate, especially for Semesters 1 and 2. Holidays can be followed by compensatory classes, including extra classes or half-day timetable changes, and the timetable for a later week may change again. Treat these values as estimates, verify them against your actual timetable, and use the <strong className="text-amber-200">Send to Mode 1</strong> button to enter your own classes held and attended when needed.
           </div>
         </div>
       </details>
