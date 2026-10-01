@@ -273,7 +273,7 @@ export default function SubjectsTab({
                           <span className={themeClasses.muted}>/</span>
                           <input
                             type="number"
-                            value={marks[subject.id]?.isa1Max ?? 40}
+                            value={marks[subject.id]?.isa1Max ?? subject.isa1Max ?? 40}
                             onChange={(e) => handleMarkChange(subject.id, 'isa1Max', e.target.value)}
                             className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                           />
@@ -304,7 +304,7 @@ export default function SubjectsTab({
                           <span className={themeClasses.muted}>/</span>
                           <input
                             type="number"
-                            value={marks[subject.id]?.isa2Max ?? 40}
+                            value={marks[subject.id]?.isa2Max ?? subject.isa2Max ?? 40}
                             onChange={(e) => handleMarkChange(subject.id, 'isa2Max', e.target.value)}
                             className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                           />
@@ -335,7 +335,7 @@ export default function SubjectsTab({
                           <span className={themeClasses.muted}>/</span>
                           <input
                             type="number"
-                            value={marks[subject.id]?.assignmentMax ?? 10}
+                            value={marks[subject.id]?.assignmentMax ?? subject.assignmentMax ?? 10}
                             onChange={(e) => handleMarkChange(subject.id, 'assignmentMax', e.target.value)}
                             className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                           />
@@ -396,7 +396,7 @@ export default function SubjectsTab({
                         <span className={themeClasses.muted}>/</span>
                         <input
                           type="number"
-                          value={marks[subject.id]?.esaMax ?? 100}
+                          value={marks[subject.id]?.esaMax ?? subject.esaMax ?? 100}
                           onChange={(e) => handleMarkChange(subject.id, 'esaMax', e.target.value)}
                           className={`w-10 p-1 text-base md:text-sm border-none focus:ring-0 text-center ${themeClasses.inputBg} ${themeClasses.muted}`}
                         />
@@ -491,7 +491,7 @@ export default function SubjectsTab({
                               <div className="flex flex-col gap-1 text-zinc-400">
                                 <div className="flex justify-between">
                                   <span>ESA Raw Score:</span>
-                                  <span className="text-zinc-200 font-semibold">{m.esa !== '' && m.esa !== undefined ? `${m.esa} / ${m.esaMax || 100}` : '-'}</span>
+                                  <span className="text-zinc-200 font-semibold">{m.esa !== '' && m.esa !== undefined ? `${m.esa} / ${m.esaMax || subject.esaMax || 100}` : '-'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>ESA (unrounded):</span>

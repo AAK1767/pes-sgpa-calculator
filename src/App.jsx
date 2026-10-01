@@ -113,12 +113,41 @@ export default function PES_Universal_Calculator() {
     // --- END RESET LOGIC ---
 
     const saved = localStorage.getItem('pes_subjects');
-    return saved ? JSON.parse(saved) : PhysicsCycleDefaults;
+    if (!saved) return PhysicsCycleDefaults;
+
+    const savedSubjects = JSON.parse(saved);
+    return savedSubjects.map((subject) => {
+      const isScaledCieL1 = ['CIE L1', 'CIE - Level 1'].includes(subject?.name)
+        && subject.isa1Max === 20
+        && subject.isa2Max === 20
+        && subject.esaMax === 50;
+
+      return isScaledCieL1
+        ? { ...subject, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 }
+        : subject;
+    });
   });
 
   const [marks, setMarks] = useState(() => {
     const saved = localStorage.getItem('pes_marks');
-    return saved ? JSON.parse(saved) : {};
+    if (!saved) return {};
+
+    const savedSubjects = JSON.parse(localStorage.getItem('pes_subjects') || '[]');
+    const scaledCieL1Ids = new Set(
+      savedSubjects
+        .filter((subject) => ['CIE L1', 'CIE - Level 1'].includes(subject?.name)
+          && subject.isa1Max === 20
+          && subject.isa2Max === 20
+          && subject.esaMax === 50)
+        .map((subject) => String(subject.id))
+    );
+
+    const savedMarks = JSON.parse(saved);
+    return Object.fromEntries(Object.entries(savedMarks).map(([id, subjectMarks]) => (
+      scaledCieL1Ids.has(String(id))
+        ? [id, { ...subjectMarks, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 }]
+        : [id, subjectMarks]
+    )));
   });
 
 
