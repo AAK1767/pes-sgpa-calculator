@@ -394,7 +394,7 @@ export default function InteractiveAttendancePlanner({
                 return (
                   <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 bg-white/[0.03] rounded-lg px-3 py-1.5 border border-white/[0.06]">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>Last synced: {new Date(ls).toLocaleString()}</span>
+                    <span>Last synced: {new Date(ls).toLocaleDateString('en-GB')}</span>
                   </div>
                 );
               } catch { return null; }
