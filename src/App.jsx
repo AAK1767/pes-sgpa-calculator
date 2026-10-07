@@ -196,6 +196,7 @@ export default function PES_Universal_Calculator() {
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
+  const [lastSynced, setLastSynced] = useState(() => localStorage.getItem('pesu_last_synced') || '');
 
   // --- UI State ---
   const [targetSgpa, setTargetSgpa] = useState(9.0);
@@ -1810,6 +1811,8 @@ export default function PES_Universal_Calculator() {
           setPesuProfile={setPesuProfile}
           portalData={portalData}
           setPortalData={setPortalData}
+          lastSynced={lastSynced}
+          setLastSynced={setLastSynced}
         />
       </div>
 
@@ -1944,6 +1947,7 @@ export default function PES_Universal_Calculator() {
             pesuProfile={pesuProfile}
             portalData={portalData}
             setPortalData={setPortalData}
+            lastSynced={lastSynced}
             subjects={subjects}
             marks={marks}
             setActiveTab={(tab) => { window.location.hash = `#/${tab}`; }}

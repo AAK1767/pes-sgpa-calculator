@@ -38,7 +38,7 @@ function formatLastSynced(iso) {
   }
 }
 
-export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, setPesuProfile, setPortalData: setParentPortalData }) {
+export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, setPesuProfile, setPortalData: setParentPortalData, lastSynced, setLastSynced }) {
   const [username, setUsername] = useState(() => {
     return localStorage.getItem('pesu_username') || '';
   });
@@ -78,9 +78,6 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
     } catch {
       return 'idle';
     }
-  });
-  const [lastSynced, setLastSynced] = useState(() => {
-    return localStorage.getItem('pesu_last_synced') || '';
   });
   const [portalError, setPortalError] = useState('');
 

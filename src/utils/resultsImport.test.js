@@ -73,6 +73,14 @@ describe("nameSimilarity", () => {
     // slash-variant match: preset "Mathematics - I/II" vs portal "Engineering Mathematics I"
     expect(nameSimilarity("Mathematics - I/II", "Engineering Mathematics I")).toBeGreaterThanOrEqual(0.9);
     expect(nameSimilarity("Operating System", "Computer Networks")).toBeLessThan(0.4);
+    expect(nameSimilarity(
+      "CIE Essentials of Entrepreneurship Part 1",
+      "CIE L1",
+    )).toBe(1);
+    expect(nameSimilarity(
+      "CIE Essentials of Entrepreneurship Part 2",
+      "CIE L2",
+    )).toBe(1);
   });
 });
 

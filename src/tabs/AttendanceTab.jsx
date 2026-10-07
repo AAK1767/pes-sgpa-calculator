@@ -32,6 +32,7 @@ export default function AttendanceTab({
   pesuProfile,
   portalData,
   setPortalData,
+  lastSynced,
   setActiveTab,
   subjects,
   marks
@@ -43,6 +44,12 @@ export default function AttendanceTab({
     portalData?.calendar,
     activeAttendanceSemester,
   );
+  const formattedLastSynced = lastSynced
+    ? new Date(lastSynced).toLocaleString([], {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })
+    : '';
 
   const sendToAttendancePlanner = ({ total, attended, classesLeft }) => {
     setAttendanceStatusMode((prev) => ({
@@ -87,7 +94,12 @@ export default function AttendanceTab({
 
       {isLoggedIn && portalData && (
         <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-xs text-amber-200/80">
-          PESU data detected: Interactive Planner & Calendar view is active. Adjust attendance projections with bunked days!
+          <div>PESU data detected: Interactive Planner & Calendar view is active. Adjust attendance projections with bunked days!</div>
+          {formattedLastSynced && (
+            <div className="mt-1 text-[11px] text-amber-200/60">
+              Last synced: {formattedLastSynced}
+            </div>
+          )}
         </div>
       )}
 

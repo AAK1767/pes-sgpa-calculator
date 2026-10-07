@@ -58,6 +58,18 @@ export function nameVariants(raw) {
   return [...variants].filter(Boolean);
 }
 
+// PESU's portal spells the CIE subjects out, while presets abbreviate them as
+// "CIE L1"/"CIE L2". Canonicalise only this known naming difference so it
+// participates in preset detection and subject matching without changing the
+// names shown to the user.
+function matchingName(raw) {
+  const name = normalizeName(raw);
+  const entrepreneurshipPart = name.match(
+    /^cie\b.*\bentrepreneurship\b.*\b(?:part|level)\s*([12])\b/
+  );
+  return entrepreneurshipPart ? `cie l${entrepreneurshipPart[1]}` : name;
+}
+
 // Meaningful token set for a single variant string.
 function tokenize(variant) {
   return new Set(
@@ -82,8 +94,8 @@ function tokenScore(a, b) {
 
 // Best similarity (0..1) between two raw names, considering all slash-variants.
 export function nameSimilarity(nameA, nameB) {
-  const variantsA = nameVariants(nameA);
-  const variantsB = nameVariants(nameB);
+  const variantsA = nameVariants(matchingName(nameA));
+  const variantsB = nameVariants(matchingName(nameB));
   let best = 0;
   for (const va of variantsA) {
     for (const vb of variantsB) {
