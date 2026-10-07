@@ -278,6 +278,38 @@ describe("buildImportPlan", () => {
     expect(mathDef.subject.hasLab).toBe(false);
     expect(mathDef.fields.isa1).toBe("32");
   });
+
+  it("uses matching preset weights instead of portal credit defaults", () => {
+    const portalSubjects = [
+      {
+        code: "UE23CS341B",
+        name: "Operating System",
+        components: [{ label: "ISA 1", score: 30, max: 40 }],
+      },
+      {
+        code: "UE23CS351B",
+        name: "Data Structures and its Applications",
+        components: [{ label: "ISA 1", score: 30, max: 40 }],
+      },
+    ];
+    const plan = buildImportPlan({ calcSubjects: [], finalSem: { subjects: portalSubjects } });
+    const operatingSystem = plan.rebuild.find((item) => item.name === "Operating System");
+    const dataStructures = plan.rebuild.find((item) => item.name === "Data Structures and its Applications");
+
+    expect(plan.preset.name).toBe("CSE Sem 3");
+    expect(operatingSystem.subject).toMatchObject({
+      isaWeight: 15,
+      assignmentWeight: 20,
+      labWeight: 0,
+      esaWeight: 50,
+    });
+    expect(dataStructures.subject).toMatchObject({
+      isaWeight: 20,
+      assignmentWeight: 10,
+      labWeight: 20,
+      esaWeight: 50,
+    });
+  });
 });
 
 describe("findBestPreset", () => {

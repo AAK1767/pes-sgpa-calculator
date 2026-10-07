@@ -286,11 +286,40 @@ export function subjectDefForCredits(credits) {
 // lab field. Component maxes on the def are aligned
 // to the imported marks' maxes when known so nothing drifts.
 export function portalSubjectToDef(ps) {
+  return portalSubjectToDefWithPreset(ps);
+}
+
+// Prefer the matching subject definition from a detected preset. This keeps
+// preset-specific weights (for example 15/20 ISA/assignment splits) intact
+// instead of replacing them with the generic credit-based template.
+function portalSubjectToDefWithPreset(ps, presetSubjects = [], usedPresetSubjects = new Set()) {
   const credits = creditsFromCode(ps && ps.code);
   const { fields, esaGrade, labParts, review } = extractMarkFields(ps, { hasLab: credits === 5 });
-  const subject = subjectDefForCredits(credits);
-  if (Number.isFinite(fields.isa1Max)) subject.isa1Max = fields.isa1Max;
-  if (Number.isFinite(fields.isa2Max)) subject.isa2Max = fields.isa2Max;
+  let subject = subjectDefForCredits(credits);
+  let bestPreset = null;
+  let bestScore = 0;
+  for (const presetSubject of presetSubjects) {
+    if (usedPresetSubjects.has(presetSubject)) continue;
+    const score = nameSimilarity(ps && ps.name, presetSubject.name);
+    if (score >= 0.4 && score > bestScore) {
+      bestPreset = presetSubject;
+      bestScore = score;
+    }
+  }
+  if (bestPreset) {
+    usedPresetSubjects.add(bestPreset);
+    subject = {
+      ...subject,
+      isaWeight: bestPreset.isaWeight,
+      assignmentWeight: bestPreset.assignmentWeight,
+      labWeight: bestPreset.labWeight,
+      esaWeight: bestPreset.esaWeight,
+      ...(bestPreset.customConfig ? { customConfig: bestPreset.customConfig } : {}),
+    };
+  } else {
+    if (Number.isFinite(fields.isa1Max)) subject.isa1Max = fields.isa1Max;
+    if (Number.isFinite(fields.isa2Max)) subject.isa2Max = fields.isa2Max;
+  }
   return {
     code: (ps && ps.code) || '',
     name: (ps && ps.name) || '',
@@ -403,12 +432,17 @@ export function buildImportPlan({ calcSubjects = [], finalSem = null, provisiona
   //     subject, for the "fill existing + append the rest" (merge) path.
   //   • rebuild  — EVERY portal subject as a fresh definition, for the "clear
   //     and import the whole semester as a new set" (replace) path.
+  const presetSubjects = preset ? SemesterPresets[preset.name] : [];
+  const toCreatePresetSubjects = new Set();
+  const rebuildPresetSubjects = new Set();
   const toCreate = portalSubjects
     .map((ps, pi) => ({ ps, pi }))
     .filter(({ pi }) => !takenPortal.has(pi))
-    .map(({ ps }) => portalSubjectToDef(ps));
+    .map(({ ps }) => portalSubjectToDefWithPreset(ps, presetSubjects, toCreatePresetSubjects));
 
-  const rebuild = portalSubjects.map((ps) => portalSubjectToDef(ps));
+  const rebuild = portalSubjects.map((ps) =>
+    portalSubjectToDefWithPreset(ps, presetSubjects, rebuildPresetSubjects)
+  );
 
   return { matched, unmatchedPortal, unmatchedCalc, toCreate, rebuild, preset };
 }

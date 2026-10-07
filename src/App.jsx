@@ -480,6 +480,7 @@ export default function PES_Universal_Calculator() {
       assignmentMax: def.assignmentMax ?? 10,
       labMax: def.labMax ?? 20,
       esaMax: def.esaMax ?? 100,
+      ...(def.customConfig ? { customConfig: def.customConfig } : {}),
     };
     const subjectMarks = {
       isa1: '', isa1Max: subject.isa1Max,
