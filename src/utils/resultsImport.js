@@ -292,33 +292,64 @@ export function portalSubjectToDef(ps) {
 // Prefer the matching subject definition from a detected preset. This keeps
 // preset-specific weights (for example 15/20 ISA/assignment splits) intact
 // instead of replacing them with the generic credit-based template.
-function portalSubjectToDefWithPreset(ps, presetSubjects = [], usedPresetSubjects = new Set()) {
+function portalSubjectToDefWithPreset(
+  ps,
+  presetSubjects = [],
+  usedPresetSubjects = new Set(),
+  allPresetSubjects = [],
+  fallbackSubjects = [],
+  usedFallbackSubjects = new Set(),
+) {
   const credits = creditsFromCode(ps && ps.code);
   const { fields, esaGrade, labParts, review } = extractMarkFields(ps, { hasLab: credits === 5 });
   let subject = subjectDefForCredits(credits);
-  let bestPreset = null;
+  const candidates = [
+    ...presetSubjects.map((definition) => ({ definition, preferred: true })),
+    ...allPresetSubjects
+      .filter((definition) => !presetSubjects.includes(definition))
+      .map((definition) => ({ definition, preferred: false })),
+  ];
+  let bestMatch = null;
   let bestScore = 0;
-  for (const presetSubject of presetSubjects) {
-    if (usedPresetSubjects.has(presetSubject)) continue;
-    const score = nameSimilarity(ps && ps.name, presetSubject.name);
-    if (score >= 0.4 && score > bestScore) {
-      bestPreset = presetSubject;
+  for (const { definition, preferred } of candidates) {
+    if (usedPresetSubjects.has(definition)) continue;
+    const score = nameSimilarity(ps && ps.name, definition.name);
+    if (
+      score >= 0.4 &&
+      (score > bestScore || (score === bestScore && preferred && !bestMatch?.preferred))
+    ) {
+      bestMatch = { definition, preferred };
       bestScore = score;
     }
   }
-  if (bestPreset) {
-    usedPresetSubjects.add(bestPreset);
-    subject = {
-      ...subject,
-      isaWeight: bestPreset.isaWeight,
-      assignmentWeight: bestPreset.assignmentWeight,
-      labWeight: bestPreset.labWeight,
-      esaWeight: bestPreset.esaWeight,
-      ...(bestPreset.customConfig ? { customConfig: bestPreset.customConfig } : {}),
-    };
+  if (bestMatch) {
+    const { definition } = bestMatch;
+    usedPresetSubjects.add(definition);
+    for (const key of ['isaWeight', 'assignmentWeight', 'labWeight', 'esaWeight']) {
+      if (Number.isFinite(definition[key])) subject[key] = definition[key];
+    }
+    if (definition.customConfig) subject.customConfig = definition.customConfig;
   } else {
-    if (Number.isFinite(fields.isa1Max)) subject.isa1Max = fields.isa1Max;
-    if (Number.isFinite(fields.isa2Max)) subject.isa2Max = fields.isa2Max;
+    let bestFallback = null;
+    let bestFallbackScore = 0;
+    for (const fallbackSubject of fallbackSubjects) {
+      if (usedFallbackSubjects.has(fallbackSubject)) continue;
+      const score = nameSimilarity(ps && ps.name, fallbackSubject.name);
+      if (score >= 0.4 && score > bestFallbackScore) {
+        bestFallback = fallbackSubject;
+        bestFallbackScore = score;
+      }
+    }
+    if (bestFallback) {
+      usedFallbackSubjects.add(bestFallback);
+      for (const key of ['isaWeight', 'assignmentWeight', 'labWeight', 'esaWeight']) {
+        if (Number.isFinite(bestFallback[key])) subject[key] = bestFallback[key];
+      }
+      if (bestFallback.customConfig) subject.customConfig = bestFallback.customConfig;
+    } else {
+      if (Number.isFinite(fields.isa1Max)) subject.isa1Max = fields.isa1Max;
+      if (Number.isFinite(fields.isa2Max)) subject.isa2Max = fields.isa2Max;
+    }
   }
   return {
     code: (ps && ps.code) || '',
@@ -433,15 +464,32 @@ export function buildImportPlan({ calcSubjects = [], finalSem = null, provisiona
   //   • rebuild  — EVERY portal subject as a fresh definition, for the "clear
   //     and import the whole semester as a new set" (replace) path.
   const presetSubjects = preset ? SemesterPresets[preset.name] : [];
+  const allPresetSubjects = Object.values(SemesterPresets).flat();
   const toCreatePresetSubjects = new Set();
   const rebuildPresetSubjects = new Set();
+  const toCreateFallbackSubjects = new Set();
+  const rebuildFallbackSubjects = new Set();
   const toCreate = portalSubjects
     .map((ps, pi) => ({ ps, pi }))
     .filter(({ pi }) => !takenPortal.has(pi))
-    .map(({ ps }) => portalSubjectToDefWithPreset(ps, presetSubjects, toCreatePresetSubjects));
+    .map(({ ps }) => portalSubjectToDefWithPreset(
+      ps,
+      presetSubjects,
+      toCreatePresetSubjects,
+      allPresetSubjects,
+      calcSubjects,
+      toCreateFallbackSubjects,
+    ));
 
   const rebuild = portalSubjects.map((ps) =>
-    portalSubjectToDefWithPreset(ps, presetSubjects, rebuildPresetSubjects)
+    portalSubjectToDefWithPreset(
+      ps,
+      presetSubjects,
+      rebuildPresetSubjects,
+      allPresetSubjects,
+      calcSubjects,
+      rebuildFallbackSubjects,
+    )
   );
 
   return { matched, unmatchedPortal, unmatchedCalc, toCreate, rebuild, preset };

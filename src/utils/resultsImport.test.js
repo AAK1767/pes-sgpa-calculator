@@ -310,6 +310,35 @@ describe("buildImportPlan", () => {
       esaWeight: 50,
     });
   });
+
+  it("uses current subjects only as a fallback after preset matching", () => {
+    const currentPresetSubjects = [
+      { id: 1, name: "Operating System", isaWeight: 99, assignmentWeight: 1, labWeight: 0, esaWeight: 0 },
+      { id: 2, name: "Quantum Widget Analysis", isaWeight: 1, assignmentWeight: 99, labWeight: 0, esaWeight: 0 },
+    ];
+    const plan = buildImportPlan({
+      calcSubjects: currentPresetSubjects,
+      finalSem: {
+        subjects: [
+          { code: "UE23CS341B", name: "Operating System", components: [{ label: "ISA 1", score: 30, max: 40 }] },
+          { code: "UE23XX441B", name: "Quantum Widget Analysis", components: [{ label: "ISA 1", score: 30, max: 40 }] },
+        ],
+      },
+    });
+
+    expect(plan.rebuild.find((item) => item.name === "Operating System").subject).toMatchObject({
+      isaWeight: 15,
+      assignmentWeight: 20,
+      labWeight: 0,
+      esaWeight: 50,
+    });
+    expect(plan.rebuild.find((item) => item.name === "Quantum Widget Analysis").subject).toMatchObject({
+      isaWeight: 1,
+      assignmentWeight: 99,
+      labWeight: 0,
+      esaWeight: 0,
+    });
+  });
 });
 
 describe("findBestPreset", () => {
