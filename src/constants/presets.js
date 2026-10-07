@@ -32,7 +32,7 @@ export const CseSem3Defaults = [
   { id: 3, name: "Mathematical Foundation for AI & Data Science", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 4, name: "Operating System", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 5, name: "Computer Networks", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 6, name: "CIE L1", credits: 2, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 },
+  { id: 6, name: "CIE Essentials of Innovation & Entrepreneurship - Part 1", credits: 2, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 },
 ];
 
 export const CseSem4Defaults = [
@@ -41,7 +41,7 @@ export const CseSem4Defaults = [
   { id: 3, name: "Design and Analysis of Algorithms", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 4, name: "Cyber Security Essentials", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 5, name: "Full Stack Development - Theory and Practice", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 6, name: "CIE L2", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+  { id: 6, name: "CIE Essentials of Innovation & Entrepreneurship - Part 2", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
 ];
 
 export const CseSem5Defaults = [
@@ -252,7 +252,7 @@ export const AimlSem3Defaults = [
   { id: 3, name: "Mathematical Foundation for AI & Data Science", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 4, name: "Operating System", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 5, name: "Computer Networks", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 15, assignmentWeight: 20, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 6, name: "CIE L1", credits: 2, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 },
+  { id: 6, name: "CIE Essentials of Innovation & Entrepreneurship - Part 1", credits: 2, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 },
 ];
 
 export const AimlSem4Defaults = [
@@ -261,7 +261,7 @@ export const AimlSem4Defaults = [
   { id: 3, name: "Design and Analysis of Algorithms", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 4, name: "Cyber Security Essentials", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 5, name: "Full Stack Development - Theory and Practice", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 6, name: "CIE L2", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
+  { id: 6, name: "CIE Essentials of Innovation & Entrepreneurship - Part 2", credits: 2, hasLab: false, hasAssignment: false, isaWeight: 25, assignmentWeight: 0, labWeight: 0, esaWeight: 50, isa1Max: 30, isa2Max: 30, esaMax: 50 },
 ];
 
 export const AimlSem5Defaults = [
@@ -472,7 +472,7 @@ export const EceSem3Defaults = [
   { id: 3, name: "Mathematics for Electronics Engineers", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 4, name: "Network Analysis and Synthesis", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
   { id: 5, name: "Signals and Systems", credits: 4, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 40, isa2Max: 40, esaMax: 100 },
-  { id: 6, name: "CIE - Level 1", credits: 2, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, esaWeight: 50, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 },
+  { id: 6, name: "CIE Essentials of Innovation & Entrepreneurship - Part 1", credits: 2, hasLab: false, hasAssignment: true, isaWeight: 20, assignmentWeight: 10, labWeight: 0, isa1Max: 45, isa2Max: 45, assignmentMax: 10, esaMax: 75 },
 ];
 
 export const EceSem4Defaults = [

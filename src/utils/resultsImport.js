@@ -337,8 +337,20 @@ function portalSubjectToDefWithPreset(
   if (bestMatch) {
     const { definition } = bestMatch;
     usedPresetSubjects.add(definition);
-    for (const key of ['isaWeight', 'assignmentWeight', 'labWeight', 'esaWeight']) {
+    for (const key of [
+      'hasAssignment',
+      'isaWeight',
+      'assignmentWeight',
+      'labWeight',
+      'esaWeight',
+      'isa1Max',
+      'isa2Max',
+      'assignmentMax',
+      'labMax',
+      'esaMax',
+    ]) {
       if (Number.isFinite(definition[key])) subject[key] = definition[key];
+      else if (typeof definition[key] === 'boolean') subject[key] = definition[key];
     }
     if (definition.customConfig) subject.customConfig = definition.customConfig;
   } else {
@@ -354,8 +366,20 @@ function portalSubjectToDefWithPreset(
     }
     if (bestFallback) {
       usedFallbackSubjects.add(bestFallback);
-      for (const key of ['isaWeight', 'assignmentWeight', 'labWeight', 'esaWeight']) {
+      for (const key of [
+        'hasAssignment',
+        'isaWeight',
+        'assignmentWeight',
+        'labWeight',
+        'esaWeight',
+        'isa1Max',
+        'isa2Max',
+        'assignmentMax',
+        'labMax',
+        'esaMax',
+      ]) {
         if (Number.isFinite(bestFallback[key])) subject[key] = bestFallback[key];
+        else if (typeof bestFallback[key] === 'boolean') subject[key] = bestFallback[key];
       }
       if (bestFallback.customConfig) subject.customConfig = bestFallback.customConfig;
     } else {

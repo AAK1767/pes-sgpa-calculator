@@ -51,6 +51,12 @@ import {
   Github, ExternalLink, Star, MessageSquare, GraduationCap
 } from 'lucide-react';
 
+const CIE_L1_NAMES = new Set([
+  'CIE L1',
+  'CIE - Level 1',
+  'CIE Essentials of Innovation & Entrepreneurship - Part 1',
+]);
+
 // Pre-compile a set of all preset subject names for GA tracking classification
 const presetSubjectNames = new Set(
   Object.values(SemesterPresets).flatMap(presetList => presetList.map(sub => sub.name))
@@ -117,7 +123,7 @@ export default function PES_Universal_Calculator() {
 
     const savedSubjects = JSON.parse(saved);
     return savedSubjects.map((subject) => {
-      const isScaledCieL1 = ['CIE L1', 'CIE - Level 1'].includes(subject?.name)
+      const isScaledCieL1 = CIE_L1_NAMES.has(subject?.name)
         && subject.isa1Max === 20
         && subject.isa2Max === 20
         && subject.esaMax === 50;
@@ -135,7 +141,7 @@ export default function PES_Universal_Calculator() {
     const savedSubjects = JSON.parse(localStorage.getItem('pes_subjects') || '[]');
     const scaledCieL1Ids = new Set(
       savedSubjects
-        .filter((subject) => ['CIE L1', 'CIE - Level 1'].includes(subject?.name)
+        .filter((subject) => CIE_L1_NAMES.has(subject?.name)
           && subject.isa1Max === 20
           && subject.isa2Max === 20
           && subject.esaMax === 50)
@@ -1985,7 +1991,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v6.1 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v6.2 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}

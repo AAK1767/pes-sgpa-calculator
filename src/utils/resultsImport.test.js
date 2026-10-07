@@ -319,6 +319,29 @@ describe("buildImportPlan", () => {
     });
   });
 
+  it("maps the full Innovation and Entrepreneurship Part 1 title to CIE L1", () => {
+    const plan = buildImportPlan({
+      calcSubjects: [],
+      finalSem: {
+        subjects: [{
+          code: "UE23XX221A",
+          name: "CIE Essentials of Innovation & Entrepreneurship - Part 1",
+          components: [{ label: "ISA 1", score: 20, max: 30 }],
+        }],
+      },
+    });
+    const imported = plan.rebuild[0];
+
+    expect(imported.subject).toMatchObject({
+      hasAssignment: true,
+      isaWeight: 20,
+      assignmentWeight: 10,
+      isa1Max: 45,
+      isa2Max: 45,
+      esaMax: 75,
+    });
+  });
+
   it("uses current subjects only as a fallback after preset matching", () => {
     const currentPresetSubjects = [
       { id: 1, name: "Operating System", isaWeight: 99, assignmentWeight: 1, labWeight: 0, esaWeight: 0 },

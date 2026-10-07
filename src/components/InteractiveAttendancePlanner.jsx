@@ -147,7 +147,7 @@ export default function InteractiveAttendancePlanner({
           const refreshedOverrides = Object.fromEntries(
             Object.entries(savedOverrides)
               .map(([key, override]) => {
-                const { classesLeft, ...manualValues } = override || {};
+                const { classesLeft: _classesLeft, ...manualValues } = override || {};
                 return [key, manualValues];
               })
               .filter(([, override]) => Object.keys(override).length > 0)
