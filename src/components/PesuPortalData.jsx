@@ -310,7 +310,7 @@ function AttendanceView({ att, timetable, calendar, onSendToPlanner }) {
       <div className="space-y-2">
         {cur.subjects.map((s, i) => (
           <AttendanceSubjectCard
-            key={s.code || i}
+            key={`${s.code || i}:${projection.byCode[s.code] ?? projection.byCode[s.name] ?? 'none'}`}
             s={s}
             projectedLeft={projection.byCode[s.code] ?? projection.byCode[s.name]}
             onSendToPlanner={onSendToPlanner}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2,
   AlertCircle, RefreshCw, Send, Plus, Trash2, Edit2, RotateCcw,
@@ -94,6 +94,24 @@ export default function InteractiveAttendancePlanner({
       return {};
     }
   });
+
+  const previousPortalDataRef = useRef(portalData);
+  useEffect(() => {
+    if (previousPortalDataRef.current === portalData) return;
+    previousPortalDataRef.current = portalData;
+
+    setManualOverrides((prev) => {
+      const refreshedOverrides = Object.fromEntries(
+        Object.entries(prev)
+          .map(([key, override]) => {
+            const { classesLeft: _classesLeft, ...manualValues } = override || {};
+            return [key, manualValues];
+          })
+          .filter(([, override]) => Object.keys(override).length > 0)
+      );
+      return refreshedOverrides;
+    });
+  }, [portalData]);
 
   useEffect(() => {
     localStorage.setItem('pes_attendance_manual_overrides', JSON.stringify(manualOverrides));
