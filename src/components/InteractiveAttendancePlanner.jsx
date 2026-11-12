@@ -620,7 +620,9 @@ export default function InteractiveAttendancePlanner({
                           onClick={() => onSendToPlanner && onSendToPlanner({
                             total: row.total,
                             attended: row.attended,
-                            classesLeft: row.classesLeft,
+                            classesLeft: manualOverrides[key]?.classesLeft !== undefined
+                              ? parseNonNegativeInt(manualOverrides[key].classesLeft)
+                              : row.classesLeft,
                             name: row.name
                           })}
                           className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-all cursor-pointer"
