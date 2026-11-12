@@ -51,6 +51,7 @@ function statusColor(pct) {
 
 export default function InteractiveAttendancePlanner({
   portalData,
+  portalDataIdentity = portalData,
   pesuProfile,
   calcSubjects,
   setActiveTab,
@@ -95,26 +96,10 @@ export default function InteractiveAttendancePlanner({
     }
   });
 
-  const previousPortalDataRef = useRef({
-    attendance: portalData?.attendance,
-    timetable: portalData?.timetable,
-    calendar: portalData?.calendar,
-  });
+  const previousPortalDataRef = useRef(portalDataIdentity);
   useEffect(() => {
-    const currentPortalData = {
-      attendance: portalData?.attendance,
-      timetable: portalData?.timetable,
-      calendar: portalData?.calendar,
-    };
-    const previousPortalData = previousPortalDataRef.current;
-    if (
-      previousPortalData.attendance === currentPortalData.attendance
-      && previousPortalData.timetable === currentPortalData.timetable
-      && previousPortalData.calendar === currentPortalData.calendar
-    ) {
-      return;
-    }
-    previousPortalDataRef.current = currentPortalData;
+    if (previousPortalDataRef.current === portalDataIdentity) return;
+    previousPortalDataRef.current = portalDataIdentity;
 
     setManualOverrides((prev) => {
       const refreshedOverrides = Object.fromEntries(
@@ -127,7 +112,7 @@ export default function InteractiveAttendancePlanner({
       );
       return refreshedOverrides;
     });
-  }, [portalData?.attendance, portalData?.timetable, portalData?.calendar]);
+  }, [portalDataIdentity]);
 
   useEffect(() => {
     localStorage.setItem('pes_attendance_manual_overrides', JSON.stringify(manualOverrides));

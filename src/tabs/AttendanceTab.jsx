@@ -106,6 +106,7 @@ export default function AttendanceTab({
       {/* NEW PLANNER SECTION */}
       <InteractiveAttendancePlanner
         portalData={portalData && { ...portalData, calendar: attendanceCalendar }}
+         portalDataIdentity={portalData}
          setPortalData={setPortalData}
          pesuProfile={pesuProfile}
          calcSubjects={subjects}
