@@ -9,7 +9,7 @@ import {
   buildAttendancePlan, parseNonNegativeInt
 } from '../utils/attendanceCalculations';
 import {
-  buildAttendanceProjection, todayIsoLocal, isoWeekday, addDaysIso, findIsa2Start
+  buildAttendanceProjection, todayIsoLocal, addDaysIso, findIsa2Start
 } from '../utils/attendanceProjection';
 
 /* ------------------------------- Date Helpers ------------------------------- */
@@ -61,26 +61,16 @@ export default function InteractiveAttendancePlanner({
 }) {
   const isLoggedIn = !!pesuProfile;
 
-  // --- Bunked Dates State ---
-  const [bunkedDates, setBunkedDates] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pes_bunked_dates');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('pes_bunked_dates', JSON.stringify(bunkedDates));
-  }, [bunkedDates, pesuProfile, portalData]);
-
   // --- Resync Modal State ---
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [syncPassword, setSyncPassword] = useState('');
   const [showSyncPassword, setShowSyncPassword] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState('');
+  const [showEndDateEditor, setShowEndDateEditor] = useState(false);
+  const [customEndDate, setCustomEndDate] = useState(
+    () => localStorage.getItem('pes_attendance_custom_end_date') || ''
+  );
 
   // --- Active Month Navigation ---
   const todayStr = useMemo(() => todayIsoLocal(), []);
@@ -117,12 +107,6 @@ export default function InteractiveAttendancePlanner({
   useEffect(() => {
     localStorage.setItem('pes_attendance_manual_overrides', JSON.stringify(manualOverrides));
   }, [manualOverrides]);
-
-  const clearAllBunks = () => {
-    if (window.confirm('Clear all selected bunk dates?')) {
-      setBunkedDates([]);
-    }
-  };
 
   const prevMonth = () => {
     if (currentMonth === 0) {
@@ -188,12 +172,6 @@ export default function InteractiveAttendancePlanner({
     }
   };
 
-  const toggleBunkDate = (iso) => {
-    setBunkedDates((prev) =>
-      prev.includes(iso) ? prev.filter((d) => d !== iso) : [...prev, iso]
-    );
-  };
-
   const targetBuffer = bufferPercent;
   const setTargetBuffer = setBufferPercent;
 
@@ -201,12 +179,20 @@ export default function InteractiveAttendancePlanner({
   const timetable = portalData?.timetable;
   const calendar = portalData?.calendar;
 
+  useEffect(() => {
+    localStorage.setItem('pes_attendance_custom_end_date', customEndDate);
+  }, [customEndDate]);
+
   // --- ISA2 Constraint (Teaching end cap) ---
   const isa2Start = useMemo(() => findIsa2Start(calendar?.events), [calendar?.events]);
 
   const projection = useMemo(
-    () => buildAttendanceProjection({ timetable, calendar }),
-    [timetable, calendar]
+    () => buildAttendanceProjection({
+      timetable,
+      calendar,
+      endDate: customEndDate || undefined,
+    }),
+    [timetable, calendar, customEndDate]
   );
 
   // Event lookup map by date
@@ -226,17 +212,6 @@ export default function InteractiveAttendancePlanner({
     }
     return map;
   }, [calendar]);
-
-  // Timetable slots per day of week (1 = Mon ... 6 = Sat)
-  const ttByDay = useMemo(() => {
-    const map = {};
-    if (!timetable?.entries) return map;
-    for (const entry of timetable.entries) {
-      if (!map[entry.day]) map[entry.day] = [];
-      map[entry.day].push(entry);
-    }
-    return map;
-  }, [timetable]);
 
   // --- Subjects Data state (Supports portal attendance OR calculator subjects OR custom) ---
   const updateSubjectOverride = (key, field, value) => {
@@ -306,35 +281,13 @@ export default function InteractiveAttendancePlanner({
     return [];
   }, [portalData, calcSubjects, manualOverrides, projection]);
 
-  // Calculate missed classes per subject from bunkedDates based on timetable
-  const bunksPerSubject = useMemo(() => {
-    const map = {};
-    for (const iso of bunkedDates) {
-      const dayOfWeek = isoWeekday(iso);
-      if (dayOfWeek === 0 || dayOfWeek === 6) continue; // Weekends have no classes
-      const entries = ttByDay[dayOfWeek] || [];
-      for (const entry of entries) {
-        const key = entry.code || entry.name;
-        if (key) {
-          map[key] = (map[key] || 0) + 1;
-        }
-      }
-    }
-    return map;
-  }, [bunkedDates, ttByDay]);
-
   // Compute final analytics table data
   const tableRows = useMemo(() => {
     return subjectsList.map((sub) => {
-      const key = sub.key;
       const attended = sub.attended;
       const total = sub.total;
       const classesLeft = sub.classesLeft;
-      const selectedBunks = bunksPerSubject[key] || 0;
-
-      // Effective classes attended and total if bunks are applied to remaining classes
-      const actualRemaining = Math.max(0, classesLeft - selectedBunks);
-      const projectedFinalAttended = attended + actualRemaining;
+      const projectedFinalAttended = attended + classesLeft;
       const projectedFinalTotal = total + classesLeft;
 
       const currentPct = total > 0 ? (attended / total) * 100 : 0;
@@ -346,17 +299,18 @@ export default function InteractiveAttendancePlanner({
 
       return {
         ...sub,
-        selectedBunks,
-        actualRemaining,
         currentPct,
         projectedPct,
+        skipAllFinalPct: projectedFinalTotal > 0
+          ? (attended / projectedFinalTotal) * 100
+          : 0,
         safeMisses75: plan75?.safeMisses75 ?? 0,
         mustAttend75: plan75?.mustAttendFor75 ?? 0,
         safeMissesBuffer: planBuffer?.safeMissesBuffer ?? 0,
         mustAttendBuffer: planBuffer?.mustAttendForBuffer ?? 0,
       };
     });
-  }, [subjectsList, bunksPerSubject, targetBuffer]);
+  }, [subjectsList, targetBuffer]);
 
   // Grid Days for calendar rendering
   const gridDays = useMemo(() => {
@@ -376,7 +330,7 @@ export default function InteractiveAttendancePlanner({
         </summary>
         <div className="p-6 pt-2 text-center border-t border-white/[0.06]">
           <p className="text-zinc-400 text-sm mb-4 max-w-md mx-auto">
-            Sign in with your PESU Academy credentials to access the interactive attendance planner, calendar with bunk selection, and auto-calculated projections from your timetable. (You can still use the calculator mode without logging in, but it won't have your actual timetable or attendance data.)
+            Sign in with your PESU Academy credentials to access the interactive attendance planner, semester calendar, and auto-calculated projections from your timetable. (You can still use the calculator mode without logging in, but it won't have your actual timetable or attendance data.)
           </p>
           <button
             onClick={() => setActiveTab('pesu')}
@@ -398,10 +352,10 @@ export default function InteractiveAttendancePlanner({
           <div>
             <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-blue-400" />
-              All-Subject Attendance & Bunk Planner
+              All-Subject Attendance Planner
             </h3>
             <p className="text-xs text-zinc-400 mt-1">
-              Click dates on the calendar below to simulate bunking. See updated attendance, remaining safe misses, and 75% target impact for all subjects at once.
+              Review projected attendance, the impact of skipping all remaining classes, and the semester calendar.
             </p>
           </div>
 
@@ -428,9 +382,9 @@ export default function InteractiveAttendancePlanner({
                Resync
             </button>
 
-            {(bunkedDates.length > 0 || Object.keys(manualOverrides).length > 0) && (
+            {Object.keys(manualOverrides).length > 0 && (
               <button
-                onClick={() => { clearAllBunks(); resetOverrides(); }}
+                onClick={resetOverrides}
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-zinc-200 border border-white/[0.06] transition-all cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Reset
@@ -557,7 +511,7 @@ export default function InteractiveAttendancePlanner({
                 <th className="py-2.5 px-3">Subject</th>
                 <th className="py-2.5 px-3 text-center">Current</th>
                 <th className="py-2.5 px-3 text-center">Classes Left</th>
-                <th className="py-2.5 px-3 text-center">Bunked</th>
+                <th className="py-2.5 px-3 text-center">Skip All Remaining</th>
                 <th className="py-2.5 px-3 text-center">Projected %</th>
                 <th className="py-2.5 px-3 text-center">75% Skips Left</th>
                 <th className="py-2.5 px-3 text-center">Buffer Skips</th>
@@ -590,8 +544,8 @@ export default function InteractiveAttendancePlanner({
                       />
                     </td>
 
-                    <td className="py-3 px-3 text-center font-bold text-purple-400 min-w-[70px]">
-                      {row.selectedBunks > 0 ? `-${row.selectedBunks}` : '0'}
+                    <td className="py-3 px-3 text-center font-bold text-amber-400 min-w-[100px]">
+                      {row.skipAllFinalPct.toFixed(1)}%
                     </td>
 
                     <td className="py-3 px-3 text-center min-w-[80px]">
@@ -649,10 +603,47 @@ export default function InteractiveAttendancePlanner({
             <CalendarIcon className="w-5 h-5 text-blue-400" />
             <span className="text-sm font-bold text-zinc-100">Full-Semester Calendar</span>
           </div>
-          <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                if (!customEndDate) {
+                  setCustomEndDate(projection.isa2Start || calendar?.calendar?.end || todayStr);
+                }
+                setShowEndDateEditor((open) => !open);
+              }}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition-colors cursor-pointer"
+              title="Edit semester end date"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Edit end date</span>
+            </button>
+            <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
+          </div>
         </summary>
         
         <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4">
+          {showEndDateEditor && (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-blue-500/15 bg-blue-500/[0.05] p-3">
+              <label htmlFor="attendance-custom-end-date" className="text-[11px] sm:text-xs text-blue-200/80">
+                Semester end date
+                <span className="block text-[10px] text-zinc-500">
+                  Attendance projections update through this date.
+                </span>
+              </label>
+              <input
+                id="attendance-custom-end-date"
+                type="date"
+                value={customEndDate}
+                onChange={(event) => {
+                  if (event.target.value) setCustomEndDate(event.target.value);
+                }}
+                className="w-full sm:w-auto p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-zinc-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+          )}
+
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center justify-center gap-2 sm:justify-start">
               <button
@@ -680,21 +671,17 @@ export default function InteractiveAttendancePlanner({
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> Holiday
               </span>
               <span className="flex items-center gap-1 text-red-300/60">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> After ISA2
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> After teaching end
               </span>
               <span className="flex items-center gap-1 text-amber-300">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Exam
               </span>
-              <span className="flex items-center gap-1 text-purple-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block" /> Bunked
-              </span>
             </div>
           </div>
 
-          {/* Instruction */}
-          <p className="text-[11px] sm:text-xs text-purple-300/80 font-medium flex items-start gap-1.5">
+          <p className="text-[11px] sm:text-xs text-zinc-400 font-medium flex items-start gap-1.5">
             <CalendarIcon className="w-3.5 h-3.5" />
-            Click on any teaching day to mark it as bunked. Your attendance projections will update instantly.
+            Calendar is view-only. Holidays, exams, weekends, and teaching-end dates are shown for reference.
           </p>
 
           {/* Calendar Grid */}
@@ -715,41 +702,35 @@ export default function InteractiveAttendancePlanner({
             const isWeekend = cell.weekday === 0 || cell.weekday === 6;
             const isHoliday = dayEvents.some((e) => e.isHoliday);
             const isExam = dayEvents.some((e) => /\b(ISA|ESA)\b/i.test(e.name || ''));
-            const isAfterISA2 = isa2Start && iso >= isa2Start;
-            const isBunked = bunkedDates.includes(iso);
-
+            const teachingEndDate = customEndDate || isa2Start;
+            const isAfterTeachingEnd = customEndDate
+              ? iso > customEndDate
+              : teachingEndDate && iso >= teachingEndDate;
             let bgClass = 'bg-white/[0.03] border-white/[0.06] text-zinc-200 hover:bg-white/[0.06]';
             if (isWeekend) {
               bgClass = 'bg-white/[0.01] border-white/[0.03] text-zinc-600 opacity-50 cursor-not-allowed';
-            } else if (isHoliday || isAfterISA2) {
+            } else if (isHoliday || isAfterTeachingEnd) {
               bgClass = 'bg-red-500/5 border-red-500/10 text-red-300 opacity-60 cursor-not-allowed';
             } else if (isExam) {
               bgClass = 'bg-amber-500/10 border-amber-500/20 text-amber-300 cursor-not-allowed';
-            } else if (isBunked) {
-              bgClass = 'bg-purple-500/20 border-purple-500/40 text-purple-200 font-bold ring-1 ring-purple-400';
             }
 
-            const canBunk = !isWeekend && !isHoliday && !isExam && !isAfterISA2;
-
             return (
-              <button
+              <div
                 key={iso}
-                disabled={!canBunk}
-                onClick={() => canBunk && toggleBunkDate(iso)}
-                className={`h-12 sm:h-14 p-1 rounded-md sm:rounded-lg border flex flex-col justify-between transition-all text-left ${bgClass} ${canBunk ? 'cursor-pointer' : ''}`}
+                className={`h-12 sm:h-14 p-1 rounded-md sm:rounded-lg border flex flex-col justify-between ${bgClass}`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="text-[11px] sm:text-xs font-semibold">{cell.dayNumber}</span>
-                  {isBunked && <span className="text-[8px] sm:text-[9px] bg-purple-500 text-white font-bold px-1 rounded">BUNK</span>}
                 </div>
 
                 <div className="text-[8px] sm:text-[9px] truncate opacity-80 leading-tight">
                   {isHoliday ? (dayEvents.find(e=>e.isHoliday)?.name || 'Holiday') :
                    isExam ? (dayEvents.find(e=>/\b(ISA|ESA)\b/i.test(e.name||''))?.name || 'Exam') :
-                   isAfterISA2 ? 'Teaching Ends' :
+                   isAfterTeachingEnd ? 'Teaching Ends' :
                    isWeekend ? 'Off' : ''}
                 </div>
-              </button>
+              </div>
             );
           })}
           </div>

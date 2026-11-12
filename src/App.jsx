@@ -302,7 +302,15 @@ export default function PES_Universal_Calculator() {
   // --- Attendance (Mode 1 is the source for all planners) ---
   const [attendanceStatusMode, setAttendanceStatusMode] = useState(() => {
     const saved = localStorage.getItem('pes_attendance_mode_status');
-    return saved ? JSON.parse(saved) : { total: '', attended: '', bufferPercent: '80' };
+    if (!saved) return { total: '', attended: '', bufferPercent: '80' };
+    const parsed = JSON.parse(saved);
+    const bufferPercent = String(parsed.bufferPercent ?? '').trim();
+    return {
+      ...parsed,
+      bufferPercent: bufferPercent && Number.isFinite(Number(bufferPercent))
+        ? parsed.bufferPercent
+        : '80',
+    };
   });
   const [attendanceClassesLeftMode, setAttendanceClassesLeftMode] = useState(() => {
     const saved = localStorage.getItem('pes_attendance_mode_classes_left');
@@ -1991,7 +1999,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v6.2 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v6.3 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}

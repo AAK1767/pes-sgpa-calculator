@@ -163,7 +163,7 @@ export function projectPerSubjectSessions(timetable, teachingDates) {
 //     byCode: { [code]: remaining } }
 // `reason` explains why a projection couldn't be made ('no-timetable',
 // 'no-calendar', 'no-cap', 'past-window').
-export function buildAttendanceProjection({ timetable, calendar, todayIso } = {}) {
+export function buildAttendanceProjection({ timetable, calendar, todayIso, endDate } = {}) {
   const result = {
     available: false, reason: '', windowStart: null, windowEnd: null,
     isa2Start: null, teachingDayCount: 0, totalSessions: 0,
@@ -188,7 +188,8 @@ export function buildAttendanceProjection({ timetable, calendar, todayIso } = {}
   // calendar's own end date.
   const esaStart = firstStartMatching(events, ESA_NAME_RE);
   const calEndExcl = calendar.calendar?.end ? addDaysIso(calendar.calendar.end, 1) : null;
-  const capExclusive = isa2Start || esaStart || calEndExcl;
+  const customEndExclusive = endDate ? addDaysIso(endDate, 1) : null;
+  const capExclusive = customEndExclusive || isa2Start || esaStart || calEndExcl;
   if (!capExclusive) {
     result.reason = 'no-cap';
     return result;

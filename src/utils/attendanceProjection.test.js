@@ -145,6 +145,19 @@ describe("buildAttendanceProjection", () => {
     expect(p.windowEnd).toBe("2026-12-07"); // ESA start
   });
 
+  it("uses an optional custom end date instead of the calendar exam cap", () => {
+    const p = buildAttendanceProjection({
+      timetable,
+      calendar,
+      todayIso: "2026-11-16",
+      endDate: "2026-11-20",
+    });
+    expect(p.windowEnd).toBe("2026-11-21");
+    expect(p.teachingDayCount).toBe(5);
+    expect(p.byCode.SUB_A).toBe(4);
+    expect(p.byCode.SUB_B).toBe(4);
+  });
+
   it("reports reasons for degenerate inputs", () => {
     expect(buildAttendanceProjection({ timetable: null, calendar }).reason).toBe("no-timetable");
     expect(buildAttendanceProjection({ timetable, calendar: null }).reason).toBe("no-calendar");
