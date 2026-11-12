@@ -95,10 +95,26 @@ export default function InteractiveAttendancePlanner({
     }
   });
 
-  const previousPortalDataRef = useRef(portalData);
+  const previousPortalDataRef = useRef({
+    attendance: portalData?.attendance,
+    timetable: portalData?.timetable,
+    calendar: portalData?.calendar,
+  });
   useEffect(() => {
-    if (previousPortalDataRef.current === portalData) return;
-    previousPortalDataRef.current = portalData;
+    const currentPortalData = {
+      attendance: portalData?.attendance,
+      timetable: portalData?.timetable,
+      calendar: portalData?.calendar,
+    };
+    const previousPortalData = previousPortalDataRef.current;
+    if (
+      previousPortalData.attendance === currentPortalData.attendance
+      && previousPortalData.timetable === currentPortalData.timetable
+      && previousPortalData.calendar === currentPortalData.calendar
+    ) {
+      return;
+    }
+    previousPortalDataRef.current = currentPortalData;
 
     setManualOverrides((prev) => {
       const refreshedOverrides = Object.fromEntries(
@@ -111,7 +127,7 @@ export default function InteractiveAttendancePlanner({
       );
       return refreshedOverrides;
     });
-  }, [portalData]);
+  }, [portalData?.attendance, portalData?.timetable, portalData?.calendar]);
 
   useEffect(() => {
     localStorage.setItem('pes_attendance_manual_overrides', JSON.stringify(manualOverrides));
