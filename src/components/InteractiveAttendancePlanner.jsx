@@ -355,7 +355,7 @@ export default function InteractiveAttendancePlanner({
               All-Subject Attendance Planner
             </h3>
             <p className="text-xs text-zinc-400 mt-1">
-              Review projected attendance, the impact of skipping all remaining classes, and the semester calendar.
+              Review attendance if you attend every remaining class, the impact of skipping all remaining classes, and the semester calendar.
             </p>
           </div>
 
@@ -512,7 +512,7 @@ export default function InteractiveAttendancePlanner({
                 <th className="py-2.5 px-3 text-center">Current</th>
                 <th className="py-2.5 px-3 text-center">Classes Left</th>
                 <th className="py-2.5 px-3 text-center">Skip All Remaining</th>
-                <th className="py-2.5 px-3 text-center">Projected %</th>
+                <th className="py-2.5 px-3 text-center">Attend All Remaining</th>
                 <th className="py-2.5 px-3 text-center">75% Skips Left</th>
                 <th className="py-2.5 px-3 text-center">Buffer Skips</th>
                 <th className="py-2.5 px-3 text-right">Action</th>
