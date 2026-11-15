@@ -10,8 +10,7 @@
 //
 // Credentials are read in this order (first one found wins):
 //   1. env vars:      PESU_USER / PESU_PASS
-//   2. CLI args:      node test-pesu-login.mjs <username> <password>
-//   3. interactive prompt (password input is hidden)
+//   2. interactive prompt (password input is hidden)
 //
 // The upstream URL + endpoint can be overridden with env vars if needed:
 //   PESU_AUTH_URL   (default: https://pesuauth.onrender.com)
@@ -52,8 +51,8 @@ function askHidden(query) {
 }
 
 async function getCredentials() {
-  let username = process.env.PESU_USER || process.argv[2];
-  let password = process.env.PESU_PASS || process.argv[3];
+  let username = process.env.PESU_USER;
+  let password = process.env.PESU_PASS;
   if (!username) username = await ask('SRN / PRN: ');
   if (!password) password = await askHidden('Password (hidden): ');
   return { username: username.trim(), password };

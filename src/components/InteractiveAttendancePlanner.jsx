@@ -3,7 +3,7 @@ import {
   Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2,
   AlertCircle, RefreshCw, Send, Plus, Trash2, Edit2, RotateCcw,
   Sparkles, Download, Layers, ShieldCheck, Check, AlertTriangle, BookOpen,
-  LogIn, Clock, Eye, EyeOff
+  LogIn, Eye, EyeOff
 } from 'lucide-react';
 import {
   buildAttendancePlan, parseNonNegativeInt
@@ -53,7 +53,9 @@ export default function InteractiveAttendancePlanner({
   portalData,
   portalDataIdentity = portalData,
   pesuProfile,
+  username = '',
   calcSubjects,
+  setPortalData,
   setActiveTab,
   bufferPercent,
   setBufferPercent,
@@ -133,8 +135,12 @@ export default function InteractiveAttendancePlanner({
     setSyncError('');
 
     try {
-      const user = localStorage.getItem('pesu_username') || '';
       const pass = syncPassword;
+      const user = username || localStorage.getItem('pesu_username') || '';
+      if (!user) {
+        setSyncError('Your SRN/PRN is unavailable. Sign in again from the PESU Academy tab.');
+        return;
+      }
       const res = await fetch('/api/pesu-portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,6 +149,8 @@ export default function InteractiveAttendancePlanner({
       let data = {};
       try { data = await res.json(); } catch { data = {}; }
       if (res.ok && data.ok) {
+        setPortalData?.(data);
+        localStorage.setItem('pesu_saved_at', String(Date.now()));
         localStorage.setItem('pesu_portal_data', JSON.stringify(data));
         localStorage.setItem('pesu_last_synced', new Date().toISOString());
         try {
@@ -360,19 +368,6 @@ export default function InteractiveAttendancePlanner({
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {(() => {
-              const ls = localStorage.getItem('pesu_last_synced');
-              if (!ls) return null;
-              try {
-                return (
-                  <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 bg-white/[0.03] rounded-lg px-3 py-1.5 border border-white/[0.06]">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Last synced: {new Date(ls).toLocaleDateString('en-GB')}</span>
-                  </div>
-                );
-              } catch { return null; }
-            })()}
-
             <button
                onClick={() => setShowSyncModal(true)}
                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition-all cursor-pointer"

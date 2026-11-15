@@ -57,6 +57,14 @@ const CIE_L1_NAMES = new Set([
   'CIE Essentials of Innovation & Entrepreneurship - Part 1',
 ]);
 
+const PESU_DATA_TTL_MS = 2 * 24 * 60 * 60 * 1000;
+
+function readFreshPESUStorage(key) {
+  const savedAt = Number(localStorage.getItem('pesu_saved_at'));
+  if (!savedAt || Date.now() - savedAt > PESU_DATA_TTL_MS) return null;
+  return localStorage.getItem(key);
+}
+
 // Pre-compile a set of all preset subject names for GA tracking classification
 const presetSubjectNames = new Set(
   Object.values(SemesterPresets).flatMap(presetList => presetList.map(sub => sub.name))
@@ -192,17 +200,25 @@ export default function PES_Universal_Calculator() {
   // --- PESU Auth State ---
   const [pesuProfile, setPesuProfile] = useState(() => {
     try {
-      const saved = localStorage.getItem('pesu_profile');
+      const saved = readFreshPESUStorage('pesu_profile');
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
   const [portalData, setPortalData] = useState(() => {
     try {
-      const saved = localStorage.getItem('pesu_portal_data');
+      const saved = readFreshPESUStorage('pesu_portal_data');
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
-  const [lastSynced, setLastSynced] = useState(() => localStorage.getItem('pesu_last_synced') || '');
+  const [lastSynced, setLastSynced] = useState(() => readFreshPESUStorage('pesu_last_synced') || '');
+
+  useEffect(() => {
+    const savedAt = Number(localStorage.getItem('pesu_saved_at'));
+    if (!savedAt || Date.now() - savedAt > PESU_DATA_TTL_MS) {
+      ['pesu_profile', 'pesu_portal_data', 'pesu_username', 'pesu_last_synced', 'pesu_saved_at']
+        .forEach((key) => localStorage.removeItem(key));
+    }
+  }, []);
 
   // --- UI State ---
   const [targetSgpa, setTargetSgpa] = useState(9.0);

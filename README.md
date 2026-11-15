@@ -460,6 +460,15 @@ Contributions are welcome! Here's how:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🔒 Privacy and Data Handling
+
+- Calculator inputs are stored locally in your browser to support the offline-first experience.
+- PESU Academy credentials are sent over HTTPS to the configured authentication/portal services only for the requested operation. They are not stored or logged by this project.
+- Profile, timetable, attendance, and results data from PESU Academy is held in memory for the current page session and is not persisted by the app.
+- Optional feedback is sent to the project maintainer's Discord webhook. Do not include passwords, SRNs, grades, or other sensitive information in feedback.
+- Anonymous product analytics may record feature usage and coarse event metadata. It is not intended to receive credentials or academic marks.
+- This is an unofficial tool and is not affiliated with or endorsed by PES University. Review the deployed instance's privacy policy and hosting configuration before entering credentials.
+
 ---
 
 ## 🙏 Acknowledgments

@@ -109,6 +109,7 @@ export default function AttendanceTab({
          portalDataIdentity={portalData}
          setPortalData={setPortalData}
          pesuProfile={pesuProfile}
+         username={pesuProfile?.srn || pesuProfile?.prn || ''}
          calcSubjects={subjects}
          calcMarks={marks}
          setActiveTab={setActiveTab}

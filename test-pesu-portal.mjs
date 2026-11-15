@@ -8,7 +8,6 @@
 //
 // Usage (any one):
 //   node test-pesu-portal.mjs                      # prompts for SRN/PRN + password (hidden)
-//   node test-pesu-portal.mjs PES1UG23CS001 mypass # positional args
 //   PESU_USER=... PESU_PASS=... node test-pesu-portal.mjs
 //
 // Nothing is stored or logged to disk. Credentials are used once for the login request.
@@ -43,8 +42,8 @@ function ask(question, { hidden = false } = {}) {
 }
 
 async function main() {
-  let username = process.env.PESU_USER || process.argv[2];
-  let password = process.env.PESU_PASS || process.argv[3];
+  let username = process.env.PESU_USER;
+  let password = process.env.PESU_PASS;
   if (!username) username = (await ask('SRN / PRN: ')).trim();
   if (!password) { password = await ask('Password (hidden): ', { hidden: true }); process.stdout.write('\n'); }
   if (!username || !password) { console.error('Need both username and password.'); process.exit(1); }

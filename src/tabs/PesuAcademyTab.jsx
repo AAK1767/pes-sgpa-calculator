@@ -7,6 +7,14 @@ import { trackEvent } from '../utils/analytics';
 import { mapProfileToPreset } from '../utils/pesuMapping';
 import { PortalData } from '../components/PesuPortalData';
 
+const PESU_DATA_TTL_MS = 2 * 24 * 60 * 60 * 1000;
+
+function readFreshPESUStorage(key) {
+  const savedAt = Number(localStorage.getItem('pesu_saved_at'));
+  if (!savedAt || Date.now() - savedAt > PESU_DATA_TTL_MS) return null;
+  return localStorage.getItem(key);
+}
+
 // Fields we know how to show from a PESUAuth profile, in display order.
 // Only the ones actually present in the response are rendered.
 const PROFILE_FIELDS = [
@@ -40,44 +48,34 @@ function formatLastSynced(iso) {
 
 export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, setPesuProfile, setPortalData: setParentPortalData, lastSynced, setLastSynced }) {
   const [username, setUsername] = useState(() => {
-    return localStorage.getItem('pesu_username') || '';
+    return readFreshPESUStorage('pesu_username') || '';
   });
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [profile, setProfile] = useState(() => {
     try {
-      const saved = localStorage.getItem('pesu_profile');
+      const saved = readFreshPESUStorage('pesu_profile');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
   });
   const [status, setStatus] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pesu_profile');
-      return saved ? 'success' : 'idle';
-    } catch {
-      return 'idle';
-    }
+    return readFreshPESUStorage('pesu_profile') ? 'success' : 'idle';
   });
   const [errorMsg, setErrorMsg] = useState('');
 
   // Timetable / attendance / results fetched from the portal (separate, slower call).
   const [portalData, setPortalData] = useState(() => {
     try {
-      const saved = localStorage.getItem('pesu_portal_data');
+      const saved = readFreshPESUStorage('pesu_portal_data');
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
   });
   const [portalStatus, setPortalStatus] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pesu_portal_data');
-      return saved ? 'success' : 'idle';
-    } catch {
-      return 'idle';
-    }
+    return readFreshPESUStorage('pesu_portal_data') ? 'success' : 'idle';
   });
   const [portalError, setPortalError] = useState('');
 
@@ -105,6 +103,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
         setPortalStatus('success');
         const now = new Date().toISOString();
         setLastSynced(now);
+        localStorage.setItem('pesu_saved_at', String(Date.now()));
         localStorage.setItem('pesu_portal_data', JSON.stringify(data));
         localStorage.setItem('pesu_last_synced', now);
         setPassword(''); // portal data is in; the password is no longer needed anywhere
@@ -162,6 +161,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
         setProfile(prof);
         setPesuProfile && setPesuProfile(prof);
         setStatus('success');
+        localStorage.setItem('pesu_saved_at', String(Date.now()));
         localStorage.setItem('pesu_profile', JSON.stringify(prof));
         localStorage.setItem('pesu_username', user);
         trackEvent('pesu_login', { status: 'success' });
@@ -201,6 +201,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
         setPortalStatus('success');
         const now = new Date().toISOString();
         setLastSynced(now);
+        localStorage.setItem('pesu_saved_at', String(Date.now()));
         localStorage.setItem('pesu_portal_data', JSON.stringify(data));
         localStorage.setItem('pesu_last_synced', now);
         setShowSyncModal(false);
@@ -227,9 +228,8 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
     setPortalStatus('idle');
     setPortalError('');
     setLastSynced('');
-    localStorage.removeItem('pesu_profile');
-    localStorage.removeItem('pesu_portal_data');
-    localStorage.removeItem('pesu_last_synced');
+    ['pesu_profile', 'pesu_portal_data', 'pesu_username', 'pesu_last_synced', 'pesu_saved_at']
+      .forEach((key) => localStorage.removeItem(key));
   };
 
   const handlePrefill = (presetName) => {
