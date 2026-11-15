@@ -7,7 +7,7 @@ import { fetchAllPortalData } from './server/pesuPortal.js'
 // `vite dev`. So during local dev we proxy the PESU auth call straight to the upstream
 // PESUAuth service. This is dev-only — in production Vercel serves api/pesu-auth.js.
 // Override the target with the PESU_AUTH_URL env var if you self-host the service.
-const PESU_AUTH_TARGET = process.env.PESU_AUTH_URL || 'https://pesu-auth.onrender.com'
+const PESU_AUTH_TARGET = process.env.PESU_AUTH_URL || 'https://pesuauth.onrender.com'
 
 // Dev-only middleware for /api/pesu-portal. Unlike /api/pesu-auth (a simple URL proxy),
 // fetching timetable/attendance/results is multi-step server logic, so we run the real

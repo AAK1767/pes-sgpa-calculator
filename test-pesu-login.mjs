@@ -14,13 +14,13 @@
 //   3. interactive prompt (password input is hidden)
 //
 // The upstream URL + endpoint can be overridden with env vars if needed:
-//   PESU_AUTH_URL   (default: https://pesu-auth.onrender.com)
+//   PESU_AUTH_URL   (default: https://pesuauth.onrender.com)
 //   PESU_AUTH_PATH  (default: /authenticate)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import readline from 'node:readline';
 
-const BASE = (process.env.PESU_AUTH_URL || 'https://pesu-auth.onrender.com').replace(/\/+$/, '');
+const BASE = (process.env.PESU_AUTH_URL || 'https://pesuauth.onrender.com').replace(/\/+$/, '');
 const PATH = process.env.PESU_AUTH_PATH || '/authenticate';
 const ENDPOINT = `${BASE}${PATH}`;
 const TIMEOUT_MS = 60000; // Render free tier can cold-start slowly on the first hit.

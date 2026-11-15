@@ -10,7 +10,7 @@
 // Configure the instance you want to hit with the PESU_AUTH_URL environment variable
 // (e.g. your own self-hosted deployment). If unset, it falls back to the public instance.
 
-const DEFAULT_PESU_AUTH_URL = 'https://pesu-auth.onrender.com';
+const DEFAULT_PESU_AUTH_URL = 'https://pesuauth.onrender.com';
 
 // Public instances (free tier) can cold-start slowly, so give them room before giving up.
 const UPSTREAM_TIMEOUT_MS = 30000;
