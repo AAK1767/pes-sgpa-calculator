@@ -47,6 +47,29 @@ export function todayIsoLocal(now = new Date()) {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
+function timeToSeconds(value) {
+  const match = String(value || '').trim().match(/^(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?\s*(AM|PM)?$/i);
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2] || 0);
+  const seconds = Number(match[3] || 0);
+  const meridiem = match[4]?.toUpperCase();
+  if (minutes > 59 || seconds > 59 || hours > (meridiem ? 12 : 23)) return null;
+  if (meridiem) {
+    if (hours === 12) hours = 0;
+    if (meridiem === 'PM') hours += 12;
+  }
+  return hours * 60 * 60 + minutes * 60 + seconds;
+}
+
+function isSlotOver(entry, timetable, now) {
+  if (!now) return false;
+  const slot = (timetable?.slots || []).find((item) => item.slot === entry.slot);
+  const endSeconds = timeToSeconds(slot?.end);
+  if (endSeconds === null) return null;
+  return endSeconds <= (now.getHours() * 60 * 60 + now.getMinutes() * 60 + now.getSeconds());
+}
+
 /* ------------------------------ event matching ---------------------------- */
 const EXAM_NAME_RE = /\b(ISA|ESA)\b/i;      // any internal/end-semester exam window
 const ISA2_NAME_RE = /\bISA\s*-?\s*2\b/i;   // ISA 2 / ISA-2 / ISA2
@@ -137,7 +160,7 @@ export function computeTeachingDates({ events, fromIso, capIso }) {
 
 // For each teaching date, add up how many timetable slots each subject has that
 // weekday. Keyed by course code (falling back to name).
-export function projectPerSubjectSessions(timetable, teachingDates) {
+export function projectPerSubjectSessions(timetable, teachingDates, { todayIso, now } = {}) {
   const entriesByDay = new Map();
   for (const e of (timetable?.entries || [])) {
     if (!entriesByDay.has(e.day)) entriesByDay.set(e.day, []);
@@ -146,7 +169,12 @@ export function projectPerSubjectSessions(timetable, teachingDates) {
   const counts = new Map(); // key -> { code, name, remaining }
   for (const date of teachingDates) {
     const ttDay = isoWeekday(date); // Mon(1)…Fri(5) — weekends already filtered
-    for (const e of (entriesByDay.get(ttDay) || [])) {
+    const dayEntries = entriesByDay.get(ttDay) || [];
+    const todayIsOver = date === todayIso
+      && dayEntries.length > 0
+      && dayEntries.every((entry) => isSlotOver(entry, timetable, now) === true);
+    if (todayIsOver) continue;
+    for (const e of dayEntries) {
       const key = e.code || e.name;
       if (!key) continue;
       if (!counts.has(key)) counts.set(key, { code: e.code || '', name: e.name || '', remaining: 0 });
@@ -163,7 +191,14 @@ export function projectPerSubjectSessions(timetable, teachingDates) {
 //     byCode: { [code]: remaining } }
 // `reason` explains why a projection couldn't be made ('no-timetable',
 // 'no-calendar', 'no-cap', 'past-window').
-export function buildAttendanceProjection({ timetable, calendar, todayIso, endDate } = {}) {
+export function buildAttendanceProjection({
+  timetable,
+  calendar,
+  todayIso,
+  endDate,
+  now = new Date(),
+  excludeTodayClasses = false,
+} = {}) {
   const result = {
     available: false, reason: '', windowStart: null, windowEnd: null,
     isa2Start: null, teachingDayCount: 0, totalSessions: 0,
@@ -197,7 +232,7 @@ export function buildAttendanceProjection({ timetable, calendar, todayIso, endDa
 
   // Count from today (or the semester start if we're somehow before it).
   const calStart = calendar.calendar?.start || null;
-  const baseToday = todayIso || todayIsoLocal();
+  const baseToday = todayIso || todayIsoLocal(now);
   const fromIso = (calStart && baseToday < calStart) ? calStart : baseToday;
   if (fromIso >= capExclusive) {
     result.reason = 'past-window';
@@ -207,7 +242,11 @@ export function buildAttendanceProjection({ timetable, calendar, todayIso, endDa
   }
 
   const teachingDates = computeTeachingDates({ events, fromIso, capIso: capExclusive });
-  const counts = projectPerSubjectSessions(timetable, teachingDates);
+  const counts = projectPerSubjectSessions(
+    timetable,
+    teachingDates,
+    { todayIso: excludeTodayClasses ? baseToday : null, now }
+  );
   const perSubject = [...counts.values()];
 
   result.available = true;

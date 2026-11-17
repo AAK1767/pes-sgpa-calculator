@@ -78,6 +78,11 @@ export default function InteractiveAttendancePlanner({
   const todayStr = useMemo(() => todayIsoLocal(), []);
   const [currentYear, setCurrentYear] = useState(() => parseInt(todayStr.split('-')[0], 10));
   const [currentMonth, setCurrentMonth] = useState(() => parseInt(todayStr.split('-')[1], 10) - 1);
+  const [excludeTodayClasses, setExcludeTodayClasses] = useState(() => {
+    const shouldExclude = sessionStorage.getItem('pes_attendance_exclude_today_once') === 'true';
+    sessionStorage.removeItem('pes_attendance_exclude_today_once');
+    return shouldExclude;
+  });
 
   const [manualOverrides, setManualOverrides] = useState(() => {
     try {
@@ -92,6 +97,7 @@ export default function InteractiveAttendancePlanner({
   useEffect(() => {
     if (previousPortalDataRef.current === portalDataIdentity) return;
     previousPortalDataRef.current = portalDataIdentity;
+    setExcludeTodayClasses(true);
 
     setManualOverrides((prev) => {
       const refreshedOverrides = Object.fromEntries(
@@ -169,6 +175,7 @@ export default function InteractiveAttendancePlanner({
         }
         setShowSyncModal(false);
         setSyncPassword('');
+        sessionStorage.setItem('pes_attendance_exclude_today_once', 'true');
         window.location.reload();
       } else {
         setSyncError(data.error || 'Sync failed. Please check your password and try again.');
@@ -199,8 +206,9 @@ export default function InteractiveAttendancePlanner({
       timetable,
       calendar,
       endDate: customEndDate || undefined,
+      excludeTodayClasses,
     }),
-    [timetable, calendar, customEndDate]
+    [timetable, calendar, customEndDate, excludeTodayClasses]
   );
 
   // Event lookup map by date

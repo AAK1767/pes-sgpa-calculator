@@ -30,6 +30,17 @@ const timetable = {
   ],
 };
 
+const timedTimetable = {
+  slots: [
+    { slot: 1, start: "09:00:16 AM", end: "10:00:16 AM" },
+    { slot: 2, start: "10:00:16 AM", end: "11:00:16 AM" },
+  ],
+  entries: [
+    { day: 1, slot: 1, code: "SUB_A", name: "Alpha" },
+    { day: 1, slot: 2, code: "SUB_B", name: "Beta" },
+  ],
+};
+
 const calendar = {
   calendar: { name: "Aug 2026 - Dec 2026", start: "2026-08-01", end: "2026-12-31" },
   events: [
@@ -156,6 +167,41 @@ describe("buildAttendanceProjection", () => {
     expect(p.teachingDayCount).toBe(5);
     expect(p.byCode.SUB_A).toBe(4);
     expect(p.byCode.SUB_B).toBe(4);
+  });
+
+  it("keeps today's classes until the entire timetable day has ended", () => {
+    const p = buildAttendanceProjection({
+      timetable: timedTimetable,
+      calendar,
+      todayIso: "2026-11-16",
+      now: new Date(2026, 10, 16, 10, 30),
+      excludeTodayClasses: true,
+    });
+    expect(p.byCode.SUB_A ?? 0).toBe(1);
+    expect(p.byCode.SUB_B ?? 0).toBe(1);
+  });
+
+  it("omits all of today's classes once every timetable slot has ended", () => {
+    const p = buildAttendanceProjection({
+      timetable: timedTimetable,
+      calendar,
+      todayIso: "2026-11-16",
+      now: new Date(2026, 10, 16, 11, 30),
+      excludeTodayClasses: true,
+    });
+    expect(p.byCode.SUB_A ?? 0).toBe(0);
+    expect(p.byCode.SUB_B ?? 0).toBe(0);
+  });
+
+  it("does not apply the current-day cutoff on a normal page load", () => {
+    const p = buildAttendanceProjection({
+      timetable: timedTimetable,
+      calendar,
+      todayIso: "2026-11-16",
+      now: new Date(2026, 10, 16, 11, 30),
+    });
+    expect(p.byCode.SUB_A ?? 0).toBe(1);
+    expect(p.byCode.SUB_B ?? 0).toBe(1);
   });
 
   it("reports reasons for degenerate inputs", () => {
