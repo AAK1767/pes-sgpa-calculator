@@ -94,12 +94,10 @@ export default function CgpaTab({
   }
 
   return (
-    <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+    <div className="tab-shell space-y-4 md:space-y-5 animate-in slide-in-from-right-4 fade-in duration-300">
 
       {/* Header & Result Card */}
-      <div className={`${themeClasses.card} p-6 rounded-2xl shadow-2xl border ${themeClasses.border} text-center relative overflow-hidden`}>
-        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-teal-400 via-blue-500 to-violet-500"></div>
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-20 bg-teal-500/[0.06] blur-[40px] pointer-events-none"></div>
+      <div className={`${themeClasses.card} p-4 md:p-5 rounded-lg border ${themeClasses.border} text-center relative overflow-hidden`}>
 
         <h2 className={`text-sm font-bold uppercase tracking-wider ${themeClasses.muted} mb-2`}>Cumulative GPA</h2>
 

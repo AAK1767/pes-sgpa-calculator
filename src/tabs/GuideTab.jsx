@@ -45,20 +45,7 @@ export default function GuideTab({
   };
 
   return (
-    <div className="space-y-6">
-
-      {/* Intro Banner */}
-      <div className="bg-gradient-to-br from-[#0e0e18] to-[#0a0a12] border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 relative overflow-hidden">
-        <div className="relative z-10">
-          <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
-            <BookOpen className="w-6 h-6 text-yellow-300" /> User Guide & Attendance Pro Features
-          </h2>
-          <p className="text-violet-100 opacity-90 max-w-2xl">
-            Everything you need to know: from keyboard shortcuts and momentum logic to the live PESU Academy attendance planner.
-          </p>
-        </div>
-        <HelpCircle className="absolute right-[-20px] bottom-[-40px] w-40 h-40 text-zinc-200 opacity-10 rotate-12" />
-      </div>
+    <div className="tab-shell space-y-4 md:space-y-5">
 
       <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
         <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">

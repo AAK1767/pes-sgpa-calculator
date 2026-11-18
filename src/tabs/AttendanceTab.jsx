@@ -74,7 +74,7 @@ export default function AttendanceTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="tab-shell space-y-4 md:space-y-5">
       {!isLoggedIn && (
         <div className="flex items-center gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 text-xs shadow-sm">
           <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0" />
@@ -83,14 +83,6 @@ export default function AttendanceTab({
         </div>
       )}
 
-      <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200">
-        <h2 className="text-lg font-bold flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Overall Attendance
-        </h2>
-        <p className={`text-xs ${themeClasses.muted} mt-1`}>
-          One subject at a time. Mode 1 is the base, and all planning modes use it automatically.
-        </p>
-      </div>
 
       {isLoggedIn && portalData && (
         <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 text-xs text-amber-200/80">

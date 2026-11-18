@@ -28,8 +28,8 @@ export default function ReverseTab({
   GradeMap
 }) {
   return (
-    <div className="space-y-4">
-      <div className="bg-[#0c0c14]/90 backdrop-blur-sm border border-emerald-500/10 rounded-xl shadow-2xl shadow-black/20 p-4 text-zinc-200 relative overflow-hidden">
+    <div className="tab-shell space-y-4">
+      <div className="bg-[#12151b] border border-[#262a34] rounded-lg p-4 text-zinc-200 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/[0.07] blur-[60px] rounded-full pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-500/[0.04] blur-[50px] rounded-full pointer-events-none"></div>
         <h2 className="text-lg font-bold flex items-center gap-2 mb-2">

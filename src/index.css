@@ -72,3 +72,52 @@
     display: none;
   }
 }
+
+/* Shared tab language: flatter surfaces, compact hierarchy, predictable density. */
+.tab-shell .rounded-2xl,
+.tab-shell .rounded-xl {
+  border-radius: 0.625rem;
+}
+
+.tab-shell .shadow-2xl,
+.tab-shell .shadow-xl,
+.tab-shell .shadow-lg,
+.tab-shell .shadow-sm {
+  box-shadow: none;
+}
+
+.tab-shell [class*="bg-gradient"] {
+  background-image: none;
+}
+
+.tab-shell [class*="backdrop-blur"] {
+  backdrop-filter: none;
+}
+
+@media (max-width: 639px) {
+  .tab-shell {
+    font-size: 14px;
+  }
+
+  .tab-shell .p-6 {
+    padding: 1rem;
+  }
+
+  .tab-shell table {
+    font-size: 12px;
+  }
+
+  .tab-shell th,
+  .tab-shell td {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .tab-shell summary {
+    min-height: 44px;
+  }
+
+  .tab-shell [class*="absolute"][class*="blur"] {
+    display: none;
+  }
+}

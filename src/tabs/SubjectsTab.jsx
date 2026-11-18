@@ -70,7 +70,7 @@ export default function SubjectsTab({
   };
 
   return (
-    <>
+    <div className="tab-shell">
       <div className="mb-3 flex justify-end">
         <button
           onClick={handlePesuImport}
@@ -1066,6 +1066,6 @@ export default function SubjectsTab({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
