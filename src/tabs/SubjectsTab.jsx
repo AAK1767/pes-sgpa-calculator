@@ -82,7 +82,7 @@ export default function SubjectsTab({
       </div>
 
       {/* Helper Banner (Optimized for both Mobile & Desktop) */}
-      <div className={`${themeClasses.card} border rounded-xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+      <div className={`${themeClasses.card} rounded-lg p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
 
         {/* LEFT SIDE: Text Content (Unified Collapsible for Desktop & Mobile) */}
         <div className="flex-1">
@@ -148,7 +148,7 @@ export default function SubjectsTab({
       </div>
 
       {/* Grade Distribution Bar */}
-      <div className={`${themeClasses.card} border rounded-xl p-4`}>
+      <div className={`${themeClasses.card} rounded-lg p-4`}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-bold flex items-center gap-2">
             <BarChart3 className="w-4 h-4" /> Grade Distribution
@@ -176,7 +176,7 @@ export default function SubjectsTab({
       </div>
 
       {/* Subjects List */}
-      <div className="space-y-4">
+      <div className="grid gap-3 xl:grid-cols-2">
         {subjects.map((subject) => {
           const m = marks[subject.id] || {};
           const { finalScore, rawScore, totalWeight, unroundedScore, cieScaled, cieRounded, esaScaled, esaRounded, labScaled, labRounded } = getSubjectMetrics(subject);
@@ -202,7 +202,7 @@ export default function SubjectsTab({
           const rawScoreLabel = rawScore.toFixed(2).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
 
           return (
-            <div key={subject.id} className={`${themeClasses.card} rounded-xl border transition-all duration-300 ease-out ${isExpanded ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.07)] ring-1 ring-blue-500/10' : themeClasses.cardHover}`}>
+            <div key={subject.id} className={`${themeClasses.card} rounded-lg transition-all duration-300 ease-out ${isExpanded ? 'border-orange-400/40 ring-1 ring-orange-400/10' : themeClasses.cardHover}`}>
               {/* Subject Header */}
               <div
                 className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer rounded-t-xl gap-4"

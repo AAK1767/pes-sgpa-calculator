@@ -48,7 +48,8 @@ import {
   Download, Upload, Lock, Unlock, AlertTriangle,
   BookOpen, Award, Zap, BarChart3, Moon, Sun,
   Undo2, Redo2, HelpCircle, Info, X, Heart,
-  Github, ExternalLink, Star, MessageSquare, GraduationCap
+  Github, ExternalLink, Star, MessageSquare, GraduationCap,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 
 const CIE_L1_NAMES = new Set([
@@ -221,6 +222,8 @@ export default function PES_Universal_Calculator() {
   }, []);
 
   // --- UI State ---
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+
   const [targetSgpa, setTargetSgpa] = useState(9.0);
   const [expandedSubject, setExpandedSubject] = useState(null);
 
@@ -1735,61 +1738,113 @@ export default function PES_Universal_Calculator() {
 
   // --- Theme Classes (Premium Dark) ---
   const themeClasses = {
-    bg: 'bg-black',
-    text: 'text-zinc-300',
-    card: 'bg-[#0c0c14]/90 backdrop-blur-sm border-white/[0.06]',
-    cardHover: 'hover:border-white/[0.12] hover:shadow-lg hover:shadow-black/20',
-    input: 'bg-[#0e0e18] border-white/[0.08] text-zinc-200 placeholder:text-zinc-600 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all',
-    inputBg: 'bg-[#0e0e18]',
+    bg: 'bg-[#0b0d12]',
+    text: 'text-zinc-200',
+    card: 'bg-[#12151b] border border-[#252932]',
+    cardHover: 'hover:border-[#3d4352]',
+    input: 'bg-[#171a21] border-[#303541] text-zinc-100 placeholder:text-zinc-600 focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400/50 transition-all',
+    inputBg: 'bg-[#171a21]',
     muted: 'text-zinc-500',
-    border: 'border-white/[0.06]',
+    border: 'border-[#262a34]',
   };
 
   return (
-    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24`}>
-      {/* Glass Header */}
-      <div className="bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06] text-zinc-200 py-4 px-4 md:p-6 sticky top-0 z-50 shadow-xl shadow-black/40">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <div>
-            <div className="flex flex-wrap items-center gap-2.5 md:gap-3">
-              <h1 className="text-xl md:text-2xl font-bold inline-flex items-center gap-2">
-                <img src="/header_logo.png" alt="PESU Calculator Logo" className="w-7 h-7 md:w-9 md:h-9 object-contain" />
-                <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">PESU Calculator</span>
+    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24 md:pb-8`}>
+      {/* Product Header */}
+      <header className={`sticky top-0 z-50 border-b border-[#232731] bg-[#0b0d12]/95 px-4 backdrop-blur-xl md:px-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'}`}>
+        <div className="mx-auto flex h-[64px] max-w-[1120px] items-center justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5">
+              <h1 className="flex min-w-0 items-center gap-2.5 text-sm font-bold tracking-tight text-white md:hidden">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#2c303a] bg-[#151820]">
+                  <img src="/header_logo.png" alt="" className="h-6 w-6 object-contain md:h-7 md:w-7" />
+                </span>
+                <span className="truncate">PESU Calculator</span>
               </h1>
-
-              {/* Subtle links positioned beside the title */}
-              <div className="flex items-center gap-1 md:gap-1.5 text-[9px] md:text-xs font-semibold">
+              <div className="hidden items-center gap-2 text-xs text-zinc-500 md:flex">
+                <span>Workspace</span>
+                <span className="text-zinc-700">/</span>
+                <span className="font-semibold capitalize text-zinc-300">{activeTab === 'pesu' ? 'PESU Academy' : activeTab === 'reverse' ? 'Reverse calculator' : activeTab}</span>
+              </div>
+              <div className="hidden items-center gap-1.5 text-[11px] font-semibold sm:flex">
                 <button
                   onClick={() => setShowToffeeModal(true)}
-                  className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1 bg-amber-400/5 hover:bg-amber-400/10 px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg border border-amber-400/10 cursor-pointer"
+                  className="flex cursor-pointer items-center rounded-lg border border-amber-400/10 bg-amber-400/[0.06] px-2.5 py-1.5 text-amber-300 transition hover:bg-amber-400/10"
                 >
-                  <span>Toffee 🍬</span>
+                  Toffee
                 </button>
                 <button
                   onClick={() => setShowFeedbackModal(true)}
-                  className="text-zinc-400 hover:text-zinc-200 transition-colors flex items-center gap-1 bg-white/[0.04] hover:bg-white/[0.08] px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg border border-white/[0.06] cursor-pointer"
+                  className="flex cursor-pointer items-center rounded-lg border border-white/[0.07] bg-white/[0.03] px-2.5 py-1.5 text-zinc-400 transition hover:bg-white/[0.07] hover:text-zinc-200"
                 >
-                  <span>Feedback 📝</span>
+                  Feedback
                 </button>
               </div>
             </div>
-            <p className="text-zinc-500 text-[10px] md:text-xs mt-1.5 font-medium tracking-widest uppercase">
-              Universal &bull; Auto-Saves &bull; Any College
-            </p>
           </div>
 
-          <div className="text-right">
-            <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider font-semibold">SGPA</div>
-            <div className={`text-3xl md:text-4xl font-black tabular-nums tracking-tight ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-white'}`}>
+          <div className="ml-4 flex shrink-0 items-center gap-3 border-l border-[#282c35] pl-4">
+            <div className="hidden text-right sm:block">
+              <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">Current</div>
+              <div className="text-[10px] text-zinc-500">SGPA</div>
+            </div>
+            <div className={`text-2xl font-black tabular-nums tracking-tight md:text-3xl ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400' : 'text-white'}`}>
               {sgpa}
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Desktop Navigation */}
-      <div className="hidden md:block sticky top-[72px] md:top-[89px] z-40 bg-[#08080e]/80 backdrop-blur-2xl border-b border-white/[0.06]">
-        <div className="max-w-4xl mx-auto flex overflow-x-auto gap-1 px-2 py-1.5">
+      <aside className={`hidden md:flex md:fixed md:inset-y-0 md:left-0 md:z-[60] md:flex-col md:border-r md:border-[#232731] md:bg-[#090b10] transition-[width] duration-200 ${desktopSidebarOpen ? 'md:w-[220px]' : 'md:w-[72px]'}`} aria-label="Primary navigation">
+        <div className={`flex h-[64px] items-center border-b border-[#232731] ${desktopSidebarOpen ? 'justify-between px-5' : 'justify-center px-2'}`}>
+          <div className="flex items-center gap-2.5">
+            {desktopSidebarOpen ? (
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#30343f] bg-[#151820]">
+                <img src="/header_logo.png" alt="" className="h-6 w-6 object-contain" />
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setDesktopSidebarOpen(true)}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#30343f] bg-[#151820] transition hover:border-orange-400/40 hover:bg-orange-400/[0.06]"
+                aria-label="Expand sidebar"
+                title="Expand sidebar"
+              >
+                <img src="/header_logo.png" alt="" className="h-6 w-6 object-contain" />
+              </button>
+            )}
+            <div className={desktopSidebarOpen ? '' : 'hidden'}>
+              <div className="text-sm font-bold leading-tight text-white">PESU</div>
+              <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-600">Academic desk</div>
+            </div>
+          </div>
+          {desktopSidebarOpen && (
+            <button
+              type="button"
+              onClick={() => setDesktopSidebarOpen(false)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {!desktopSidebarOpen && (
+          <button
+            type="button"
+            onClick={() => setDesktopSidebarOpen(true)}
+            className="mx-auto mt-3 flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
+          >
+            <PanelLeftOpen className="h-4 w-4" />
+          </button>
+        )}
+        <div className={`pt-5 ${desktopSidebarOpen ? 'px-3' : 'px-2'}`}>
+          {desktopSidebarOpen && <div className="mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">Calculators</div>}
+          <div className="flex flex-col gap-1">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
@@ -1802,20 +1857,33 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => { window.location.hash = `#/${tab.id}`; }}
-              className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
-                ? 'bg-white/[0.08] text-white shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.04]'
+              className={`relative flex items-center rounded-lg py-2.5 text-xs font-semibold transition-all duration-200 whitespace-nowrap ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} ${activeTab === tab.id
+                ? 'bg-[#20232b] text-white before:absolute before:-left-3 before:h-5 before:w-[3px] before:rounded-r-full before:bg-orange-400'
+                : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.035]'
                 }`}
+              title={!desktopSidebarOpen ? tab.label : undefined}
+              aria-label={tab.label}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-orange-300' : ''}`} />
+              {desktopSidebarOpen && tab.label}
               {tab.accent && activeTab !== tab.id && (
                 <span className={`w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-glow-pulse`} />
               )}
             </button>
           ))}
+          </div>
         </div>
-      </div>
+        <div className="mt-auto border-t border-[#232731] p-3">
+          <button
+            onClick={() => setShowFeedbackModal(true)}
+            className={`flex w-full items-center rounded-lg py-2.5 text-xs font-semibold text-zinc-500 transition hover:bg-white/[0.035] hover:text-zinc-200 ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'}`}
+            title={!desktopSidebarOpen ? 'Send feedback' : undefined}
+            aria-label="Send feedback"
+          >
+            <MessageSquare className="h-4 w-4" /> {desktopSidebarOpen && 'Send feedback'}
+          </button>
+        </div>
+      </aside>
 
       {/* ==================== PESU ACADEMY TAB ==================== */}
       {/*
@@ -1828,7 +1896,15 @@ export default function PES_Universal_Calculator() {
         survives, and it's gone on refresh/close. The layout classes mirror the
         motion.div so the tab sits in the same place with the same width/padding.
       */}
-      <div className={`max-w-4xl mx-auto p-4 space-y-6 ${activeTab === 'pesu' ? '' : 'hidden'}`}>
+      <div className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'} ${activeTab === 'pesu' ? '' : 'hidden'}`}>
+        {activeTab === 'pesu' && (
+          <div className="mb-6 flex items-end justify-between border-b border-[#252932] pb-5">
+            <div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/70">PESU integration</div>
+              <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">PESU Academy</h2>
+            </div>
+          </div>
+        )}
         <PesuAcademyTab
           themeClasses={themeClasses}
           loadPreset={loadPreset}
@@ -1848,11 +1924,23 @@ export default function PES_Universal_Calculator() {
 
       <MotionDiv
         key={activeTab}
-        className="max-w-4xl mx-auto p-4 space-y-6"
+        className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'}`}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
+        {activeTab !== 'pesu' && (
+          <div className="mb-6 flex items-end justify-between border-b border-[#252932] pb-5">
+            <div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/70">
+                {{ subjects: 'Coursework', analysis: 'Projection', reverse: 'Target planning', attendance: 'Class strategy', cgpa: 'Academic record', guide: 'Reference' }[activeTab]}
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+                {{ subjects: 'Subject workspace', analysis: 'Grade analysis', reverse: 'Reverse calculator', attendance: 'Attendance planner', cgpa: 'CGPA calculator', guide: 'Calculation guide' }[activeTab]}
+              </h2>
+            </div>
+          </div>
+        )}
 
         {/* ==================== SUBJECTS TAB ==================== */}
         {activeTab === 'subjects' && (
@@ -2015,7 +2103,7 @@ export default function PES_Universal_Calculator() {
 
         {/* Footer */}
         <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v6.3 © 2026</p>
+          <p className="mt-1 opacity-50">PES SGPA Calculator v6.4 © 2026</p>
           <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
           <button
             onClick={() => setShowToffeeModal(true)}
@@ -2181,8 +2269,8 @@ export default function PES_Universal_Calculator() {
       </MotionDiv>
 
       {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#08080e]/95 backdrop-blur-2xl border-t border-white/[0.06] md:hidden z-50 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>
-        <div className="flex justify-around items-end pt-1.5">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] bg-[#0b0c12]/95 backdrop-blur-2xl md:hidden" aria-label="Mobile navigation" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+        <div className="scrollbar-hide flex overflow-x-auto px-1 pt-1">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
@@ -2195,9 +2283,9 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => { window.location.hash = `#/${tab.id}`; }}
-              className={`relative flex flex-col items-center py-2 px-3 rounded-lg transition-all duration-200 ${activeTab === tab.id
-                ? 'text-white'
-                : 'text-zinc-600 active:text-zinc-400'
+              className={`relative flex min-w-[68px] shrink-0 flex-col items-center rounded-lg px-2 py-2 transition-all duration-200 ${activeTab === tab.id
+                ? 'text-indigo-300'
+                : 'text-zinc-600 active:text-zinc-300'
                 }`}
             >
               <div className={`relative ${activeTab === tab.id ? 'scale-110' : ''} transition-transform duration-200`}>
@@ -2213,7 +2301,7 @@ export default function PES_Universal_Calculator() {
             </button>
           ))}
         </div>
-      </div>
+      </nav>
       <Analytics />
       <SpeedInsights />
     </div>
