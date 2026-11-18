@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  BookOpen, HelpCircle, Github, Download, Zap, Target, Dice5, Scale, Lock, Activity, Lightbulb, AlertTriangle, MessageSquare, Star, CalendarRange
+  BookOpen, HelpCircle, Github, Download, Zap, Target, Dice5, Scale, Lock, Activity, Lightbulb, AlertTriangle, MessageSquare, Star, CalendarRange, Calculator
 } from 'lucide-react';
 
 export default function GuideTab({
@@ -316,14 +316,14 @@ export default function GuideTab({
         </div>
       </div>
 
-      {/* 3. THE HIDDEN GEM: Reverse Calculator */}
+      {/* 3. Reverse Calculator */}
       <div className="bg-gradient-to-br from-emerald-900/10 to-teal-900/10 border border-emerald-500/30 rounded-xl overflow-hidden relative">
         <div className="absolute top-0 right-0 p-4 opacity-10">
           <Target className="w-24 h-24 text-emerald-500" />
         </div>
         <div className="p-4 border-b border-emerald-500/20 bg-emerald-500/10 flex items-center gap-2">
           <Target className="w-5 h-5 text-emerald-400" />
-          <h3 className="font-bold text-lg text-emerald-300">The Hidden Gem: Reverse Calculator</h3>
+          <h3 className="font-bold text-lg text-emerald-300">Reverse Calculator</h3>
         </div>
         <div className="p-5">
           <p className="text-sm font-medium mb-4 text-emerald-200">
@@ -472,7 +472,9 @@ export default function GuideTab({
         {/* Quick SGPA Estimator */}
         <div className={`${themeClasses.card} border rounded-xl p-4`}>
           <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3">
-            <span className="bg-teal-500/10 text-teal-300 w-8 h-8 rounded-full flex items-center justify-center text-lg">✨</span>
+            <span className="bg-teal-500/10 text-teal-300 w-8 h-8 rounded-full flex items-center justify-center">
+              <Calculator className="w-4 h-4" />
+            </span>
             <span>Quick SGPA Estimator</span>
           </div>
           <div className={`text-sm ${themeClasses.muted} leading-relaxed pl-1`}>

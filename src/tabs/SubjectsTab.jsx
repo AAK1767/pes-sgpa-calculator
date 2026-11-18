@@ -3,7 +3,7 @@ import {
   Settings, ChevronDown, ChevronUp, Undo2, Redo2,
   Download, Upload, Eraser, BarChart3, Scale, Plus,
   Trash2, RotateCcw, Target, Activity, Zap, AlertTriangle,
-  AlertCircle, GraduationCap, LogIn
+  AlertCircle, GraduationCap, LogIn, Calculator
 } from 'lucide-react';
 
 export default function SubjectsTab({
@@ -786,8 +786,8 @@ export default function SubjectsTab({
         <details className="group">
           <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-md">
-                <span className="text-zinc-200 text-lg font-bold">✨</span>
+              <div className="w-10 h-10 rounded-full bg-teal-500/10 text-teal-300 flex items-center justify-center">
+                <Calculator className="w-5 h-5" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-zinc-200">Quick SGPA Estimator</h3>
