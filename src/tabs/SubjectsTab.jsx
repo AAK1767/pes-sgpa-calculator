@@ -177,7 +177,7 @@ export default function SubjectsTab({
       </div>
 
       {/* Subjects List */}
-      <div className="grid gap-3 xl:grid-cols-2">
+      <div className="space-y-3">
         {subjects.map((subject) => {
           const m = marks[subject.id] || {};
           const { finalScore, rawScore, totalWeight, unroundedScore, cieScaled, cieRounded, esaScaled, esaRounded, labScaled, labRounded } = getSubjectMetrics(subject);
@@ -209,7 +209,7 @@ export default function SubjectsTab({
                 className="p-3 md:p-4 flex items-center justify-between cursor-pointer gap-3"
                 onClick={() => setExpandedSubject(isExpanded ? null : subject.id)}
               >
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="truncate text-sm font-bold md:text-lg">{subject.name}</h3>
                     <span className="text-xs font-bold bg-white/[0.08] text-zinc-300 px-2 py-0.5 rounded-full border border-white/[0.06]">
@@ -237,7 +237,7 @@ export default function SubjectsTab({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-lg ${gradeInfo.bg}`}>
+                    <div className={`w-9 h-9 md:w-10 md:h-10 rounded-lg flex items-center justify-center font-bold text-white ${gradeInfo.bg}`}>
                       {gradeInfo.grade}
                     </div>
                     {isExpanded ? <ChevronUp className="w-5 h-5 text-zinc-400" /> : <ChevronDown className="w-5 h-5 text-zinc-400" />}
@@ -249,11 +249,11 @@ export default function SubjectsTab({
               {isExpanded && (
                 <div className={`p-3 md:p-4 border-t ${themeClasses.border} bg-black/10`}>
                   {/* DYNAMIC INPUTS GRID (Fixed: Allows 0 marks) */}
-                  <div className="grid grid-cols-1 gap-2 mb-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid grid-cols-2 gap-2 mb-4 min-[440px]:grid-cols-3 lg:grid-cols-4">
 
                     {/* SLOT 1 */}
                     {(subject.hasIsa1 !== false) && (
-                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
                             {subject.customConfig?.labels.isa1 || "ISA 1"}
@@ -284,7 +284,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 2 */}
                     {(subject.hasIsa2 !== false) && (
-                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
                             {subject.customConfig?.labels.isa2 || "ISA 2"}
@@ -315,7 +315,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 3 */}
                     {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
-                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.assignment || "Assignment"}>
                             {subject.customConfig?.labels.assignment || "Assignment"}
@@ -346,7 +346,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 4 */}
                     {(subject.hasLab || (subject.customConfig?.weights.lab > 0)) && (
-                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.lab || "Lab"}>
                             {subject.customConfig?.labels.lab || "Lab"}
@@ -376,7 +376,7 @@ export default function SubjectsTab({
                     )}
 
                     {/* SLOT 5: ESA */}
-                    <div className="rounded-md border border-blue-500/20 bg-[#171a21]/60 p-3">
+                    <div className="rounded-md border border-blue-500/20 bg-[#171a21]/60 p-2 min-[440px]:p-3">
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-bold text-xs text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
                           {subject.customConfig?.labels.esa || "ESA"}

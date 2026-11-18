@@ -1751,17 +1751,17 @@ export default function PES_Universal_Calculator() {
   return (
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24 md:pb-8`}>
       {/* Product Header */}
-      <header className={`sticky top-0 z-50 border-b border-[#232731] bg-[#0b0d12]/95 px-4 backdrop-blur-xl md:px-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'}`}>
+      <header className={`sticky top-0 z-50 border-b border-[#232731] bg-[#0b0d12]/95 px-4 backdrop-blur-xl md:px-7 ${desktopSidebarOpen ? 'lg:ml-[220px]' : 'lg:ml-[72px]'}`}>
         <div className="mx-auto flex h-[56px] max-w-[1120px] items-center justify-between md:h-[64px]">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
-              <h1 className="flex min-w-0 items-center gap-2.5 text-sm font-bold tracking-tight text-white md:hidden">
+              <h1 className="flex min-w-0 items-center gap-2.5 text-sm font-bold tracking-tight text-white lg:hidden">
                 <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#2c303a] bg-[#151820]">
                   <img src="/header_logo.png" alt="" className="h-6 w-6 object-contain md:h-7 md:w-7" />
                 </span>
                 <span className="truncate">PESU Calculator</span>
               </h1>
-              <div className="hidden items-center gap-2 text-xs text-zinc-500 md:flex">
+              <div className="hidden items-center gap-2 text-xs text-zinc-500 lg:flex">
                 <span>Workspace</span>
                 <span className="text-zinc-700">/</span>
                 <span className="font-semibold capitalize text-zinc-300">{activeTab === 'pesu' ? 'PESU Academy' : activeTab === 'reverse' ? 'Reverse calculator' : activeTab}</span>
@@ -1800,7 +1800,7 @@ export default function PES_Universal_Calculator() {
       </header>
 
       {/* Desktop Navigation */}
-      <aside className={`hidden md:flex md:fixed md:inset-y-0 md:left-0 md:z-[60] md:flex-col md:border-r md:border-[#232731] md:bg-[#090b10] transition-[width] duration-200 ${desktopSidebarOpen ? 'md:w-[220px]' : 'md:w-[72px]'}`} aria-label="Primary navigation">
+      <aside className={`hidden lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:z-[60] lg:flex-col lg:border-r lg:border-[#232731] lg:bg-[#090b10] transition-[width] duration-200 ${desktopSidebarOpen ? 'lg:w-[220px]' : 'lg:w-[72px]'}`} aria-label="Primary navigation">
         <div className={`flex h-[64px] items-center border-b border-[#232731] ${desktopSidebarOpen ? 'justify-between px-5' : 'justify-center px-2'}`}>
           <div className="flex items-center gap-2.5">
             {desktopSidebarOpen ? (
@@ -1907,7 +1907,7 @@ export default function PES_Universal_Calculator() {
         survives, and it's gone on refresh/close. The layout classes mirror the
         motion.div so the tab sits in the same place with the same width/padding.
       */}
-      <div className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'} ${activeTab === 'pesu' ? '' : 'hidden'}`}>
+      <div className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'lg:ml-[220px]' : 'lg:ml-[72px]'} ${activeTab === 'pesu' ? '' : 'hidden'}`}>
         {activeTab === 'pesu' && (
           <div className="mb-4 flex items-end justify-between border-b border-[#252932] pb-3 md:mb-6 md:pb-5">
             <div>
@@ -1935,7 +1935,7 @@ export default function PES_Universal_Calculator() {
 
       <MotionDiv
         key={activeTab}
-        className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'}`}
+        className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'lg:ml-[220px]' : 'lg:ml-[72px]'}`}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -2280,8 +2280,8 @@ export default function PES_Universal_Calculator() {
       </MotionDiv>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] bg-[#0b0c12]/95 backdrop-blur-2xl md:hidden" aria-label="Mobile navigation" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
-        <div className="scrollbar-hide flex overflow-x-auto px-1 pt-1">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] bg-[#0b0c12]/95 backdrop-blur-2xl lg:hidden" aria-label="Mobile navigation" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
+        <div className="scrollbar-hide flex snap-x snap-mandatory justify-start overflow-x-auto px-1 pt-1">
           {[
             { id: 'subjects', label: 'Subjects', icon: BookOpen },
             { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
@@ -2294,7 +2294,7 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => { window.location.hash = `#/${tab.id}`; }}
-              className={`relative flex min-w-[52px] shrink-0 flex-col items-center rounded-lg px-1 py-1.5 transition-all duration-200 md:min-w-[68px] md:px-2 md:py-2 ${activeTab === tab.id
+              className={`relative flex min-w-[58px] shrink-0 snap-start flex-col items-center rounded-lg px-1 py-1.5 transition-all duration-200 md:min-w-[68px] md:px-2 md:py-2 ${activeTab === tab.id
                 ? 'text-indigo-300'
                 : 'text-zinc-600 active:text-zinc-300'
                 }`}
