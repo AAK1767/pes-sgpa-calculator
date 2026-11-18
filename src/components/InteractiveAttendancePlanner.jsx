@@ -507,8 +507,87 @@ export default function InteractiveAttendancePlanner({
               No subjects found. Connect PESU Academy or add subjects in the Subjects tab.
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-5 sm:mx-0 px-5 sm:px-0 scrollbar-hide">
-              <table className="w-full text-left border-collapse text-xs">
+            <>
+              <div className="space-y-2 md:hidden">
+                {tableRows.map((row) => {
+                  const key = row.key;
+                  const classesLeftValue = manualOverrides[key]?.classesLeft !== undefined
+                    ? manualOverrides[key].classesLeft
+                    : row.classesLeft;
+
+                  return (
+                    <article key={key} className="rounded-lg border border-white/[0.07] bg-white/[0.018] p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h4 className="truncate text-sm font-bold text-zinc-100">{row.name}</h4>
+                          {row.code && <p className="mt-0.5 text-[10px] text-zinc-500">{row.code}</p>}
+                        </div>
+                        <button
+                          onClick={() => onSendToPlanner && onSendToPlanner({
+                            total: row.total,
+                            attended: row.attended,
+                            classesLeft: parseNonNegativeInt(classesLeftValue),
+                            name: row.name
+                          })}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-blue-500/20 bg-blue-500/10 text-blue-400"
+                          title="Send to Mode 1 Planner"
+                          aria-label={`Send ${row.name} to Mode 1 Planner`}
+                        >
+                          <Send className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-3 gap-2">
+                        <div>
+                          <span className="block text-[9px] font-bold uppercase tracking-wide text-zinc-600">Current</span>
+                          <span className="mt-1 block text-base font-black text-zinc-100">{row.currentPct.toFixed(1)}%</span>
+                          <span className="text-[10px] text-zinc-500">{row.attended}/{row.total}</span>
+                        </div>
+                        <div>
+                          <span className="block text-[9px] font-bold uppercase tracking-wide text-zinc-600">Skip all</span>
+                          <span className="mt-1 block text-base font-black text-amber-300">{row.skipAllFinalPct.toFixed(1)}%</span>
+                          <span className="text-[10px] text-zinc-500">If none</span>
+                        </div>
+                        <div>
+                          <span className="block text-[9px] font-bold uppercase tracking-wide text-zinc-600">Attend all</span>
+                          <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-sm font-black border ${statusColor(row.projectedPct)}`}>
+                            {row.projectedPct.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
+                        <label className="flex items-center gap-2 text-[10px] font-semibold text-zinc-500">
+                          Classes left
+                          <input
+                            type="number"
+                            min="0"
+                            value={classesLeftValue}
+                            onChange={(e) => updateSubjectOverride(key, 'classesLeft', e.target.value)}
+                            className="h-9 w-16 rounded-md border border-white/[0.09] bg-[#171a21] text-center text-sm font-bold text-zinc-100"
+                          />
+                        </label>
+                        <div className="text-right text-[10px]">
+                          {row.safeMisses75 > 0 ? (
+                            <div className="font-bold text-emerald-400">75%: +{row.safeMisses75} skips safe</div>
+                          ) : (
+                            <div className="font-bold text-red-400">75%: Attend {row.mustAttend75}</div>
+                          )}
+                          <div className="mt-0.5 text-zinc-600">{targetBuffer}% buffer</div>
+                          {row.safeMissesBuffer > 0 ? (
+                            <div className="mt-0.5 font-bold text-emerald-400">+{row.safeMissesBuffer} skips safe</div>
+                          ) : (
+                            <div className="mt-0.5 font-bold text-red-400">Attend {row.mustAttendBuffer}</div>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto scrollbar-hide">
+                <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-white/[0.08] text-zinc-400 font-semibold uppercase text-[10px] tracking-wider">
                 <th className="py-2.5 px-3">Subject</th>
@@ -593,8 +672,9 @@ export default function InteractiveAttendancePlanner({
                   );
                 })}
               </tbody>
-            </table>
-          </div>
+                </table>
+              </div>
+            </>
         )}
         </div>
       </details>

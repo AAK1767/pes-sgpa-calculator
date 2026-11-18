@@ -5,26 +5,47 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #1a1a2a transparent;
+    scrollbar-color: #303241 transparent;
   }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #1a1a2a; border-radius: 999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #2a2a3c; }
+  ::-webkit-scrollbar-thumb { background: #303241; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #44465a; }
 
   html {
     scroll-behavior: smooth;
     color-scheme: dark;
+    background: #0b0d12;
   }
 
   body {
-    @apply bg-black text-zinc-300 antialiased;
+    @apply min-h-screen bg-[#0b0d12] text-zinc-200 antialiased;
+    margin: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(circle at 14% -8%, rgba(99, 102, 241, 0.10), transparent 26rem),
+      radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.055), transparent 24rem);
   }
 
   ::selection {
-    background: rgba(59,130,246,0.3);
+    background: rgba(99, 102, 241, 0.38);
+  }
+
+  button,
+  summary,
+  label,
+  select {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid rgba(129, 140, 248, 0.75);
+    outline-offset: 2px;
   }
 
   input[type=number]::-webkit-inner-spin-button,
@@ -39,9 +60,64 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-[#0c0c14]/80 backdrop-blur-xl border border-white/[0.06] shadow-2xl shadow-black/20;
+    @apply bg-[#11131c]/95 backdrop-blur-xl border border-white/[0.07] shadow-2xl shadow-black/20;
   }
   .glass-input {
-    @apply bg-[#0e0e18] border-white/[0.08] text-zinc-200 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/30 transition-all duration-200;
+    @apply bg-[#0d0f17] border-white/[0.09] text-zinc-100 focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-400/40 transition-all duration-200;
+  }
+  .scrollbar-hide {
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Shared tab language: flatter surfaces, compact hierarchy, predictable density. */
+.tab-shell .rounded-2xl,
+.tab-shell .rounded-xl {
+  border-radius: 0.625rem;
+}
+
+.tab-shell .shadow-2xl,
+.tab-shell .shadow-xl,
+.tab-shell .shadow-lg,
+.tab-shell .shadow-sm {
+  box-shadow: none;
+}
+
+.tab-shell [class*="bg-gradient"] {
+  background-image: none;
+}
+
+.tab-shell [class*="backdrop-blur"] {
+  backdrop-filter: none;
+}
+
+@media (max-width: 639px) {
+  .tab-shell {
+    font-size: 14px;
+  }
+
+  .tab-shell .p-6 {
+    padding: 1rem;
+  }
+
+  .tab-shell table {
+    font-size: 12px;
+  }
+
+  .tab-shell th,
+  .tab-shell td {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .tab-shell summary {
+    min-height: 44px;
+  }
+
+  .tab-shell [class*="absolute"][class*="blur"] {
+    display: none;
   }
 }

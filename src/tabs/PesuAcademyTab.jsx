@@ -243,30 +243,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
   const isLoggedIn = status === 'success' && profile;
 
   return (
-    <div className="space-y-6">
-      {/* Intro Banner */}
-      <div className="bg-gradient-to-br from-[#0e0e18] to-[#0a0a12] border border-white/[0.06] rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 relative overflow-hidden">
-        <div className="relative z-10">
-          <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
-            <GraduationCap className="w-6 h-6 text-blue-400" /> PESU Academy
-          </h2>
-          <p className="text-zinc-400 opacity-90 max-w-2xl text-sm leading-relaxed">
-            Sign in with your PESU Academy credentials to fetch your profile and instantly
-            prefill the calculator with your branch &amp; semester subjects. Authentication is
-            handled by the open-source{' '}
-            <a
-              href="https://github.com/pesu-dev/auth"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
-            >
-              PESUAuth
-            </a>{' '}
-            project.
-          </p>
-        </div>
-        <GraduationCap className="absolute right-[-20px] bottom-[-40px] w-40 h-40 text-zinc-200 opacity-[0.06] rotate-12" />
-      </div>
+    <div className="tab-shell space-y-4 md:space-y-5">
 
       {/* Privacy note */}
       <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4 flex items-start gap-3">

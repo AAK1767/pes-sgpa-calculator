@@ -3,7 +3,7 @@ import {
   Settings, ChevronDown, ChevronUp, Undo2, Redo2,
   Download, Upload, Eraser, BarChart3, Scale, Plus,
   Trash2, RotateCcw, Target, Activity, Zap, AlertTriangle,
-  AlertCircle, GraduationCap, LogIn
+  AlertCircle, GraduationCap, LogIn, Calculator
 } from 'lucide-react';
 
 export default function SubjectsTab({
@@ -52,6 +52,8 @@ export default function SubjectsTab({
   pesuProfile
 }) {
   const isLoggedIn = !!pesuProfile;
+  const [presetGroup, setPresetGroup] = React.useState('Cycles');
+  const [presetSearch, setPresetSearch] = React.useState('');
 
   const handlePesuImport = () => {
     if (!isLoggedIn) {
@@ -70,11 +72,11 @@ export default function SubjectsTab({
   };
 
   return (
-    <>
-      <div className="flex justify-end mb-4">
+    <div className="tab-shell">
+      <div className="mb-3 flex justify-end">
         <button
           onClick={handlePesuImport}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/20 transition-colors"
+          className="flex items-center gap-1.5 rounded-md border border-blue-500/20 bg-blue-500/[0.07] px-2.5 py-1.5 text-[11px] font-bold text-blue-400 transition-colors hover:bg-blue-500/15"
         >
           <LogIn className="w-3.5 h-3.5" />
           {isLoggedIn ? 'Import from PESU Academy' : 'Login to PESU Academy'}
@@ -82,10 +84,10 @@ export default function SubjectsTab({
       </div>
 
       {/* Helper Banner (Optimized for both Mobile & Desktop) */}
-      <div className={`${themeClasses.card} border rounded-xl p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+      <div className={`${themeClasses.card} rounded-lg p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
 
         {/* LEFT SIDE: Text Content (Unified Collapsible for Desktop & Mobile) */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <details className="group">
             <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-400 hover:text-blue-300 transition-colors">
               <Settings className="w-5 h-5 flex-shrink-0" />
@@ -110,17 +112,63 @@ export default function SubjectsTab({
         </div>
 
         {/* RIGHT SIDE: Buttons (Always Visible) */}
-        <div className="flex flex-wrap gap-2 items-center justify-end border-t border-white/[0.06] pt-3 md:border-none md:pt-0">
-          <select
-            onChange={(e) => loadPreset(e.target.value)}
-            className={`${themeClasses.input} px-3 py-2 rounded-lg text-xs border max-w-[130px] md:max-w-none`}
-            defaultValue=""
-          >
-            <option value="">Load Preset...</option>
-            {Object.keys(SemesterPresets).map(key => (
-              <option key={key} value={key}>{key}</option>
-            ))}
-          </select>
+        <div className="flex w-full flex-wrap gap-2 items-center border-t border-white/[0.06] pt-3 md:w-auto md:border-none md:pt-0">
+          <details className="group relative" id="subject-preset-select">
+            <summary className={`${themeClasses.input} flex list-none cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold`}>
+              Load preset
+              <ChevronDown className="h-3.5 w-3.5 text-zinc-500 transition-transform group-open:rotate-180" />
+            </summary>
+
+            <div className="absolute left-0 top-full z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-[#303541] bg-[#11141b] p-3 shadow-2xl sm:left-auto sm:right-0">
+              <input
+                type="search"
+                value={presetSearch}
+                onChange={(e) => setPresetSearch(e.target.value)}
+                placeholder="Search presets"
+                className={`mb-3 w-full rounded-md border px-3 py-2 text-xs ${themeClasses.input}`}
+              />
+
+              <div className="mb-3 flex flex-wrap gap-1">
+                {['Cycles', 'CSE', 'AIML', 'ECE', 'All'].map((group) => (
+                  <button
+                    key={group}
+                    type="button"
+                    onClick={() => setPresetGroup(group)}
+                    className={`rounded-md px-2.5 py-1.5 text-[10px] font-bold transition ${presetGroup === group
+                      ? 'bg-orange-400/15 text-orange-300'
+                      : 'text-zinc-500 hover:bg-white/[0.04] hover:text-zinc-300'
+                    }`}
+                  >
+                    {group}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid max-h-56 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2">
+                {Object.keys(SemesterPresets)
+                  .filter((key) => {
+                    if (presetSearch && !key.toLowerCase().includes(presetSearch.toLowerCase())) return false;
+                    if (presetGroup === 'All') return true;
+                    if (presetGroup === 'Cycles') return key.includes('Cycle');
+                    return key.startsWith(`${presetGroup} `);
+                  })
+                  .map((key) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={(event) => {
+                        loadPreset(key);
+                        setPresetSearch('');
+                        event.currentTarget.closest('details')?.removeAttribute('open');
+                      }}
+                      className="rounded-md border border-transparent px-2.5 py-2 text-left text-xs font-semibold text-zinc-300 transition hover:border-white/[0.07] hover:bg-white/[0.04] hover:text-white"
+                    >
+                      {key}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          </details>
 
           <div className="flex gap-1">
             <button onClick={undo} disabled={undoStack.length === 0} className={`p-2 rounded-lg border ${themeClasses.border} ${undoStack.length === 0 ? 'opacity-30' : 'hover:bg-white/[0.06]'}`}>
@@ -148,7 +196,7 @@ export default function SubjectsTab({
       </div>
 
       {/* Grade Distribution Bar */}
-      <div className={`${themeClasses.card} border rounded-xl p-4`}>
+      <div className={`${themeClasses.card} rounded-lg p-4`}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-bold flex items-center gap-2">
             <BarChart3 className="w-4 h-4" /> Grade Distribution
@@ -176,7 +224,7 @@ export default function SubjectsTab({
       </div>
 
       {/* Subjects List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {subjects.map((subject) => {
           const m = marks[subject.id] || {};
           const { finalScore, rawScore, totalWeight, unroundedScore, cieScaled, cieRounded, esaScaled, esaRounded, labScaled, labRounded } = getSubjectMetrics(subject);
@@ -202,15 +250,15 @@ export default function SubjectsTab({
           const rawScoreLabel = rawScore.toFixed(2).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
 
           return (
-            <div key={subject.id} className={`${themeClasses.card} rounded-xl border transition-all duration-300 ease-out ${isExpanded ? 'border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.07)] ring-1 ring-blue-500/10' : themeClasses.cardHover}`}>
+            <div key={subject.id} data-subject-card className={`${themeClasses.card} rounded-lg transition-all duration-300 ease-out ${isExpanded ? 'border-orange-400/40 ring-1 ring-orange-400/10' : themeClasses.cardHover}`}>
               {/* Subject Header */}
               <div
-                className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer rounded-t-xl gap-4"
+                className="p-3 md:p-4 flex items-center justify-between cursor-pointer gap-3"
                 onClick={() => setExpandedSubject(isExpanded ? null : subject.id)}
               >
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-lg">{subject.name}</h3>
+                    <h3 className="truncate text-sm font-bold md:text-lg">{subject.name}</h3>
                     <span className="text-xs font-bold bg-white/[0.08] text-zinc-300 px-2 py-0.5 rounded-full border border-white/[0.06]">
                       {subject.credits} Cr
                     </span>
@@ -222,7 +270,7 @@ export default function SubjectsTab({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="flex shrink-0 items-center gap-3 justify-end">
                   <div className="text-right">
                     <div className={`text-xs ${themeClasses.muted} font-bold uppercase tracking-wider`}>Score</div>
                     <div className={`font-bold text-xl leading-none ${gradeInfo.color}`}>
@@ -236,7 +284,7 @@ export default function SubjectsTab({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-white shadow-lg ${gradeInfo.bg}`}>
+                    <div className={`w-9 h-9 md:w-10 md:h-10 rounded-lg flex items-center justify-center font-bold text-white ${gradeInfo.bg}`}>
                       {gradeInfo.grade}
                     </div>
                     {isExpanded ? <ChevronUp className="w-5 h-5 text-zinc-400" /> : <ChevronDown className="w-5 h-5 text-zinc-400" />}
@@ -246,13 +294,13 @@ export default function SubjectsTab({
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className={`p-4 border-t ${themeClasses.border} bg-black/20 rounded-b-xl`}>
+                <div className={`p-3 md:p-4 border-t ${themeClasses.border} bg-black/10`}>
                   {/* DYNAMIC INPUTS GRID (Fixed: Allows 0 marks) */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                  <div className="grid grid-cols-2 gap-2 mb-4 min-[440px]:grid-cols-3 lg:grid-cols-4">
 
                     {/* SLOT 1 */}
                     {(subject.hasIsa1 !== false) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
                             {subject.customConfig?.labels.isa1 || "ISA 1"}
@@ -283,7 +331,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 2 */}
                     {(subject.hasIsa2 !== false) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
                             {subject.customConfig?.labels.isa2 || "ISA 2"}
@@ -314,7 +362,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 3 */}
                     {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.assignment || "Assignment"}>
                             {subject.customConfig?.labels.assignment || "Assignment"}
@@ -345,7 +393,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 4 */}
                     {(subject.hasLab || (subject.customConfig?.weights.lab > 0)) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-2 min-[440px]:p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.lab || "Lab"}>
                             {subject.customConfig?.labels.lab || "Lab"}
@@ -375,7 +423,7 @@ export default function SubjectsTab({
                     )}
 
                     {/* SLOT 5: ESA */}
-                    <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-500/20`}>
+                    <div className="rounded-md border border-blue-500/20 bg-[#171a21]/60 p-2 min-[440px]:p-3">
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-bold text-xs text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
                           {subject.customConfig?.labels.esa || "ESA"}
@@ -738,8 +786,8 @@ export default function SubjectsTab({
         <details className="group">
           <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-md">
-                <span className="text-zinc-200 text-lg font-bold">✨</span>
+              <div className="w-10 h-10 rounded-full bg-teal-500/10 text-teal-300 flex items-center justify-center">
+                <Calculator className="w-5 h-5" />
               </div>
               <div className="text-left">
                 <h3 className="font-bold text-sm text-zinc-200">Quick SGPA Estimator</h3>
@@ -1065,6 +1113,6 @@ export default function SubjectsTab({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }

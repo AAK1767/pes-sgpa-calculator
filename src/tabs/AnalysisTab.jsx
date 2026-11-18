@@ -223,9 +223,9 @@ export default function AnalysisTab({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="tab-shell space-y-4 md:space-y-5">
       {/* Target Analyzer (Top Cards) */}
-      <div className="bg-[#0c0c14]/90 backdrop-blur-sm rounded-xl shadow-2xl shadow-black/20 p-6 text-zinc-200 border border-white/[0.06]">
+      <div className="bg-[#12151b] rounded-lg p-4 md:p-5 text-zinc-200 border border-[#262a34]">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 className="text-lg font-bold flex items-center gap-2 text-yellow-400">
             <Activity className="w-5 h-5" /> Target Analysis
