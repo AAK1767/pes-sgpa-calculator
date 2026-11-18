@@ -71,10 +71,10 @@ export default function SubjectsTab({
 
   return (
     <>
-      <div className="flex justify-end mb-4">
+      <div className="mb-3 flex justify-end">
         <button
           onClick={handlePesuImport}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-full border border-blue-500/20 transition-colors"
+          className="flex items-center gap-1.5 rounded-md border border-blue-500/20 bg-blue-500/[0.07] px-2.5 py-1.5 text-[11px] font-bold text-blue-400 transition-colors hover:bg-blue-500/15"
         >
           <LogIn className="w-3.5 h-3.5" />
           {isLoggedIn ? 'Import from PESU Academy' : 'Login to PESU Academy'}
@@ -85,7 +85,7 @@ export default function SubjectsTab({
       <div className={`${themeClasses.card} rounded-lg p-3 md:p-4 text-sm flex flex-col md:flex-row md:items-center justify-between gap-4`}>
 
         {/* LEFT SIDE: Text Content (Unified Collapsible for Desktop & Mobile) */}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <details className="group">
             <summary className="flex items-center gap-2 cursor-pointer list-none select-none text-blue-400 hover:text-blue-300 transition-colors">
               <Settings className="w-5 h-5 flex-shrink-0" />
@@ -110,8 +110,9 @@ export default function SubjectsTab({
         </div>
 
         {/* RIGHT SIDE: Buttons (Always Visible) */}
-        <div className="flex flex-wrap gap-2 items-center justify-end border-t border-white/[0.06] pt-3 md:border-none md:pt-0">
+        <div className="flex w-full gap-2 items-center overflow-x-auto border-t border-white/[0.06] pt-3 md:w-auto md:flex-wrap md:overflow-visible md:border-none md:pt-0">
           <select
+            id="subject-preset-select"
             onChange={(e) => loadPreset(e.target.value)}
             className={`${themeClasses.input} px-3 py-2 rounded-lg text-xs border max-w-[130px] md:max-w-none`}
             defaultValue=""
@@ -202,15 +203,15 @@ export default function SubjectsTab({
           const rawScoreLabel = rawScore.toFixed(2).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
 
           return (
-            <div key={subject.id} className={`${themeClasses.card} rounded-lg transition-all duration-300 ease-out ${isExpanded ? 'border-orange-400/40 ring-1 ring-orange-400/10' : themeClasses.cardHover}`}>
+            <div key={subject.id} data-subject-card className={`${themeClasses.card} rounded-lg transition-all duration-300 ease-out ${isExpanded ? 'border-orange-400/40 ring-1 ring-orange-400/10' : themeClasses.cardHover}`}>
               {/* Subject Header */}
               <div
-                className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer rounded-t-xl gap-4"
+                className="p-3 md:p-4 flex items-center justify-between cursor-pointer gap-3"
                 onClick={() => setExpandedSubject(isExpanded ? null : subject.id)}
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-lg">{subject.name}</h3>
+                    <h3 className="truncate text-sm font-bold md:text-lg">{subject.name}</h3>
                     <span className="text-xs font-bold bg-white/[0.08] text-zinc-300 px-2 py-0.5 rounded-full border border-white/[0.06]">
                       {subject.credits} Cr
                     </span>
@@ -222,7 +223,7 @@ export default function SubjectsTab({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                <div className="flex shrink-0 items-center gap-3 justify-end">
                   <div className="text-right">
                     <div className={`text-xs ${themeClasses.muted} font-bold uppercase tracking-wider`}>Score</div>
                     <div className={`font-bold text-xl leading-none ${gradeInfo.color}`}>
@@ -246,13 +247,13 @@ export default function SubjectsTab({
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className={`p-4 border-t ${themeClasses.border} bg-black/20 rounded-b-xl`}>
+                <div className={`p-3 md:p-4 border-t ${themeClasses.border} bg-black/10`}>
                   {/* DYNAMIC INPUTS GRID (Fixed: Allows 0 marks) */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                  <div className="grid grid-cols-1 gap-2 mb-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
                     {/* SLOT 1 */}
                     {(subject.hasIsa1 !== false) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa1 || "ISA 1"}>
                             {subject.customConfig?.labels.isa1 || "ISA 1"}
@@ -283,7 +284,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 2 */}
                     {(subject.hasIsa2 !== false) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.isa2 || "ISA 2"}>
                             {subject.customConfig?.labels.isa2 || "ISA 2"}
@@ -314,7 +315,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 3 */}
                     {(subject.hasAssignment || (subject.customConfig?.weights.assignment > 0)) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.assignment || "Assignment"}>
                             {subject.customConfig?.labels.assignment || "Assignment"}
@@ -345,7 +346,7 @@ export default function SubjectsTab({
 
                     {/* SLOT 4 */}
                     {(subject.hasLab || (subject.customConfig?.weights.lab > 0)) && (
-                      <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm`}>
+                      <div className="rounded-md border border-[#292d37] bg-[#171a21]/60 p-3">
                         <div className="flex justify-between items-center mb-1">
                           <span className="font-bold text-xs truncate pr-1" title={subject.customConfig?.labels.lab || "Lab"}>
                             {subject.customConfig?.labels.lab || "Lab"}
@@ -375,7 +376,7 @@ export default function SubjectsTab({
                     )}
 
                     {/* SLOT 5: ESA */}
-                    <div className={`${themeClasses.card} p-2 rounded-lg border shadow-sm border-blue-500/20`}>
+                    <div className="rounded-md border border-blue-500/20 bg-[#171a21]/60 p-3">
                       <div className="flex justify-between items-center mb-1">
                         <span className="font-bold text-xs text-blue-400 truncate pr-1" title={subject.customConfig?.labels.esa || "ESA"}>
                           {subject.customConfig?.labels.esa || "ESA"}

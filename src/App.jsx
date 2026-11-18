@@ -1752,7 +1752,7 @@ export default function PES_Universal_Calculator() {
     <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24 md:pb-8`}>
       {/* Product Header */}
       <header className={`sticky top-0 z-50 border-b border-[#232731] bg-[#0b0d12]/95 px-4 backdrop-blur-xl md:px-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'}`}>
-        <div className="mx-auto flex h-[64px] max-w-[1120px] items-center justify-between">
+        <div className="mx-auto flex h-[56px] max-w-[1120px] items-center justify-between md:h-[64px]">
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <h1 className="flex min-w-0 items-center gap-2.5 text-sm font-bold tracking-tight text-white md:hidden">
@@ -1784,11 +1784,15 @@ export default function PES_Universal_Calculator() {
           </div>
 
           <div className="ml-4 flex shrink-0 items-center gap-3 border-l border-[#282c35] pl-4">
+            <div className="hidden items-center gap-1.5 text-[10px] font-medium text-zinc-500 lg:flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Saved locally
+            </div>
             <div className="hidden text-right sm:block">
               <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">Current</div>
               <div className="text-[10px] text-zinc-500">SGPA</div>
             </div>
-            <div className={`text-2xl font-black tabular-nums tracking-tight md:text-3xl ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400' : 'text-white'}`}>
+            <div className={`text-xl font-black tabular-nums tracking-tight md:text-3xl ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400' : 'text-white'}`}>
               {sgpa}
             </div>
           </div>
@@ -1846,13 +1850,13 @@ export default function PES_Universal_Calculator() {
           {desktopSidebarOpen && <div className="mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">Calculators</div>}
           <div className="flex flex-col gap-1">
           {[
-            { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
-            { id: 'reverse', label: 'Reverse Calc', icon: Target, accent: 'emerald' },
-            { id: 'attendance', label: 'Attendance', icon: CheckCircle2 },
-            { id: 'cgpa', label: 'CGPA', icon: Calculator },
-            { id: 'pesu', label: 'PESU Academy', icon: GraduationCap },
-            { id: 'guide', label: 'Guide', icon: HelpCircle },
+            { id: 'subjects', label: 'Subjects', description: 'Marks & grades', icon: BookOpen },
+            { id: 'analysis', label: 'Analysis', description: 'ESA targets', icon: Activity, accent: 'blue' },
+            { id: 'reverse', label: 'Reverse Calc', description: 'Plan SGPA', icon: Target, accent: 'emerald' },
+            { id: 'attendance', label: 'Attendance', description: 'Class planner', icon: CheckCircle2 },
+            { id: 'cgpa', label: 'CGPA', description: 'Semester record', icon: Calculator },
+            { id: 'pesu', label: 'PESU Academy', description: 'Portal data', icon: GraduationCap },
+            { id: 'guide', label: 'Guide', description: 'How it works', icon: HelpCircle },
           ].map(tab => (
             <button
               key={tab.id}
@@ -1865,7 +1869,14 @@ export default function PES_Universal_Calculator() {
               aria-label={tab.label}
             >
               <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-orange-300' : ''}`} />
-              {desktopSidebarOpen && tab.label}
+              {desktopSidebarOpen && (
+                <span className="min-w-0 text-left">
+                  <span className="block">{tab.label}</span>
+                  <span className={`mt-0.5 block text-[9px] font-medium ${activeTab === tab.id ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                    {tab.description}
+                  </span>
+                </span>
+              )}
               {tab.accent && activeTab !== tab.id && (
                 <span className={`w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-glow-pulse`} />
               )}
@@ -1898,10 +1909,10 @@ export default function PES_Universal_Calculator() {
       */}
       <div className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'md:ml-[220px]' : 'md:ml-[72px]'} ${activeTab === 'pesu' ? '' : 'hidden'}`}>
         {activeTab === 'pesu' && (
-          <div className="mb-6 flex items-end justify-between border-b border-[#252932] pb-5">
+          <div className="mb-4 flex items-end justify-between border-b border-[#252932] pb-3 md:mb-6 md:pb-5">
             <div>
               <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/70">PESU integration</div>
-              <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">PESU Academy</h2>
+              <h2 className="text-xl font-bold tracking-tight text-white md:text-3xl">PESU Academy</h2>
             </div>
           </div>
         )}
@@ -1930,12 +1941,12 @@ export default function PES_Universal_Calculator() {
         transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
         {activeTab !== 'pesu' && (
-          <div className="mb-6 flex items-end justify-between border-b border-[#252932] pb-5">
+          <div className="mb-4 flex items-end justify-between border-b border-[#252932] pb-3 md:mb-6 md:pb-5">
             <div>
               <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/70">
                 {{ subjects: 'Coursework', analysis: 'Projection', reverse: 'Target planning', attendance: 'Class strategy', cgpa: 'Academic record', guide: 'Reference' }[activeTab]}
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+              <h2 className="text-xl font-bold tracking-tight text-white md:text-3xl">
                 {{ subjects: 'Subject workspace', analysis: 'Grade analysis', reverse: 'Reverse calculator', attendance: 'Attendance planner', cgpa: 'CGPA calculator', guide: 'Calculation guide' }[activeTab]}
               </h2>
             </div>
@@ -2283,7 +2294,7 @@ export default function PES_Universal_Calculator() {
             <button
               key={tab.id}
               onClick={() => { window.location.hash = `#/${tab.id}`; }}
-              className={`relative flex min-w-[68px] shrink-0 flex-col items-center rounded-lg px-2 py-2 transition-all duration-200 ${activeTab === tab.id
+              className={`relative flex min-w-[52px] shrink-0 flex-col items-center rounded-lg px-1 py-1.5 transition-all duration-200 md:min-w-[68px] md:px-2 md:py-2 ${activeTab === tab.id
                 ? 'text-indigo-300'
                 : 'text-zinc-600 active:text-zinc-300'
                 }`}
@@ -2294,7 +2305,7 @@ export default function PES_Universal_Calculator() {
                   <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md -z-10" />
                 )}
               </div>
-              <span className={`text-[10px] mt-1 font-medium ${activeTab === tab.id ? 'text-white' : ''}`}>{tab.label}</span>
+              <span className={`mt-0.5 text-[9px] font-medium md:text-[10px] ${activeTab === tab.id ? 'text-white' : ''}`}>{tab.label}</span>
               {tab.accent && activeTab !== tab.id && (
                 <span className={`absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
               )}
