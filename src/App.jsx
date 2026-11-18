@@ -1784,6 +1784,15 @@ export default function PES_Universal_Calculator() {
           </div>
 
           <div className="ml-4 flex shrink-0 items-center gap-3 border-l border-[#282c35] pl-4">
+            <button
+              type="button"
+              onClick={() => setShowFeedbackModal(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-400 transition hover:border-purple-400/30 hover:bg-purple-400/[0.08] hover:text-purple-300 lg:hidden"
+              aria-label="Send feedback"
+              title="Send feedback"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </button>
             <div className="hidden items-center gap-1.5 text-[10px] font-medium text-zinc-500 lg:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Saved locally
