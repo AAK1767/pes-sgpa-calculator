@@ -277,16 +277,13 @@ export default function ReverseTab({
       </p>
 
       {/* Minimum table */}
-      <details className="disclosure panel">
-        <summary className="p-4">
-          <span className="text-left">
-            <span className="block text-sm font-semibold text-ink">Minimum ESA scores for every grade</span>
-            <span className="block text-xs font-normal text-ink-3">A quick reference for each subject</span>
-          </span>
-          <Chevron />
-        </summary>
+      <section className="panel panel-pad space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-ink">Minimum ESA scores for every grade</h2>
+          <p className="text-sm text-ink-2">A quick reference for each subject.</p>
+        </div>
 
-        <div className="space-y-4 overflow-x-auto border-t border-line p-4">
+        <div className="space-y-4 overflow-x-auto">
           <table className="table-clean">
             <thead>
               <tr>
@@ -352,7 +349,7 @@ export default function ReverseTab({
             <span><span className="num">(xx)</span> best case with rounding</span>
           </div>
         </div>
-      </details>
+      </section>
     </div>
   );
 }

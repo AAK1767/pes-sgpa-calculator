@@ -334,10 +334,16 @@ export default function AnalysisTab({
       </section>
 
       {/* Path to target */}
-      <section className="panel panel-pad">
-        <h2 className="text-base font-semibold text-ink">Path to {targetSgpa} SGPA</h2>
+      <details className="disclosure panel">
+        <summary className="p-4">
+          <span className="text-left">
+            <span className="block text-sm font-semibold text-ink">Path to {targetSgpa} SGPA</span>
+            <span className="block text-xs font-normal text-ink-3">The most efficient ESA upgrades to reach your target</span>
+          </span>
+          <Chevron />
+        </summary>
 
-        <div className="mt-3">
+        <div className="border-t border-line p-4">
           {onTrack ? (
             <div className="notice notice-good">
               <p className="font-medium">You&apos;re on track.</p>
@@ -367,7 +373,7 @@ export default function AnalysisTab({
             </>
           )}
         </div>
-      </section>
+      </details>
 
       {/* ISA 2 planner */}
       <details className="disclosure panel">

@@ -19,14 +19,14 @@ function Chevron() {
 }
 
 // One mark entry: "score / max" with the component name and its weight.
-function MarkField({ label, weight, scoreValue, maxValue, onScore, onMax, emphasised }) {
+function MarkField({ label, weight, scoreValue, maxValue, onScore, onMax, emphasised, wide }) {
   return (
-    <div className={`rounded-md border bg-canvas/60 p-3 ${emphasised ? 'border-accent/40' : 'border-line'}`}>
-      <div className="mb-1.5 flex items-baseline justify-between gap-2">
+    <div className={`rounded-md border bg-canvas/60 p-2 sm:p-3 ${wide ? 'col-span-2 sm:col-span-1' : ''} ${emphasised ? 'border-accent/40' : 'border-line'}`}>
+      <div className="mb-1 flex items-baseline justify-between gap-1.5 sm:mb-1.5">
         <span className={`truncate text-sm font-medium ${emphasised ? 'text-accent' : 'text-ink'}`} title={label}>{label}</span>
         <span className="num shrink-0 text-xs text-ink-3">{weight}%</span>
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         <input
           type="number"
           inputMode="decimal"
@@ -35,7 +35,7 @@ function MarkField({ label, weight, scoreValue, maxValue, onScore, onMax, emphas
           onChange={onScore}
           placeholder="Marks"
           aria-label={`${label} marks scored`}
-          className="input num min-w-0 text-center font-semibold"
+          className="input num min-w-0 px-1 text-center font-semibold"
         />
         <span className="text-ink-3" aria-hidden="true">/</span>
         <input
@@ -44,7 +44,7 @@ function MarkField({ label, weight, scoreValue, maxValue, onScore, onMax, emphas
           value={maxValue}
           onChange={onMax}
           aria-label={`${label} maximum marks`}
-          className="input num w-14 shrink-0 px-1 text-center text-ink-2"
+          className="input num w-12 shrink-0 px-1 text-center text-ink-2 sm:w-14"
         />
       </div>
     </div>
@@ -239,7 +239,7 @@ export default function SubjectsTab({
       </div>
 
       {/* PESU Academy shortcut + how-to */}
-      <div className="panel panel-pad flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="panel panel-pad flex items-center justify-between gap-3">
         <details className="disclosure min-w-0 flex-1">
           <summary>
             <span>How this calculator works</span>
@@ -255,9 +255,9 @@ export default function SubjectsTab({
             </p>
           </div>
         </details>
-        <button type="button" onClick={handlePesuImport} className="btn btn-secondary shrink-0">
-          <LogIn className="h-4 w-4" />
-          {isLoggedIn ? 'Import from PESU Academy' : 'Sign in to PESU Academy'}
+        <button type="button" onClick={handlePesuImport} className="btn btn-ghost btn-sm shrink-0 text-ink-2" title="Optional: fill in subjects from your PESU Academy account">
+          <LogIn className="h-3.5 w-3.5" />
+          {isLoggedIn ? 'Import from PESU' : 'PESU sign-in'}
         </button>
       </div>
 
@@ -384,10 +384,11 @@ export default function SubjectsTab({
                 {isExpanded && (
                   <div className="space-y-4 border-t border-line p-3 md:p-4">
                     {/* Mark inputs */}
-                    <div className="grid grid-cols-1 gap-2.5 min-[440px]:grid-cols-2 lg:grid-cols-3">
-                      {slots.map((slot) => (
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-3">
+                      {slots.map((slot, slotIdx) => (
                         <MarkField
                           key={slot.key}
+                          wide={slots.length % 2 === 1 && slotIdx === slots.length - 1}
                           label={slot.label}
                           weight={slot.weight}
                           emphasised={slot.emphasised}
@@ -437,13 +438,13 @@ export default function SubjectsTab({
                       <div className="inset mt-3 space-y-4 p-4 text-sm">
                         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                           <div className="space-y-1.5">
-                            <h4 className="font-medium text-ink">Internals (CIE)</h4>
+                            <h4 className="font-medium text-ink">Internals (ISA)</h4>
                             <Row label={`${isa1Label}`} value={isa1Display} />
                             <Row label={`${isa2Label} (reduced)`} value={isa2Display} />
                             {hasAssignmentComponent && <Row label={assignmentLabel} value={assignmentDisplay} />}
                             <div className="border-t border-line pt-1.5">
-                              <Row label="CIE total (unrounded)" value={`${formatIsaValue(cieScaled)} / 50`} />
-                              <Row label="CIE rounded up" value={`${cieRounded} / 50`} tone="good" />
+                              <Row label="ISA total (unrounded)" value={`${formatIsaValue(cieScaled)} / 50`} />
+                              <Row label="ISA rounded up" value={`${cieRounded} / 50`} tone="good" />
                             </div>
                           </div>
 
@@ -469,7 +470,7 @@ export default function SubjectsTab({
                           </div>
                           <div className="sm:text-right">
                             <div className="text-ink-2">Final score: <span className="num rounded border border-good/30 bg-good/10 px-2 py-0.5 font-semibold text-good">{finalScore}</span></div>
-                            <div className="text-xs text-ink-3">Ceil(CIE) + Ceil(Lab) + Ceil(ESA), scaled</div>
+                            <div className="text-xs text-ink-3">Ceil(ISA) + Ceil(Lab) + Ceil(ESA), scaled</div>
                           </div>
                         </div>
                       </div>

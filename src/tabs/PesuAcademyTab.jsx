@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import {
-  GraduationCap, LogIn, LogOut, Eye, EyeOff, Loader2, ShieldCheck,
-  AlertCircle, CheckCircle2, ArrowRight, Github, Info, RefreshCw, X, ChevronDown
+  LogIn, LogOut, Eye, EyeOff, Loader2, ShieldCheck,
+  ArrowRight, Github, RefreshCw, X, ChevronDown, Check,
 } from 'lucide-react';
 import { trackEvent } from '../utils/analytics';
 import { mapProfileToPreset } from '../utils/pesuMapping';
@@ -46,7 +46,33 @@ function formatLastSynced(iso) {
   }
 }
 
-export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, setPesuProfile, setPortalData: setParentPortalData, lastSynced, setLastSynced }) {
+function PasswordField({ id, value, onChange, disabled, show, onToggle, placeholder, autoFocus }) {
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={show ? 'text' : 'password'}
+        autoComplete="current-password"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        className="input pr-10"
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={show ? 'Hide password' : 'Show password'}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-ink-3 hover:text-ink"
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+}
+
+export default function PesuAcademyTab({ loadPreset, setActiveTab, onSendToPlanner, subjects, marks, onImportResults, setPesuProfile, setPortalData: setParentPortalData, lastSynced, setLastSynced }) {
   const [username, setUsername] = useState(() => {
     return readFreshPESUStorage('pesu_username') || '';
   });
@@ -115,7 +141,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       }
     } catch {
       setPortalStatus('error');
-      setPortalError('Network error — could not reach the portal service.');
+      setPortalError('Network error. Could not reach the portal service.');
       trackEvent('pesu_portal', { status: 'network_error' });
     }
   };
@@ -174,7 +200,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
       }
     } catch {
       setStatus('error');
-      setErrorMsg('Network error — could not reach the login service. Please try again.');
+      setErrorMsg('Network error. Could not reach the login service. Please try again.');
       trackEvent('pesu_login', { status: 'network_error' });
     }
   };
@@ -212,7 +238,7 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
         trackEvent('pesu_portal_sync', { status: 'failed' });
       }
     } catch {
-      setSyncError('Network error — could not reach the portal service.');
+      setSyncError('Network error. Could not reach the portal service.');
       trackEvent('pesu_portal_sync', { status: 'network_error' });
     } finally {
       setIsSyncing(false);
@@ -240,36 +266,30 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
     setActiveTab('subjects');
   };
 
+  const closeSyncModal = () => {
+    setShowSyncModal(false);
+    setSyncPassword('');
+    setSyncError('');
+  };
+
   const isLoggedIn = status === 'success' && profile;
 
   return (
-    <div className="tab-shell space-y-4 md:space-y-5">
-
+    <div className="space-y-4">
       {/* Privacy note */}
-      <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-4 flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-        <p className="text-xs text-blue-200/80 leading-relaxed">
-          Your credentials are sent once, over HTTPS, straight to PESU&apos;s login service (via this
-          site&apos;s server as a relay to avoid browser errors). They are <strong>never stored, saved,
-          or logged</strong> anywhere. Your marks stay local in your browser, exactly as before.
+      <div className="notice notice-info flex items-start gap-3 text-sm">
+        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-ink-3" />
+        <p className="leading-relaxed">
+          Your password is sent once, over HTTPS, to PESU&apos;s login service (through this site&apos;s server as a relay, to avoid browser errors). It is <strong className="font-medium text-ink">never stored or logged</strong>. Your marks stay in your browser.
         </p>
       </div>
 
       {!isLoggedIn && (
-        /* ---------------- LOGIN FORM ---------------- */
-        <div className={`${themeClasses.card} border rounded-xl p-5 shadow-sm`}>
-          <div className="flex items-center gap-2 font-bold text-zinc-200 mb-4">
-            <span className="bg-blue-500/10 text-blue-400 w-8 h-8 rounded-full flex items-center justify-center">
-              <LogIn className="w-4 h-4" />
-            </span>
-            <span>Sign in to PESU Academy</span>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex flex-col space-y-1.5">
-              <label htmlFor="pesu-username" className="text-xs font-semibold text-zinc-400">
-                SRN / PRN
-              </label>
+        <section className="panel panel-pad mx-auto max-w-md">
+          <h2 className="text-base font-semibold text-ink">Sign in to PESU Academy</h2>
+          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            <div>
+              <label htmlFor="pesu-username" className="label">SRN or PRN</label>
               <input
                 id="pesu-username"
                 type="text"
@@ -278,190 +298,132 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={status === 'submitting'}
-                className={`w-full text-sm p-2.5 rounded-lg ${themeClasses.input} transition-all`}
+                className="input"
               />
             </div>
 
-            <div className="flex flex-col space-y-1.5">
-              <label htmlFor="pesu-password" className="text-xs font-semibold text-zinc-400">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="pesu-password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="Your PESU Academy password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={status === 'submitting'}
-                  className={`w-full text-sm p-2.5 pr-10 rounded-lg ${themeClasses.input} transition-all`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors p-1"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <div>
+              <label htmlFor="pesu-password" className="label">Password</label>
+              <PasswordField
+                id="pesu-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={status === 'submitting'}
+                show={showPassword}
+                onToggle={() => setShowPassword((s) => !s)}
+                placeholder="Your PESU Academy password"
+              />
             </div>
 
-            {status === 'error' && (
-              <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/5 border border-red-500/15 rounded-lg p-2.5">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
+            {status === 'error' && <div className="notice notice-bad text-xs">{errorMsg}</div>}
 
             <button
               type="submit"
               disabled={status === 'submitting' || !username.trim() || !password}
-              className={`w-full py-2.5 text-sm font-bold rounded-lg shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                status === 'submitting' || !username.trim() || !password
-                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700/50'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
+              className="btn btn-primary w-full"
             >
               {status === 'submitting' ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Signing in…
-                </>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Signing in…</>
               ) : (
-                <>
-                  <LogIn className="w-4 h-4" /> Sign in
-                </>
+                <><LogIn className="h-4 w-4" /> Sign in</>
               )}
             </button>
             {status === 'submitting' && (
-              <p className="text-[10px] text-zinc-600 text-center">
-                The login service may take a few seconds to wake up on the first request.
+              <p className="text-center text-xs text-ink-3">
+                The login service can take a few seconds to wake up on the first request.
               </p>
             )}
           </form>
-        </div>
+        </section>
       )}
 
       {isLoggedIn && (
-        /* ---------------- PROFILE + PREFILL ---------------- */
         <>
-          <div className={`${themeClasses.card} border rounded-xl p-5 shadow-sm`}>
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div className="flex flex-wrap items-center gap-2 font-bold text-zinc-200">
-                <span className="bg-emerald-500/10 text-emerald-400 w-8 h-8 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4" />
+          <section className="panel panel-pad">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-good/15 text-good">
+                  <Check className="h-4 w-4" />
                 </span>
-                <span>Signed in</span>
+                <h2 className="text-base font-semibold text-ink">Signed in</h2>
                 {lastSynced && (
-                  <span className="text-[11px] font-normal text-zinc-500 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.04]">
-                    Synced: {formatLastSynced(lastSynced)}
-                  </span>
+                  <span className="chip">Synced {formatLastSynced(lastSynced)}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSyncModal(true)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
-                  title="Fetch latest attendance and results"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" /> Re-sync
+                <button type="button" onClick={() => setShowSyncModal(true)} className="btn btn-secondary btn-sm" title="Fetch the latest attendance and results">
+                  <RefreshCw className="h-3.5 w-3.5" /> Refresh
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/[0.06] transition-all cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5" /> Sign out
+                <button type="button" onClick={handleLogout} className="btn btn-secondary btn-sm">
+                  <LogOut className="h-3.5 w-3.5" /> Sign out
                 </button>
               </div>
             </div>
 
             {presentFields.length > 0 ? (
-              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 {presentFields.map(({ key, label }) => (
-                  <div key={key} className="flex flex-col border-b border-white/[0.04] pb-2">
-                    <dt className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
-                      {label}
-                    </dt>
-                    <dd className="text-sm text-zinc-200 break-words">{String(profile[key])}</dd>
+                  <div key={key} className="border-b border-line pb-2">
+                    <dt className="text-xs text-ink-3">{label}</dt>
+                    <dd className="break-words text-sm text-ink">{String(profile[key])}</dd>
                   </div>
                 ))}
               </dl>
             ) : (
-              <p className="text-sm text-zinc-500">
-                Login succeeded, but no profile details were returned.
-              </p>
+              <p className="text-sm text-ink-3">Sign-in worked, but no profile details were returned.</p>
             )}
-          </div>
+          </section>
 
-          {/* Prefill action card */}
-          <details className="group">
-            <summary className="flex items-center gap-2 font-bold text-zinc-400 mb-2 cursor-pointer list-none select-none hover:text-zinc-300">
-              <span className="bg-purple-500/10 text-purple-400 w-8 h-8 rounded-full flex items-center justify-center">
-                <GraduationCap className="w-4 h-4" />
+          {/* Preset detection */}
+          <details className="disclosure panel">
+            <summary className="p-4">
+              <span className="text-left">
+                <span className="block text-sm font-semibold text-ink">Load your current semester into the calculator</span>
+                <span className="block text-xs font-normal text-ink-3">We detect the right preset from your profile</span>
               </span>
-              <span>Detect and load your current sem preset in the calculator</span>
-              <ChevronDown className="w-4 h-4 ml-auto opacity-50 group-open:rotate-180" />
+              <ChevronDown className="chev" />
             </summary>
-            <div className={`${themeClasses.card} border rounded-xl p-5 shadow-sm`}>
-              <p className="text-xs text-zinc-500 leading-relaxed mb-4 flex items-start gap-1.5">
-                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                <span>{mapping?.message}</span>
-              </p>
+            <div className="space-y-4 border-t border-line p-4">
+              <p className="text-sm text-ink-2">{mapping?.message}</p>
 
               {mapping?.status === 'matched' && (
-                <button
-                  onClick={() => handlePrefill(mapping.presetName)}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all cursor-pointer"
-                >
-                  Load {mapping.presetName} into calculator <ArrowRight className="w-4 h-4" />
+                <button type="button" onClick={() => handlePrefill(mapping.presetName)} className="btn btn-primary">
+                  Load {mapping.presetName} <ArrowRight className="h-4 w-4" />
                 </button>
               )}
 
-            {mapping?.status === 'cycle-choice' && (
-              <div className="flex flex-wrap gap-2">
-                {mapping.cycleOptions.map((cycle) => (
-                  <button
-                    key={cycle}
-                    onClick={() => handlePrefill(cycle)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all cursor-pointer"
-                  >
-                    {cycle} <ArrowRight className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-            )}
+              {mapping?.status === 'cycle-choice' && (
+                <div className="flex flex-wrap gap-2">
+                  {mapping.cycleOptions.map((cycle) => (
+                    <button key={cycle} type="button" onClick={() => handlePrefill(cycle)} className="btn btn-primary">
+                      {cycle} <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ))}
+                </div>
+              )}
 
-            {(mapping?.status === 'no-preset' || mapping?.status === 'unknown') && (
-              <div className="flex flex-wrap gap-2">
-                {mapping.fallback && (
-                  <button
-                    onClick={() => handlePrefill(mapping.fallback)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-lg bg-white/[0.06] hover:bg-white/[0.1] text-zinc-200 border border-white/[0.08] transition-all cursor-pointer"
-                  >
-                    Load editable template <ArrowRight className="w-4 h-4" />
+              {(mapping?.status === 'no-preset' || mapping?.status === 'unknown') && (
+                <div className="flex flex-wrap gap-2">
+                  {mapping.fallback && (
+                    <button type="button" onClick={() => handlePrefill(mapping.fallback)} className="btn btn-secondary">
+                      Load an editable template <ArrowRight className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button type="button" onClick={() => setActiveTab('subjects')} className="btn btn-secondary">
+                    Go to Subjects <ArrowRight className="h-4 w-4" />
                   </button>
-                )}
-                <button
-                  onClick={() => setActiveTab('subjects')}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 transition-all cursor-pointer"
-                >
-                  Go to Subjects <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+                </div>
+              )}
             </div>
           </details>
 
-          {/* Academic data section */}
-          <div id="academic-data-section" className="mt-6">
-            <h2 className="text-sm font-bold text-zinc-300 mb-3">Academic Data</h2>
-            <p className="text-xs text-zinc-500 mb-4 bg-blue-500/5 p-3 rounded-lg border border-blue-500/10">
-              To prefill your ISA marks, scroll down and select "Import marks to calculator" below.
+          {/* Academic data */}
+          <section id="academic-data-section" className="pt-2">
+            <h2 className="text-base font-semibold text-ink">Your academic data</h2>
+            <p className="mb-4 mt-1 text-sm text-ink-2">
+              To fill in your ISA marks automatically, scroll down and choose &ldquo;Import marks to calculator&rdquo;.
             </p>
             <PortalData
-              themeClasses={themeClasses}
               status={portalStatus}
               data={portalData}
               error={portalError}
@@ -478,95 +440,57 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
               marks={marks}
               onImportResults={onImportResults}
             />
-          </div>
+          </section>
         </>
       )}
 
-      {/* Re-sync Modal */}
+      {/* Re-sync modal */}
       {showSyncModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div className="bg-[#0e0e18] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4" onClick={() => { if (!isSyncing) closeSyncModal(); }}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Refresh from PESU Academy"
+            className="w-full max-w-md space-y-4 rounded-t-xl border border-line bg-surface p-5 sm:rounded-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-                <RefreshCw className={`w-4 h-4 text-blue-400 ${isSyncing ? 'animate-spin' : ''}`} /> Re-sync with PESU Academy
-              </h3>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowSyncModal(false);
-                  setSyncPassword('');
-                  setSyncError('');
-                }}
-                disabled={isSyncing}
-                className="text-zinc-500 hover:text-zinc-300 p-1 rounded-lg transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
+              <h3 className="text-base font-semibold text-ink">Refresh from PESU Academy</h3>
+              <button type="button" onClick={closeSyncModal} disabled={isSyncing} className="btn btn-ghost !min-h-0 !p-1.5" aria-label="Close">
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Enter the password for <strong className="text-zinc-200">{username}</strong> to pull the latest attendance records and published exam marks.
+            <p className="text-sm text-ink-2">
+              Enter the password for <strong className="font-medium text-ink">{username}</strong> to load your latest attendance and published marks.
             </p>
 
-            <form onSubmit={handleSyncSubmit} className="space-y-3.5">
-              <div className="flex flex-col space-y-1.5">
-                <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showSyncPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    placeholder="PESU Academy Password"
-                    value={syncPassword}
-                    onChange={(e) => setSyncPassword(e.target.value)}
-                    disabled={isSyncing}
-                    autoFocus
-                    className={`w-full text-sm p-2.5 pr-10 rounded-lg ${themeClasses.input} transition-all`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowSyncPassword((s) => !s)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-1 cursor-pointer"
-                  >
-                    {showSyncPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
+            <form onSubmit={handleSyncSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="sync-password" className="label">Password</label>
+                <PasswordField
+                  id="sync-password"
+                  value={syncPassword}
+                  onChange={(e) => setSyncPassword(e.target.value)}
+                  disabled={isSyncing}
+                  show={showSyncPassword}
+                  onToggle={() => setShowSyncPassword((s) => !s)}
+                  placeholder="PESU Academy password"
+                  autoFocus
+                />
               </div>
 
-              {syncError && (
-                <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-2.5">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{syncError}</span>
-                </div>
-              )}
+              {syncError && <div className="notice notice-bad text-xs">{syncError}</div>}
 
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowSyncModal(false);
-                    setSyncPassword('');
-                    setSyncError('');
-                  }}
-                  disabled={isSyncing}
-                  className="flex-1 py-2 text-xs font-semibold rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 border border-white/[0.06] transition-all cursor-pointer"
-                >
+              <div className="flex gap-2">
+                <button type="button" onClick={closeSyncModal} disabled={isSyncing} className="btn btn-secondary flex-1">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSyncing || !syncPassword}
-                  className="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-800 disabled:text-zinc-500 text-white transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
-                >
+                <button type="submit" disabled={isSyncing || !syncPassword} className="btn btn-primary flex-1">
                   {isSyncing ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Syncing…
-                    </>
+                    <><Loader2 className="h-4 w-4 animate-spin" /> Syncing…</>
                   ) : (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5" /> Sync Now
-                    </>
+                    <><RefreshCw className="h-4 w-4" /> Refresh now</>
                   )}
                 </button>
               </div>
@@ -575,25 +499,24 @@ export default function PesuAcademyTab({ themeClasses, loadPreset, setActiveTab,
         </div>
       )}
 
-      {/* Attribution & disclaimer */}
-      <div className={`${themeClasses.card} border rounded-xl p-4 shadow-sm`}>
-        <div className="flex items-center gap-2 font-bold text-zinc-200 mb-2 text-sm">
-          <Github className="w-4 h-4" /> Powered by PESUAuth
-        </div>
-        <p className="text-xs text-zinc-500 leading-relaxed">
-          This login uses the community, open-source{' '}
+      {/* Attribution */}
+      <section className="panel panel-pad">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <Github className="h-4 w-4" /> Powered by PESUAuth
+        </h2>
+        <p className="mt-1.5 text-xs leading-relaxed text-ink-3">
+          Sign-in uses the community, open-source{' '}
           <a
             href="https://github.com/pesu-dev/auth"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+            className="text-accent underline underline-offset-2"
           >
             pesu-dev/auth
           </a>{' '}
-          API, which authenticates directly against the official PESU Academy portal. This is an
-          unofficial tool and is not affiliated with or endorsed by PES University.
+          API, which authenticates directly against the official PESU Academy portal. This is an unofficial tool and is not affiliated with or endorsed by PES University.
         </p>
-      </div>
+      </section>
     </div>
   );
 }
