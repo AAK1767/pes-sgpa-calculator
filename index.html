@@ -28,7 +28,21 @@
 
   <meta name="theme-color" content="#f5f2eb" />
   <script>
-    try { document.documentElement.dataset.theme = localStorage.getItem('pes_theme_v2') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+    // First visit follows the device's dark/light setting; after the user toggles, their choice wins.
+    try {
+      var saved = localStorage.getItem('pes_theme_v2');
+      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var amoled = localStorage.getItem('pes_amoled_v1') === '1';
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      if (amoled) document.documentElement.dataset.amoled = 'true';
+      if (dark) {
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', amoled ? '#000000' : '#111211');
+        // Our dark theme is already dark: tell Dark Reader not to re-process the page.
+        var lock = document.createElement('meta');
+        lock.name = 'darkreader-lock';
+        document.head.appendChild(lock);
+      }
+    } catch (e) {}
   </script>
   <meta name="google-site-verification" content="82b-43dStDaJz8aPVUMssjP3XGpkOIwufhX4PzdTvrM" />
 
