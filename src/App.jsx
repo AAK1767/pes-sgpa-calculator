@@ -226,6 +226,58 @@ export default function PES_Universal_Calculator() {
     if (meta) meta.setAttribute('content', next === 'dark' ? '#111211' : '#f5f2eb');
   };
 
+  // Pure-black (AMOLED) variant of the dark theme.
+  const [amoled, setAmoled] = useState(() => {
+    try { return localStorage.getItem('pes_amoled_v1') === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    if (amoled) document.documentElement.dataset.amoled = 'true';
+    else delete document.documentElement.dataset.amoled;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta && theme === 'dark') meta.setAttribute('content', amoled ? '#000000' : '#111211');
+    // In our dark theme, ask Dark Reader to leave the page alone; in light theme it may act as usual.
+    const lock = document.querySelector('meta[name="darkreader-lock"]');
+    if (theme === 'dark' && !lock) {
+      const m = document.createElement('meta');
+      m.name = 'darkreader-lock';
+      document.head.appendChild(m);
+    } else if (theme !== 'dark' && lock) {
+      lock.remove();
+    }
+  }, [amoled, theme]);
+  const toggleAmoled = () => {
+    const next = !amoled;
+    setAmoled(next);
+    try { localStorage.setItem('pes_amoled_v1', next ? '1' : '0'); } catch { /* storage unavailable */ }
+  };
+
+  // Layout of the Subjects page: 'cards' (compact card per subject) or 'classic' (collapsible rows).
+  const [layout, setLayout] = useState(() => {
+    try {
+      return localStorage.getItem('pes_layout_v1') === 'classic' ? 'classic' : 'cards';
+    } catch {
+      return 'cards';
+    }
+  });
+  const toggleLayout = () => {
+    const next = layout === 'cards' ? 'classic' : 'cards';
+    setLayout(next);
+    try { localStorage.setItem('pes_layout_v1', next); } catch { /* storage unavailable */ }
+  };
+
+  // The card layout is desktop-only; phones and narrow windows always get the classic layout.
+  const [isDesktop, setIsDesktop] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches
+  ));
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const effectiveLayout = isDesktop ? layout : 'classic';
+
   const [targetSgpa, setTargetSgpa] = useState(9.0);
   const [expandedSubject, setExpandedSubject] = useState(null);
 
@@ -1711,6 +1763,10 @@ export default function PES_Universal_Calculator() {
         targetSgpa={targetSgpa}
         theme={theme}
         onToggleTheme={toggleTheme}
+        layout={effectiveLayout}
+        onToggleLayout={isDesktop ? toggleLayout : undefined}
+        amoled={amoled}
+        onToggleAmoled={toggleAmoled}
         onFeedback={() => setShowFeedbackModal(true)}
       />
 
@@ -1808,6 +1864,10 @@ export default function PES_Universal_Calculator() {
             removeCustomGrade={removeCustomGrade}
             applyCustomTemplate={applyCustomTemplate}
             applyGradingSchemeToAll={applyGradingSchemeToAll}
+            layout={effectiveLayout}
+            onToggleLayout={isDesktop ? toggleLayout : undefined}
+            sgpa={sgpa}
+            targetSgpa={targetSgpa}
             pesuProfile={pesuProfile}
             portalData={portalData}
           />

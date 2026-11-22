@@ -483,10 +483,9 @@ function ImportDefinitionRow({ item }) {
   );
 }
 
-// Preview + confirm panel mapping this semester's results onto the calculator's
-// Subjects page. Nothing is written until the student confirms; the import is undoable.
+// Imports this semester's results into the calculator's Subjects page in one click.
+// A preview of what gets imported is available underneath; the import is undoable.
 function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImportResults }) {
-  const [open, setOpen] = useState(false);
   const [done, setDone] = useState(0);
 
   const plan = useMemo(
@@ -508,15 +507,14 @@ function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImpor
     const n = onImportResults({ mode: 'rebuild', fills: [], creates: rebuildCreates });
     const expected = rebuildCreates.length;
     setDone(typeof n === 'number' ? n : expected);
-    setOpen(false);
   };
 
   return (
     <div className="mb-4">
       <button
         type="button"
-        onClick={() => { setOpen((o) => !o); setDone(0); }}
-        aria-expanded={open}
+        onClick={doImport}
+        disabled={rebuildCreates.length === 0}
         className="btn btn-primary"
       >
         <Download className="h-4 w-4" />
@@ -526,19 +524,27 @@ function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImpor
             {plan.matched.length}
           </span>
         )}
-        <ChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
-      {done > 0 && !open && (
+      {done > 0 ? (
         <p className="mt-2 inline-flex items-center gap-1 text-sm text-good">
-          <Check className="h-4 w-4" /> Imported {done} subject{done === 1 ? '' : 's'}. Check the Subjects page.
+          <Check className="h-4 w-4" /> Imported {done} subject{done === 1 ? '' : 's'}. Check the Subjects page; you can undo it there.
+        </p>
+      ) : (
+        <p className="mt-2 flex items-center gap-1 text-xs text-ink-3">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          Replaces your Subjects list with this semester&apos;s portal subjects. You can undo it from the Subjects page.
         </p>
       )}
 
-      {open && (
+      <details className="disclosure mt-2">
+        <summary>
+          <span>See what gets imported</span>
+          <ChevronDown className="chev" />
+        </summary>
         <div className="inset mt-2 space-y-3 p-3">
           <p className="text-xs leading-relaxed text-ink-3">
-            Subjects are matched by name. ISA and assignment numbers come from your results; the ESA stays a letter grade and isn&apos;t imported. Review below, then import. You can undo it from the Subjects page.
+            Subjects are matched by name. ISA and assignment numbers come from your results; the ESA stays a letter grade and isn&apos;t imported.
           </p>
 
           {plan.preset && plan.preset.matched * 2 >= plan.rebuild.length && (
@@ -555,20 +561,8 @@ function ResultsImportPanel({ finalSem, provisionalSem, subjects, marks, onImpor
             <UnmatchedNote title="In your calculator, no portal match this semester" items={plan.unmatchedCalc.map((u) => u.name)} tone="zinc" />
           </div>
 
-          {rebuildCreates.length > 0 && (
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button type="button" onClick={doImport} disabled={rebuildCreates.length === 0} className="btn btn-primary">
-                <Check className="h-4 w-4" />
-                Replace subjects with {rebuildCreates.length}
-              </button>
-              <span className="inline-flex items-center gap-1 text-xs text-warn">
-                <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                This replaces your current Subjects list. It can be undone.
-              </span>
-            </div>
-          )}
         </div>
-      )}
+      </details>
     </div>
   );
 }

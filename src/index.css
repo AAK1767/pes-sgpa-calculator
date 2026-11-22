@@ -65,6 +65,15 @@
   --grade-f: 209 72 63;
 }
 
+/* Optional pure-black variant of the dark theme, for OLED screens. */
+:root[data-theme='dark'][data-amoled='true'] {
+  --canvas: 0 0 0;
+  --surface: 10 10 10;
+  --raised: 22 22 22;
+  --line: 38 38 38;
+  --line-strong: 64 64 64;
+}
+
 @layer base {
   * {
     scrollbar-width: thin;

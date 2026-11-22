@@ -18,6 +18,79 @@ function Chevron() {
   return <ChevronDown className="chev" />;
 }
 
+// Stacked bar showing how many subjects landed on each grade.
+function GradeStrip({ gradeDistribution, GradeMap, count }) {
+  return (
+    <div className="flex h-8 gap-0.5 overflow-hidden rounded-md">
+      {Object.entries(gradeDistribution).map(([grade, n]) => {
+        if (n === 0) return null;
+        const gradeInfo = GradeMap.find((g) => g.grade === grade);
+        return (
+          <div
+            key={grade}
+            className={`flex items-center justify-center text-xs font-semibold text-canvas ${gradeInfo?.bg || 'bg-ink-3'}`}
+            style={{ width: `${(n / count) * 100}%` }}
+            title={`${grade}: ${n} subject(s)`}
+          >
+            {grade} &middot; {n}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Cards layout: the SGPA up front, with progress toward the target and the grade spread.
+function SgpaHero({ sgpa, targetSgpa, metrics, gradeDistribution, GradeMap, count }) {
+  const value = parseFloat(sgpa) || 0;
+  const target = parseFloat(targetSgpa) || 0;
+  const diff = value - target;
+  const meets = target > 0 && diff >= 0;
+
+  return (
+    <section className="panel panel-pad" aria-label="Your SGPA">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <div className="text-xs text-ink-3">Your SGPA so far</div>
+          <div className={`num text-5xl font-semibold leading-none md:text-6xl ${meets ? 'text-good' : 'text-ink'}`}>{sgpa}</div>
+        </div>
+        <div className="text-right">
+          {target > 0 && (
+            <>
+              <div className="text-sm text-ink-2">Target <span className="num font-semibold text-ink">{target}</span></div>
+              <div className={`num text-xs ${meets ? 'text-good' : 'text-ink-3'}`}>
+                {meets ? 'On target' : `${Math.abs(diff).toFixed(2)} below target`}
+              </div>
+            </>
+          )}
+          <div className="num mt-1 text-xs text-ink-3">{count} subjects &middot; {metrics.totalCredits} credits</div>
+        </div>
+      </div>
+
+      <div
+        className="relative mt-4 h-2 rounded-full bg-raised"
+        role="img"
+        aria-label={`SGPA ${sgpa} out of 10${target > 0 ? `, target ${target}` : ''}`}
+      >
+        <div className="h-full rounded-full bg-accent" style={{ width: `${Math.min(100, value * 10)}%` }} />
+        {target > 0 && (
+          <div className="absolute -top-1 h-4 w-0.5 rounded bg-ink" style={{ left: `${Math.min(100, target * 10)}%` }} title={`Target ${target}`} />
+        )}
+      </div>
+      <div className="num mt-1 flex justify-between text-xs text-ink-3">
+        <span>0</span>
+        <span>10</span>
+      </div>
+
+      {count > 0 && (
+        <div className="mt-3">
+          <GradeStrip gradeDistribution={gradeDistribution} GradeMap={GradeMap} count={count} />
+        </div>
+      )}
+    </section>
+  );
+}
+
 // One mark entry: "score / max" with the component name and its weight.
 function MarkField({ label, weight, scoreValue, maxValue, onScore, onMax, emphasised, wide }) {
   return (
@@ -103,8 +176,20 @@ export default function SubjectsTab({
   applyCustomTemplate,
   applyGradingSchemeToAll,
   pesuProfile,
+  layout = 'classic',
+  onToggleLayout,
+  sgpa = 0,
+  targetSgpa = 0,
 }) {
   const isLoggedIn = !!pesuProfile;
+  const isCards = layout === 'cards';
+  const [showLayoutNotice, setShowLayoutNotice] = React.useState(() => {
+    try { return localStorage.getItem('pes_layout_notice_v1') !== '1'; } catch { return false; }
+  });
+  const dismissLayoutNotice = () => {
+    setShowLayoutNotice(false);
+    try { localStorage.setItem('pes_layout_notice_v1', '1'); } catch { /* storage unavailable */ }
+  };
   const [presetGroup, setPresetGroup] = React.useState('Cycles');
   const [presetSearch, setPresetSearch] = React.useState('');
 
@@ -146,8 +231,50 @@ export default function SubjectsTab({
 
   const enabledWeightTotal = customTemplate.components.filter((c) => c.enabled).reduce((sum, c) => sum + c.weight, 0);
 
+  // Quick SGPA estimator helpers
+  const estimatorGrades = GradeMap.filter((g) => g.gp > 0).map((g) => g.grade);
+  const setAllEstimatorGrades = (grade) => {
+    const next = {};
+    subjects.forEach((sub) => {
+      const scheme = sub.customGradeMap || GradeMap;
+      if (scheme.some((g) => g.grade === grade)) next[sub.id] = grade;
+    });
+    setManualGrades((prev) => ({ ...prev, ...next }));
+  };
+  const useCurrentEstimatorGrades = () => {
+    const next = {};
+    subjects.forEach((sub) => {
+      const { finalScore } = getSubjectMetrics(sub);
+      next[sub.id] = getGradeInfo(finalScore, sub).grade;
+    });
+    setManualGrades(next);
+  };
+  const estimated = parseFloat(hypotheticalSgpa) || 0;
+  const currentSgpaNum = parseFloat(sgpa) || 0;
+  const targetSgpaNum = parseFloat(targetSgpa) || 0;
+  const formatDelta = (d) => `${d >= 0 ? '+' : ''}${d.toFixed(2)}`;
+
   return (
     <div className="space-y-4">
+      {isCards && showLayoutNotice && (
+        <div className="notice notice-info flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm">
+            <strong className="font-medium text-ink">New card layout.</strong>{' '}
+            Each subject now has its own card. Prefer the old one? The classic layout is still here, and you can switch any time with the layout button at the top right.
+          </p>
+          <div className="flex shrink-0 gap-2">
+            <button
+              type="button"
+              onClick={() => { dismissLayoutNotice(); if (onToggleLayout) onToggleLayout(); }}
+              className="btn btn-secondary btn-sm"
+            >
+              Switch to Classic
+            </button>
+            <button type="button" onClick={dismissLayoutNotice} className="btn btn-ghost btn-sm">Got it</button>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <details className="group relative" id="subject-preset-select">
@@ -261,36 +388,34 @@ export default function SubjectsTab({
         </button>
       </div>
 
-      {/* Grade distribution */}
-      <div className="panel panel-pad">
-        <div className="mb-3 flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold text-ink">Grade distribution</h2>
-          <span className="num text-xs text-ink-3">
-            {subjects.length} subjects &middot; {metrics.totalCredits} credits
-          </span>
+      {/* Summary: SGPA hero (cards layout) or grade distribution (classic layout) */}
+      {isCards ? (
+        <SgpaHero
+          sgpa={sgpa}
+          targetSgpa={targetSgpa}
+          metrics={metrics}
+          gradeDistribution={gradeDistribution}
+          GradeMap={GradeMap}
+          count={subjects.length}
+        />
+      ) : (
+        <div className="panel panel-pad">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <h2 className="text-sm font-semibold text-ink">Grade distribution</h2>
+            <span className="num text-xs text-ink-3">
+              {subjects.length} subjects &middot; {metrics.totalCredits} credits
+            </span>
+          </div>
+          <GradeStrip gradeDistribution={gradeDistribution} GradeMap={GradeMap} count={subjects.length} />
         </div>
-        <div className="flex h-8 gap-0.5 overflow-hidden rounded-md">
-          {Object.entries(gradeDistribution).map(([grade, count]) => {
-            if (count === 0) return null;
-            const gradeInfo = GradeMap.find((g) => g.grade === grade);
-            return (
-              <div
-                key={grade}
-                className={`flex items-center justify-center text-xs font-semibold text-canvas ${gradeInfo?.bg || 'bg-ink-3'}`}
-                style={{ width: `${(count / subjects.length) * 100}%` }}
-                title={`${grade}: ${count} subject(s)`}
-              >
-                {grade} &middot; {count}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      )}
 
       {/* Subjects list */}
       <div>
-        <p className="mb-2 text-sm text-ink-3">Select a subject to enter or edit its marks.</p>
-        <div className="space-y-2.5">
+        <p className="mb-2 text-sm text-ink-3">
+          {isCards ? 'Type your marks straight into each subject. Open Details for rounding and subject settings.' : 'Select a subject to enter or edit its marks.'}
+        </p>
+        <div className={isCards ? 'grid grid-cols-1 items-start gap-2.5 lg:grid-cols-2' : 'space-y-2.5'}>
           {subjects.map((subject) => {
             const m = marks[subject.id] || {};
             const { finalScore, rawScore, totalWeight, unroundedScore, cieScaled, cieRounded, esaScaled, esaRounded, labScaled, labRounded } = getSubjectMetrics(subject);
@@ -347,12 +472,47 @@ export default function SubjectsTab({
               <div
                 key={subject.id}
                 data-subject-card
-                className={`panel overflow-hidden transition-colors ${isExpanded ? 'border-line-strong' : 'hover:border-line-strong'}`}
+                className={`panel overflow-hidden transition-colors ${isExpanded ? 'border-line-strong' : 'hover:border-line-strong'} ${isCards && isExpanded ? 'lg:col-span-2' : ''}`}
               >
+                {/* Cards layout header: name, score and a progress bar. Marks are always visible below. */}
+                {isCards && (
+                  <div className="p-3 md:p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-[15px] font-semibold text-ink md:text-base" title={subject.name}>{subject.name}</h3>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-3">
+                          <span>{subject.credits} credits</span>
+                          <span aria-hidden="true">&middot;</span>
+                          <span>{enteredCount === 0 ? 'No marks yet' : `${enteredCount} of ${slots.length} entered`}</span>
+                          {totalWeight > 100 && <span className="chip">Scaled from {totalWeight}%</span>}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2.5">
+                        <div className="text-right">
+                          <div className={`num text-2xl font-semibold leading-none ${gradeInfo.color}`}>{finalScore}</div>
+                          <div className="mt-1 text-xs text-ink-3">
+                            {showTotalWeight ? `actual ${rawScoreLabel}/${totalWeightLabel}` : 'out of 100'}
+                          </div>
+                        </div>
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-md text-lg font-semibold text-canvas ${gradeInfo.bg}`} aria-label={`Grade ${gradeInfo.grade}`}>
+                          {gradeInfo.grade}
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-raised"
+                      role="img"
+                      aria-label={`Score ${finalScore} out of 100`}
+                    >
+                      <div className={`h-full rounded-full ${gradeInfo.bg}`} style={{ width: `${Math.min(100, Math.max(0, Number(finalScore) || 0))}%` }} />
+                    </div>
+                  </div>
+                )}
+
                 {/* Subject header */}
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between gap-3 p-3 text-left md:p-4"
+                  className={`${isCards ? 'hidden' : 'flex'} w-full items-center justify-between gap-3 p-3 text-left md:p-4`}
                   onClick={() => setExpandedSubject(isExpanded ? null : subject.id)}
                   aria-expanded={isExpanded}
                 >
@@ -381,10 +541,13 @@ export default function SubjectsTab({
                 </button>
 
                 {/* Expanded content */}
-                {isExpanded && (
+                {(isExpanded || isCards) && (
                   <div className="space-y-4 border-t border-line p-3 md:p-4">
                     {/* Mark inputs */}
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-3">
+                    <div className={isCards
+                      ? 'grid grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(9.5rem,1fr))] sm:gap-2.5'
+                      : 'grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-2.5 lg:grid-cols-3'}
+                    >
                       {slots.map((slot, slotIdx) => (
                         <MarkField
                           key={slot.key}
@@ -400,6 +563,23 @@ export default function SubjectsTab({
                       ))}
                     </div>
 
+                    {isCards && (
+                      <button
+                        type="button"
+                        onClick={() => setExpandedSubject(isExpanded ? null : subject.id)}
+                        aria-expanded={isExpanded}
+                        className="-mt-1.5 flex w-full items-center justify-between gap-3 rounded-md px-1 py-1.5 text-left text-sm text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+                      >
+                        <span>Final ISA <span className="num font-medium text-ink">{isaTotalDisplay}/{isaMaxDisplay}</span></span>
+                        <span className="flex items-center gap-1 text-xs">
+                          {isExpanded ? 'Hide details' : 'Details & edit'}
+                          <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </span>
+                      </button>
+                    )}
+
+                    {(!isCards || isExpanded) && (
+                    <>
                     {/* Result summary */}
                     <div className="inset space-y-3 p-3 text-sm">
                       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -596,6 +776,8 @@ export default function SubjectsTab({
                         </div>
                       </div>
                     </details>
+                    </>
+                    )}
                   </div>
                 )}
               </div>
@@ -638,13 +820,44 @@ export default function SubjectsTab({
           <Chevron />
         </summary>
 
-        <div className="space-y-3 border-t border-line p-4">
-          <div className="flex items-baseline justify-between rounded-md border border-line bg-canvas/60 px-3 py-2.5">
-            <span className="text-sm text-ink-2">SGPA with these grades</span>
-            <span className="num text-2xl font-semibold text-accent">{hypotheticalSgpa}</span>
+        <div className="space-y-4 border-t border-line p-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="inset p-3">
+              <div className="text-xs text-ink-3">SGPA with these grades</div>
+              <div className="num mt-1 text-3xl font-semibold leading-none text-accent">{hypotheticalSgpa}</div>
+            </div>
+            <div className="inset p-3">
+              <div className="text-xs text-ink-3">Compared with your SGPA now ({sgpa})</div>
+              <div className={`num mt-1 text-xl font-semibold ${estimated >= currentSgpaNum ? 'text-good' : 'text-bad'}`}>{formatDelta(estimated - currentSgpaNum)}</div>
+            </div>
+            <div className="inset p-3">
+              <div className="text-xs text-ink-3">{targetSgpaNum > 0 ? `Compared with your target (${targetSgpaNum})` : 'No target set'}</div>
+              {targetSgpaNum > 0 ? (
+                <div className={`num mt-1 text-xl font-semibold ${estimated >= targetSgpaNum ? 'text-good' : 'text-bad'}`}>{formatDelta(estimated - targetSgpaNum)}</div>
+              ) : (
+                <div className="mt-1 text-sm text-ink-3">Set one on the Analysis tab</div>
+              )}
+            </div>
           </div>
 
-          <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs text-ink-3">Set every subject to</span>
+            {estimatorGrades.map((grade) => (
+              <button
+                key={grade}
+                type="button"
+                onClick={() => setAllEstimatorGrades(grade)}
+                className="num min-w-[2rem] rounded-md border border-line-strong bg-surface px-2 py-1 text-xs font-semibold text-ink-2 transition-colors hover:bg-raised hover:text-ink"
+              >
+                {grade}
+              </button>
+            ))}
+            <button type="button" onClick={useCurrentEstimatorGrades} className="btn btn-ghost btn-sm ml-auto">
+              Use my current grades
+            </button>
+          </div>
+
+          <div className="max-h-[360px] space-y-2 overflow-y-auto pr-1">
             {subjects.length === 0 ? (
               <div className="py-4 text-center text-sm text-ink-3">No subjects added yet.</div>
             ) : (
@@ -655,24 +868,30 @@ export default function SubjectsTab({
                 const selectedGrade = manualGrades[sub.id] !== undefined ? manualGrades[sub.id] : maxGrade;
 
                 return (
-                  <div key={sub.id} className="flex items-center justify-between gap-3 rounded-md border border-line bg-canvas/60 p-2.5">
-                    <div className="min-w-0 flex-1">
+                  <div key={sub.id} className="flex flex-col gap-2 rounded-md border border-line bg-canvas/60 p-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <div className="min-w-0 sm:flex-1">
                       <div className="truncate text-sm font-medium text-ink" title={sub.name}>{sub.name}</div>
                       <div className="text-xs text-ink-3">{sub.credits} credits</div>
                     </div>
-                    <select
-                      value={selectedGrade}
-                      onChange={(e) => setManualGrades((prev) => ({ ...prev, [sub.id]: e.target.value }))}
-                      aria-label={`Grade for ${sub.name}`}
-                      className="input w-28 font-medium"
-                    >
-                      <option value="">Select</option>
-                      {scheme.map((g) => (
-                        <option key={g.grade} value={g.grade}>
-                          {g.grade} ({g.gp})
-                        </option>
-                      ))}
-                    </select>
+                    <div role="group" aria-label={`Grade for ${sub.name}`} className="flex flex-wrap gap-1">
+                      {scheme.map((g) => {
+                        const active = selectedGrade === g.grade;
+                        return (
+                          <button
+                            key={g.grade}
+                            type="button"
+                            aria-pressed={active}
+                            title={`${g.grade} = ${g.gp} points${active ? ' (tap again to clear)' : ''}`}
+                            onClick={() => setManualGrades((prev) => ({ ...prev, [sub.id]: active ? '' : g.grade }))}
+                            className={`num min-w-[2rem] rounded-md border px-2 py-1 text-xs font-semibold transition-colors ${active
+                              ? `border-transparent text-canvas ${g.bg || 'bg-accent'}`
+                              : 'border-line-strong bg-surface text-ink-2 hover:bg-raised hover:text-ink'}`}
+                          >
+                            {g.grade}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })

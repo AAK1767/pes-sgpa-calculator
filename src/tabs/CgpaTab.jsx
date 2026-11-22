@@ -324,6 +324,42 @@ export default function CgpaTab({
         <p className="mt-2 text-xs text-ink-3">
           Based on {completedSems.length} semester{completedSems.length === 1 ? '' : 's'} of data
         </p>
+
+        <div
+          className="relative mx-auto mt-4 h-2 max-w-md rounded-full bg-raised"
+          role="img"
+          aria-label={`CGPA ${cgpaDisplay} out of 10`}
+        >
+          <div className="h-full rounded-full bg-accent" style={{ width: `${Math.min(100, (parseFloat(cgpaDisplay) || 0) * 10)}%` }} />
+          {parseFloat(targetCgpa) > 0 && (
+            <div className="absolute -top-1 h-4 w-0.5 rounded bg-ink" style={{ left: `${Math.min(100, parseFloat(targetCgpa) * 10)}%` }} title={`Target ${targetCgpa}`} />
+          )}
+        </div>
+        <div className="num mx-auto mt-1 flex max-w-md justify-between text-xs text-ink-3">
+          <span>0</span>
+          {parseFloat(targetCgpa) > 0 && <span>Target {targetCgpa}</span>}
+          <span>10</span>
+        </div>
+
+        <div
+          className="mx-auto mt-5 grid max-w-md gap-1.5"
+          style={{ gridTemplateColumns: `repeat(${semesterData.length}, minmax(0, 1fr))` }}
+          aria-label="SGPA by semester"
+        >
+          {semesterData.map((sem) => {
+            const v = parseFloat(sem.sgpa);
+            const has = !isNaN(v) && v > 0;
+            return (
+              <div key={sem.id} className="flex flex-col items-center gap-1">
+                <span className="num text-[11px] text-ink-3">{has ? v.toFixed(1) : '-'}</span>
+                <div className="flex h-14 w-full items-end overflow-hidden rounded bg-raised">
+                  <div className="w-full rounded bg-accent" style={{ height: has ? `${Math.min(100, (v / 10) * 100)}%` : '0%' }} />
+                </div>
+                <span className="text-[11px] text-ink-3">S{sem.id}</span>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Semesters */}
