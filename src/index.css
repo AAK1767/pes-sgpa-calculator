@@ -2,34 +2,94 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------------------------------------------------------
+   Design tokens. Light "paper" theme by default, dark via data-theme.
+   One neutral scale, one accent, three status colors, one grade scale.
+   Values are space-separated RGB so Tailwind can apply opacity.
+   ------------------------------------------------------------------ */
+:root {
+  color-scheme: light;
+
+  --canvas: 245 242 235;
+  --surface: 255 254 250;
+  --raised: 238 234 225;
+  --line: 221 215 203;
+  --line-strong: 190 183 168;
+
+  --ink: 28 26 22;
+  --ink-2: 78 73 64;
+  --ink-3: 112 106 95;
+
+  --accent: 13 110 110;
+  --accent-ink: 255 255 255;
+
+  --good: 36 120 66;
+  --warn: 160 100 10;
+  --bad: 184 48 38;
+
+  --grade-s: 31 138 84;
+  --grade-a: 86 150 52;
+  --grade-b: 138 142 28;
+  --grade-c: 190 130 12;
+  --grade-d: 200 100 24;
+  --grade-e: 205 70 50;
+  --grade-f: 175 35 35;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --canvas: 17 18 17;
+  --surface: 25 26 24;
+  --raised: 35 37 34;
+  --line: 52 55 50;
+  --line-strong: 78 82 75;
+
+  --ink: 238 238 232;
+  --ink-2: 190 190 182;
+  --ink-3: 140 142 133;
+
+  --accent: 79 195 189;
+  --accent-ink: 8 30 30;
+
+  --good: 111 191 140;
+  --warn: 224 176 74;
+  --bad: 238 122 110;
+
+  --grade-s: 95 181 131;
+  --grade-a: 139 191 114;
+  --grade-b: 189 189 95;
+  --grade-c: 224 176 74;
+  --grade-d: 224 143 74;
+  --grade-e: 224 112 90;
+  --grade-f: 209 72 63;
+}
+
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #303241 transparent;
+    scrollbar-color: rgb(var(--line-strong)) transparent;
   }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #303241; border-radius: 999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #44465a; }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--line-strong)); border-radius: 999px; }
 
   html {
     scroll-behavior: smooth;
-    color-scheme: dark;
-    background: #0b0d12;
+    background: rgb(var(--canvas));
   }
 
   body {
-    @apply min-h-screen bg-[#0b0d12] text-zinc-200 antialiased;
+    @apply min-h-screen bg-canvas text-ink antialiased;
     margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-image:
-      radial-gradient(circle at 14% -8%, rgba(99, 102, 241, 0.10), transparent 26rem),
-      radial-gradient(circle at 88% 8%, rgba(14, 165, 233, 0.055), transparent 24rem);
   }
 
   ::selection {
-    background: rgba(99, 102, 241, 0.38);
+    background: rgb(var(--accent) / 0.25);
   }
 
   button,
@@ -39,14 +99,21 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+
   button:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible,
-  summary:focus-visible {
-    outline: 2px solid rgba(129, 140, 248, 0.75);
+  summary:focus-visible,
+  a:focus-visible {
+    outline: 2px solid rgb(var(--accent));
     outline-offset: 2px;
   }
+
+  summary { list-style: none; }
+  summary::-webkit-details-marker { display: none; }
 
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button {
@@ -56,68 +123,130 @@
   input[type=number] {
     -moz-appearance: textfield;
   }
+
+  input[type=checkbox],
+  input[type=radio] {
+    accent-color: rgb(var(--accent));
+    width: 1rem;
+    height: 1rem;
+  }
+
+  input[type=range] {
+    accent-color: rgb(var(--accent));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------
+   Shared building blocks. Use these instead of one-off utility piles.
+   ------------------------------------------------------------------ */
+@layer components {
+  .panel {
+    @apply rounded-lg border border-line bg-surface;
+  }
+  .panel-pad {
+    @apply p-4 md:p-5;
+  }
+  .inset {
+    @apply rounded-md border border-line bg-canvas;
+  }
+
+  .btn {
+    @apply inline-flex min-h-[40px] items-center justify-center gap-2 rounded-md border px-3.5 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-40;
+  }
+  .btn-sm {
+    @apply min-h-[34px] px-2.5 py-1.5 text-[13px];
+  }
+  .btn-primary {
+    @apply border-accent bg-accent text-accent-ink hover:brightness-110;
+  }
+  .btn-secondary {
+    @apply border-line-strong bg-surface text-ink hover:bg-raised;
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent text-ink-2 hover:bg-raised hover:text-ink;
+  }
+  .btn-danger {
+    @apply border-bad/40 bg-transparent text-bad hover:bg-bad/10;
+  }
+
+  .input {
+    @apply w-full rounded-md border border-line-strong bg-surface px-2.5 py-2 text-ink placeholder:text-ink-3 transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25;
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    .input { font-size: 14px; }
+  }
+
+  .label {
+    @apply mb-1 block text-xs font-medium text-ink-2;
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded border border-line bg-raised px-1.5 py-0.5 text-xs font-medium text-ink-2;
+  }
+
+  .notice {
+    @apply rounded-md border px-3 py-2.5 text-sm;
+  }
+  .notice-info { @apply border-line bg-raised text-ink-2; }
+  .notice-warn { @apply border-warn/30 bg-warn/10 text-warn; }
+  .notice-bad  { @apply border-bad/30 bg-bad/10 text-bad; }
+  .notice-good { @apply border-good/30 bg-good/10 text-good; }
+
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* Pill switcher used for sub-modes inside a page */
+  .seg {
+    @apply inline-flex flex-wrap gap-1 rounded-lg border border-line bg-raised p-1;
+  }
+  .seg-item {
+    @apply rounded-md px-3 py-1.5 text-sm font-medium text-ink-2 transition-colors hover:text-ink;
+  }
+  .seg-item[aria-selected='true'],
+  .seg-item[aria-pressed='true'] {
+    @apply bg-surface text-ink shadow-sm;
+  }
+
+  /* Disclosure rows (<details>) */
+  .disclosure > summary {
+    @apply flex cursor-pointer select-none items-center justify-between gap-3 text-sm font-medium text-ink-2 transition-colors hover:text-ink;
+  }
+  .disclosure > summary .chev {
+    @apply h-4 w-4 shrink-0 text-ink-3 transition-transform;
+  }
+  .disclosure[open] > summary .chev {
+    transform: rotate(180deg);
+  }
+
+  /* Simple data table */
+  .table-clean {
+    @apply w-full border-collapse text-sm;
+  }
+  .table-clean th {
+    @apply border-b border-line px-3 py-2 text-left text-xs font-medium text-ink-3;
+  }
+  .table-clean td {
+    @apply border-b border-line px-3 py-2.5 text-ink;
+  }
+  .table-clean tr:last-child td {
+    @apply border-b-0;
+  }
 }
 
 @layer utilities {
-  .glass-panel {
-    @apply bg-[#11131c]/95 backdrop-blur-xl border border-white/[0.07] shadow-2xl shadow-black/20;
-  }
-  .glass-input {
-    @apply bg-[#0d0f17] border-white/[0.09] text-zinc-100 focus:ring-2 focus:ring-indigo-500/25 focus:border-indigo-400/40 transition-all duration-200;
-  }
   .scrollbar-hide {
     scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-/* Shared tab language: flatter surfaces, compact hierarchy, predictable density. */
-.tab-shell .rounded-2xl,
-.tab-shell .rounded-xl {
-  border-radius: 0.625rem;
-}
-
-.tab-shell .shadow-2xl,
-.tab-shell .shadow-xl,
-.tab-shell .shadow-lg,
-.tab-shell .shadow-sm {
-  box-shadow: none;
-}
-
-.tab-shell [class*="bg-gradient"] {
-  background-image: none;
-}
-
-.tab-shell [class*="backdrop-blur"] {
-  backdrop-filter: none;
-}
-
-@media (max-width: 639px) {
-  .tab-shell {
-    font-size: 14px;
-  }
-
-  .tab-shell .p-6 {
-    padding: 1rem;
-  }
-
-  .tab-shell table {
-    font-size: 12px;
-  }
-
-  .tab-shell th,
-  .tab-shell td {
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
-  }
-
-  .tab-shell summary {
-    min-height: 44px;
-  }
-
-  .tab-shell [class*="absolute"][class*="blur"] {
     display: none;
   }
 }

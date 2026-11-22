@@ -26,7 +26,10 @@
   <meta property="og:description" content="Calculate your SGPA, CGPA, Attendance, and exact marks required for your target grade instantly. Free, offline, and works for any cycle. PES, PESU, PESIT" />
   <meta property="og:image" content="https://pes-sgpa-calculator.vercel.app/og-image.png" />
 
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#f5f2eb" />
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem('pes_theme_v2') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+  </script>
   <meta name="google-site-verification" content="82b-43dStDaJz8aPVUMssjP3XGpkOIwufhX4PzdTvrM" />
 
   </head>

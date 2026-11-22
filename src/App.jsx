@@ -10,6 +10,9 @@ import CgpaTab from './tabs/CgpaTab';
 import GuideTab from './tabs/GuideTab';
 import PesuAcademyTab from './tabs/PesuAcademyTab';
 import { trackEvent, setUserProperties } from './utils/analytics';
+import { AppHeader, MobileNav } from './components/AppNav';
+import { ToffeeModal, FeedbackModal } from './components/SupportModals';
+import { NAV_ITEMS } from './constants/navigation';
 
 import {
   ChemistryCycleDefaults,
@@ -40,17 +43,6 @@ import {
   consecutiveClassesNeeded
 } from './utils/attendanceCalculations';
 
-import {
-  Trash2, Plus, Settings, ChevronDown, ChevronUp,
-  RotateCcw, Target, Dice5, Scale,
-  Eraser, TrendingUp, Activity, Calculator,
-  Lightbulb, ArrowRight, CheckCircle2, AlertCircle,
-  Download, Upload, Lock, Unlock, AlertTriangle,
-  BookOpen, Award, Zap, BarChart3, Moon, Sun,
-  Undo2, Redo2, HelpCircle, Info, X, Heart,
-  Github, ExternalLink, Star, MessageSquare, GraduationCap,
-  PanelLeftClose, PanelLeftOpen
-} from 'lucide-react';
 
 const CIE_L1_NAMES = new Set([
   'CIE L1',
@@ -222,7 +214,17 @@ export default function PES_Universal_Calculator() {
   }, []);
 
   // --- UI State ---
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [theme, setTheme] = useState(() => (
+    document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
+  ));
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('pes_theme_v2', next); } catch { /* storage unavailable */ }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', next === 'dark' ? '#111211' : '#f5f2eb');
+  };
 
   const [targetSgpa, setTargetSgpa] = useState(9.0);
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -268,54 +270,7 @@ export default function PES_Universal_Calculator() {
   });
   const [showToffeeModal, setShowToffeeModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [feedbackName, setFeedbackName] = useState('');
-  const [feedbackText, setFeedbackText] = useState('');
-  const [feedbackRating, setFeedbackRating] = useState(0);
-  const [feedbackStatus, setFeedbackStatus] = useState('idle'); // 'idle' | 'submitting' | 'success' | 'error'
-  const [hoverRating, setHoverRating] = useState(0);
-
-  const handleFeedbackSubmit = async (e) => {
-    e.preventDefault();
-    if (!feedbackText.trim()) return;
-
-    setFeedbackStatus('submitting');
-    try {
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: feedbackName.trim(),
-          feedback: feedbackText.trim(),
-          rating: feedbackRating,
-        }),
-      });
-
-      if (response.ok) {
-        trackEvent('feedback_submitted', {
-          rating: feedbackRating,
-          has_name: !!feedbackName.trim(),
-          feedback_length: feedbackText.trim().length,
-          status: 'success'
-        });
-        setFeedbackStatus('success');
-        setFeedbackName('');
-        setFeedbackText('');
-        setFeedbackRating(0);
-      } else {
-        trackEvent('feedback_submitted', {
-          status: 'failed'
-        });
-        setFeedbackStatus('error');
-      }
-    } catch {
-      trackEvent('feedback_submitted', {
-        status: 'failed'
-      });
-      setFeedbackStatus('error');
-    }
-  };
+  // Feedback form state and submit logic live inside <FeedbackModal />.
 
   const ATTENDANCE_MIN_PERCENT = 75;
   // --- Attendance (Mode 1 is the source for all planners) ---
@@ -633,9 +588,6 @@ export default function PES_Universal_Calculator() {
 
   const initialPresetNameRef = useRef(getCyclePresetName(subjects));
   useEffect(() => {
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('pes_theme', 'dark'); // Ensure it stays dark
-
     // Set GA user properties
     const activePresetName = initialPresetNameRef.current;
     setUserProperties({
@@ -1736,174 +1688,31 @@ export default function PES_Universal_Calculator() {
 
 
 
-  // --- Theme Classes (Premium Dark) ---
+  // --- Theme classes ---
+  // Kept for tabs that still take a `themeClasses` prop; they now resolve to the shared tokens.
   const themeClasses = {
-    bg: 'bg-[#0b0d12]',
-    text: 'text-zinc-200',
-    card: 'bg-[#12151b] border border-[#252932]',
-    cardHover: 'hover:border-[#3d4352]',
-    input: 'bg-[#171a21] border-[#303541] text-zinc-100 placeholder:text-zinc-600 focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400/50 transition-all',
-    inputBg: 'bg-[#171a21]',
-    muted: 'text-zinc-500',
-    border: 'border-[#262a34]',
+    bg: 'bg-canvas',
+    text: 'text-ink',
+    card: 'bg-surface border border-line',
+    cardHover: 'hover:border-line-strong',
+    input: 'bg-canvas border-line text-ink placeholder:text-ink-3 focus:ring-2 focus:ring-accent/25 focus:border-accent transition-colors',
+    inputBg: 'bg-canvas',
+    muted: 'text-ink-3',
+    border: 'border-line',
   };
 
+  const activeNav = NAV_ITEMS.find((item) => item.id === activeTab) || NAV_ITEMS[0];
+
   return (
-    <div className={`min-h-screen ${themeClasses.bg} ${themeClasses.text} font-sans pb-24 md:pb-8`}>
-      {/* Product Header */}
-      <header className={`sticky top-0 z-50 border-b border-[#232731] bg-[#0b0d12]/95 px-4 backdrop-blur-xl md:px-7 ${desktopSidebarOpen ? 'lg:ml-[220px]' : 'lg:ml-[72px]'}`}>
-        <div className="mx-auto flex h-[56px] max-w-[1120px] items-center justify-between md:h-[64px]">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
-              <h1 className="flex min-w-0 items-center gap-2.5 text-sm font-bold tracking-tight text-white lg:hidden">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#2c303a] bg-[#151820]">
-                  <img src="/header_logo.png" alt="" className="h-6 w-6 object-contain md:h-7 md:w-7" />
-                </span>
-                <span className="truncate">PESU Calculator</span>
-              </h1>
-              <div className="hidden items-center gap-2 text-xs text-zinc-500 lg:flex">
-                <span>Workspace</span>
-                <span className="text-zinc-700">/</span>
-                <span className="font-semibold capitalize text-zinc-300">{activeTab === 'pesu' ? 'PESU Academy' : activeTab === 'reverse' ? 'Reverse calculator' : activeTab}</span>
-              </div>
-              <div className="hidden items-center gap-1.5 text-[11px] font-semibold sm:flex">
-                <button
-                  onClick={() => setShowToffeeModal(true)}
-                  className="flex cursor-pointer items-center rounded-lg border border-amber-400/10 bg-amber-400/[0.06] px-2.5 py-1.5 text-amber-300 transition hover:bg-amber-400/10"
-                >
-                  Toffee
-                </button>
-                <button
-                  onClick={() => setShowFeedbackModal(true)}
-                  className="flex cursor-pointer items-center rounded-lg border border-white/[0.07] bg-white/[0.03] px-2.5 py-1.5 text-zinc-400 transition hover:bg-white/[0.07] hover:text-zinc-200"
-                >
-                  Feedback
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="ml-4 flex shrink-0 items-center gap-3 border-l border-[#282c35] pl-4">
-            <button
-              type="button"
-              onClick={() => setShowFeedbackModal(true)}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-400 transition hover:border-purple-400/30 hover:bg-purple-400/[0.08] hover:text-purple-300 lg:hidden"
-              aria-label="Send feedback"
-              title="Send feedback"
-            >
-              <MessageSquare className="h-4 w-4" />
-            </button>
-            <div className="hidden items-center gap-1.5 text-[10px] font-medium text-zinc-500 lg:flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Saved locally
-            </div>
-            <div className="hidden text-right sm:block">
-              <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">Current</div>
-              <div className="text-[10px] text-zinc-500">SGPA</div>
-            </div>
-            <div className={`text-xl font-black tabular-nums tracking-tight md:text-3xl ${parseFloat(sgpa) >= targetSgpa ? 'text-emerald-400' : 'text-white'}`}>
-              {sgpa}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Desktop Navigation */}
-      <aside className={`hidden lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:z-[60] lg:flex-col lg:border-r lg:border-[#232731] lg:bg-[#090b10] transition-[width] duration-200 ${desktopSidebarOpen ? 'lg:w-[220px]' : 'lg:w-[72px]'}`} aria-label="Primary navigation">
-        <div className={`flex h-[64px] items-center border-b border-[#232731] ${desktopSidebarOpen ? 'justify-between px-5' : 'justify-center px-2'}`}>
-          <div className="flex items-center gap-2.5">
-            {desktopSidebarOpen ? (
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#30343f] bg-[#151820]">
-                <img src="/header_logo.png" alt="" className="h-6 w-6 object-contain" />
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setDesktopSidebarOpen(true)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#30343f] bg-[#151820] transition hover:border-orange-400/40 hover:bg-orange-400/[0.06]"
-                aria-label="Expand sidebar"
-                title="Expand sidebar"
-              >
-                <img src="/header_logo.png" alt="" className="h-6 w-6 object-contain" />
-              </button>
-            )}
-            <div className={desktopSidebarOpen ? '' : 'hidden'}>
-              <div className="text-sm font-bold leading-tight text-white">PESU</div>
-              <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-600">Academic desk</div>
-            </div>
-          </div>
-          {desktopSidebarOpen && (
-            <button
-              type="button"
-              onClick={() => setDesktopSidebarOpen(false)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
-              aria-label="Collapse sidebar"
-              title="Collapse sidebar"
-            >
-              <PanelLeftClose className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-        {!desktopSidebarOpen && (
-          <button
-            type="button"
-            onClick={() => setDesktopSidebarOpen(true)}
-            className="mx-auto mt-3 flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition hover:bg-white/[0.05] hover:text-zinc-200"
-            aria-label="Expand sidebar"
-            title="Expand sidebar"
-          >
-            <PanelLeftOpen className="h-4 w-4" />
-          </button>
-        )}
-        <div className={`pt-5 ${desktopSidebarOpen ? 'px-3' : 'px-2'}`}>
-          {desktopSidebarOpen && <div className="mb-2 px-2 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-600">Calculators</div>}
-          <div className="flex flex-col gap-1">
-          {[
-            { id: 'subjects', label: 'Subjects', description: 'Marks & grades', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', description: 'ESA targets', icon: Activity, accent: 'blue' },
-            { id: 'reverse', label: 'Reverse Calc', description: 'Plan SGPA', icon: Target, accent: 'emerald' },
-            { id: 'attendance', label: 'Attendance', description: 'Class planner', icon: CheckCircle2 },
-            { id: 'cgpa', label: 'CGPA', description: 'Semester record', icon: Calculator },
-            { id: 'pesu', label: 'PESU Academy', description: 'Portal data', icon: GraduationCap },
-            { id: 'guide', label: 'Guide', description: 'How it works', icon: HelpCircle },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => { window.location.hash = `#/${tab.id}`; }}
-              className={`relative flex items-center rounded-lg py-2.5 text-xs font-semibold transition-all duration-200 whitespace-nowrap ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'} ${activeTab === tab.id
-                ? 'bg-[#20232b] text-white before:absolute before:-left-3 before:h-5 before:w-[3px] before:rounded-r-full before:bg-orange-400'
-                : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.035]'
-                }`}
-              title={!desktopSidebarOpen ? tab.label : undefined}
-              aria-label={tab.label}
-            >
-              <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-orange-300' : ''}`} />
-              {desktopSidebarOpen && (
-                <span className="min-w-0 text-left">
-                  <span className="block">{tab.label}</span>
-                  <span className={`mt-0.5 block text-[9px] font-medium ${activeTab === tab.id ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                    {tab.description}
-                  </span>
-                </span>
-              )}
-              {tab.accent && activeTab !== tab.id && (
-                <span className={`w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-glow-pulse`} />
-              )}
-            </button>
-          ))}
-          </div>
-        </div>
-        <div className="mt-auto border-t border-[#232731] p-3">
-          <button
-            onClick={() => setShowFeedbackModal(true)}
-            className={`flex w-full items-center rounded-lg py-2.5 text-xs font-semibold text-zinc-500 transition hover:bg-white/[0.035] hover:text-zinc-200 ${desktopSidebarOpen ? 'gap-3 px-3' : 'justify-center px-2'}`}
-            title={!desktopSidebarOpen ? 'Send feedback' : undefined}
-            aria-label="Send feedback"
-          >
-            <MessageSquare className="h-4 w-4" /> {desktopSidebarOpen && 'Send feedback'}
-          </button>
-        </div>
-      </aside>
+    <div className="min-h-screen bg-canvas pb-24 font-sans text-ink lg:pb-8">
+      <AppHeader
+        activeTab={activeTab}
+        sgpa={sgpa}
+        targetSgpa={targetSgpa}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onFeedback={() => setShowFeedbackModal(true)}
+      />
 
       {/* ==================== PESU ACADEMY TAB ==================== */}
       {/*
@@ -1916,13 +1725,11 @@ export default function PES_Universal_Calculator() {
         survives, and it's gone on refresh/close. The layout classes mirror the
         motion.div so the tab sits in the same place with the same width/padding.
       */}
-      <div className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'lg:ml-[220px]' : 'lg:ml-[72px]'} ${activeTab === 'pesu' ? '' : 'hidden'}`}>
+      <div className={`mx-auto max-w-[1040px] px-4 py-6 md:px-6 md:py-8 ${activeTab === 'pesu' ? '' : 'hidden'}`}>
         {activeTab === 'pesu' && (
-          <div className="mb-4 flex items-end justify-between border-b border-[#252932] pb-3 md:mb-6 md:pb-5">
-            <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/70">PESU integration</div>
-              <h2 className="text-xl font-bold tracking-tight text-white md:text-3xl">PESU Academy</h2>
-            </div>
+          <div className="mb-5 md:mb-6">
+            <h1 className="text-2xl font-semibold tracking-tight text-ink md:text-[28px]">{activeNav.title}</h1>
+            <p className="mt-1 max-w-2xl text-sm text-ink-2">{activeNav.blurb}</p>
           </div>
         )}
         <PesuAcademyTab
@@ -1944,21 +1751,15 @@ export default function PES_Universal_Calculator() {
 
       <MotionDiv
         key={activeTab}
-        className={`mx-auto max-w-[1120px] px-4 py-5 md:px-7 md:py-7 ${desktopSidebarOpen ? 'lg:ml-[220px]' : 'lg:ml-[72px]'}`}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="mx-auto max-w-[1040px] px-4 py-6 md:px-6 md:py-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.15 }}
       >
         {activeTab !== 'pesu' && (
-          <div className="mb-4 flex items-end justify-between border-b border-[#252932] pb-3 md:mb-6 md:pb-5">
-            <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300/70">
-                {{ subjects: 'Coursework', analysis: 'Projection', reverse: 'Target planning', attendance: 'Class strategy', cgpa: 'Academic record', guide: 'Reference' }[activeTab]}
-              </div>
-              <h2 className="text-xl font-bold tracking-tight text-white md:text-3xl">
-                {{ subjects: 'Subject workspace', analysis: 'Grade analysis', reverse: 'Reverse calculator', attendance: 'Attendance planner', cgpa: 'CGPA calculator', guide: 'Calculation guide' }[activeTab]}
-              </h2>
-            </div>
+          <div className="mb-5 md:mb-6">
+            <h1 className="text-2xl font-semibold tracking-tight text-ink md:text-[28px]">{activeNav.title}</h1>
+            <p className="mt-1 max-w-2xl text-sm text-ink-2">{activeNav.blurb}</p>
           </div>
         )}
 
@@ -1969,7 +1770,6 @@ export default function PES_Universal_Calculator() {
             marks={marks}
             expandedSubject={expandedSubject}
             setExpandedSubject={setExpandedSubject}
-            themeClasses={themeClasses}
             undoStack={undoStack}
             redoStack={redoStack}
             undo={undo}
@@ -2122,206 +1922,23 @@ export default function PES_Universal_Calculator() {
         )}
 
         {/* Footer */}
-        <div className={`text-center ${themeClasses.muted} text-xs mt-8 pb-4`}>
-          <p className="mt-1 opacity-50">PES SGPA Calculator v6.4 © 2026</p>
-          <p className="mt-1 text-[10px] opacity-40">Made by AAK</p>
+        <footer className="mt-10 border-t border-line pt-5 text-center text-xs text-ink-3">
+          <p>PES SGPA Calculator v6.4 · Made by AAK · © 2026</p>
           <button
+            type="button"
             onClick={() => setShowToffeeModal(true)}
-            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/20 transition-all cursor-pointer"
+            className="mt-2 text-ink-2 underline decoration-line-strong underline-offset-4 hover:text-ink"
           >
-            buy me a toffee 🍬
+            Buy me a toffee
           </button>
-        </div>
+        </footer>
 
-        {/* Toffee Support Modal */}
-        {showToffeeModal && (
-          <div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowToffeeModal(false)}
-          >
-            <div
-              className="relative bg-[#111118] border border-white/[0.08] rounded-2xl p-6 max-w-xs w-full mx-4 shadow-2xl text-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setShowToffeeModal(false)}
-                className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-              <div className="text-2xl mb-2">🍬</div>
-              <h3 className="text-sm font-semibold text-zinc-300 mb-1">Buy me a toffee</h3>
-              <p className="text-[11px] text-zinc-500 mb-4 leading-relaxed">
-                If this tool helped you out, feel free to support whatever you feel like. Totally optional, no pressure.
-              </p>
-              <div className="bg-white rounded-xl p-3 inline-block mb-3">
-                <img
-                  src="/upi-qr.png"
-                  alt="UPI QR Code"
-                  className="w-48 h-48 object-contain"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
-                  }}
-                />
-                <p className="text-[10px] text-zinc-400 hidden">QR code not found — add upi-qr.png to /public</p>
-              </div>
-              <p className="text-[10px] text-zinc-600">Scan with any UPI app</p>
-            </div>
-          </div>
-        )}
-
-        {/* Feedback Modal */}
-        {showFeedbackModal && (
-          <div
-            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowFeedbackModal(false)}
-          >
-            <div
-              className="relative bg-[#111118] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl text-zinc-200"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setShowFeedbackModal(false)}
-                className="absolute top-3 right-3 text-zinc-500 hover:text-zinc-300 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-
-              <div className="flex items-center gap-2 font-bold text-zinc-200 mb-3 text-sm">
-                <span className="bg-purple-500/10 text-purple-400 w-7 h-7 rounded-full flex items-center justify-center">
-                  <MessageSquare className="w-4 h-4" />
-                </span>
-                <span>Send Feedback 🚀</span>
-              </div>
-              <p className="text-[11px] text-zinc-500 mb-4 leading-relaxed">
-                Have a suggestion, bug report, or want to share your thoughts? Send feedback directly to the developer's Discord channel!
-              </p>
-
-              {feedbackStatus === 'success' ? (
-                <div className="bg-green-500/10 border border-green-500/20 text-green-300 rounded-xl p-4 text-center">
-                  <h4 className="font-bold text-xs mb-1">Feedback Sent! 💖</h4>
-                  <p className="text-[10px] text-green-400/80 leading-relaxed">Thank you! Your feedback has been delivered to the developer.</p>
-                  <button
-                    onClick={() => setFeedbackStatus('idle')}
-                    className="mt-3 text-[10px] underline font-semibold hover:text-white"
-                  >
-                    Send more feedback
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleFeedbackSubmit} className="space-y-3">
-                  <div className="flex flex-col gap-3">
-                    {/* Rating */}
-                    <div className="flex flex-col space-y-1">
-                      <span className="text-[10px] font-semibold text-zinc-400">Rating (Optional)</span>
-                      <div className="flex items-center gap-1 py-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => setFeedbackRating(star)}
-                            onMouseEnter={() => setHoverRating(star)}
-                            onMouseLeave={() => setHoverRating(0)}
-                            className="transition-transform active:scale-95 cursor-pointer focus:outline-none"
-                          >
-                            <Star
-                              className={`w-4.5 h-4.5 ${star <= (hoverRating || feedbackRating)
-                                  ? 'text-yellow-400 fill-yellow-400'
-                                  : 'text-zinc-600'
-                                } transition-colors`}
-                            />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Name */}
-                    <div className="flex flex-col space-y-1">
-                      <label htmlFor="modal-feedback-name" className="text-[10px] font-semibold text-zinc-400">Name (Optional)</label>
-                      <input
-                        id="modal-feedback-name"
-                        type="text"
-                        placeholder="Anonymous"
-                        value={feedbackName}
-                        onChange={(e) => setFeedbackName(e.target.value)}
-                        className="w-full text-xs p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] focus:border-purple-500 focus:ring-purple-500/20 text-zinc-200 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Message */}
-                  <div className="flex flex-col space-y-1">
-                    <label htmlFor="modal-feedback-msg" className="text-[10px] font-semibold text-zinc-400">Message</label>
-                    <textarea
-                      id="modal-feedback-msg"
-                      required
-                      rows={3}
-                      placeholder="What can we improve? Let us know!"
-                      value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
-                      className="w-full text-xs p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] focus:border-purple-500 focus:ring-purple-500/20 text-zinc-200 transition-all resize-none"
-                    />
-                  </div>
-
-                  {feedbackStatus === 'error' && (
-                    <p className="text-[10px] text-red-400">
-                      Failed to send feedback. Please try again.
-                    </p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={feedbackStatus === 'submitting' || !feedbackText.trim()}
-                    className={`w-full py-2 text-xs font-bold rounded-lg shadow-md transition-all cursor-pointer ${!feedbackText.trim()
-                        ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700/50'
-                        : 'bg-purple-600 hover:bg-purple-700 text-white'
-                      }`}
-                  >
-                    {feedbackStatus === 'submitting' ? 'Sending...' : 'Submit Feedback 🚀'}
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        )}
+        {showToffeeModal && <ToffeeModal onClose={() => setShowToffeeModal(false)} />}
+        {showFeedbackModal && <FeedbackModal onClose={() => setShowFeedbackModal(false)} />}
 
       </MotionDiv>
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/[0.08] bg-[#0b0c12]/95 backdrop-blur-2xl lg:hidden" aria-label="Mobile navigation" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}>
-        <div className="scrollbar-hide flex snap-x snap-mandatory justify-start overflow-x-auto px-1 pt-1">
-          {[
-            { id: 'subjects', label: 'Subjects', icon: BookOpen },
-            { id: 'analysis', label: 'Analysis', icon: Activity, accent: 'blue' },
-            { id: 'reverse', label: 'Reverse', icon: Target, accent: 'emerald' },
-            { id: 'attendance', label: 'Attend', icon: CheckCircle2 },
-            { id: 'cgpa', label: 'CGPA', icon: Calculator },
-            { id: 'pesu', label: 'PESU', icon: GraduationCap },
-            { id: 'guide', label: 'Guide', icon: HelpCircle },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => { window.location.hash = `#/${tab.id}`; }}
-              className={`relative flex min-w-[58px] shrink-0 snap-start flex-col items-center rounded-lg px-1 py-1.5 transition-all duration-200 md:min-w-[68px] md:px-2 md:py-2 ${activeTab === tab.id
-                ? 'text-indigo-300'
-                : 'text-zinc-600 active:text-zinc-300'
-                }`}
-            >
-              <div className={`relative ${activeTab === tab.id ? 'scale-110' : ''} transition-transform duration-200`}>
-                <tab.icon className="w-5 h-5" />
-                {activeTab === tab.id && (
-                  <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-md -z-10" />
-                )}
-              </div>
-              <span className={`mt-0.5 text-[9px] font-medium md:text-[10px] ${activeTab === tab.id ? 'text-white' : ''}`}>{tab.label}</span>
-              {tab.accent && activeTab !== tab.id && (
-                <span className={`absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full ${tab.accent === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'}`} />
-              )}
-            </button>
-          ))}
-        </div>
-      </nav>
+      <MobileNav activeTab={activeTab} />
       <Analytics />
       <SpeedInsights />
     </div>

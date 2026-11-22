@@ -1,15 +1,13 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2,
-  AlertCircle, RefreshCw, Send, Plus, Trash2, Edit2, RotateCcw,
-  Sparkles, Download, Layers, ShieldCheck, Check, AlertTriangle, BookOpen,
-  LogIn, Eye, EyeOff
+  Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown,
+  RefreshCw, Send, Edit2, RotateCcw, LogIn, Eye, EyeOff,
 } from 'lucide-react';
 import {
-  buildAttendancePlan, parseNonNegativeInt
+  buildAttendancePlan, parseNonNegativeInt,
 } from '../utils/attendanceCalculations';
 import {
-  buildAttendanceProjection, todayIsoLocal, addDaysIso, findIsa2Start
+  buildAttendanceProjection, todayIsoLocal, addDaysIso, findIsa2Start,
 } from '../utils/attendanceProjection';
 
 /* ------------------------------- Date Helpers ------------------------------- */
@@ -21,7 +19,6 @@ function getMonthDays(year, month) {
 
   // Pad starting day (0 = Sun, 1 = Mon, ..., 6 = Sat)
   const startDayOfWeek = firstDay.getUTCDay();
-  // We want Monday = 0, ..., Sunday = 6 in grid if we start on Monday, or standard Sunday = 0
   for (let i = 0; i < startDayOfWeek; i++) {
     days.push(null);
   }
@@ -39,14 +36,21 @@ function getMonthDays(year, month) {
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-function statusColor(pct) {
-  if (pct >= 85) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-  if (pct >= 75) return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
-  if (pct >= 65) return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-  return 'text-red-400 bg-red-500/10 border-red-500/20';
+// Attendance bands: one scale, green when safe, red when not.
+function statusTone(pct) {
+  if (pct >= 85) return 'text-good border-good/30 bg-good/10';
+  if (pct >= 75) return 'text-ink border-line-strong bg-raised';
+  if (pct >= 65) return 'text-warn border-warn/30 bg-warn/10';
+  return 'text-bad border-bad/30 bg-bad/10';
+}
+
+function SkipCell({ safe, must }) {
+  return safe > 0
+    ? <span className="num font-medium text-good">can miss {safe}</span>
+    : <span className="num font-medium text-bad">attend {must}</span>;
 }
 
 export default function InteractiveAttendancePlanner({
@@ -59,7 +63,7 @@ export default function InteractiveAttendancePlanner({
   setActiveTab,
   bufferPercent,
   setBufferPercent,
-  onSendToPlanner
+  onSendToPlanner,
 }) {
   const isLoggedIn = !!pesuProfile;
 
@@ -181,7 +185,7 @@ export default function InteractiveAttendancePlanner({
         setSyncError(data.error || 'Sync failed. Please check your password and try again.');
       }
     } catch {
-      setSyncError('Network error — could not reach the portal service.');
+      setSyncError('Network error. Could not reach the portal service.');
     } finally {
       setIsSyncing(false);
     }
@@ -333,77 +337,72 @@ export default function InteractiveAttendancePlanner({
     return getMonthDays(currentYear, currentMonth);
   }, [currentYear, currentMonth]);
 
-  // --- Login prompt (before render, return here) ---
+  const classesLeftFor = (row) => (manualOverrides[row.key]?.classesLeft !== undefined
+    ? manualOverrides[row.key].classesLeft
+    : row.classesLeft);
+
+  const sendRow = (row) => onSendToPlanner && onSendToPlanner({
+    total: row.total,
+    attended: row.attended,
+    classesLeft: parseNonNegativeInt(classesLeftFor(row)),
+    name: row.name,
+  });
+
+  // --- Login prompt ---
   if (!isLoggedIn) {
-     return (
-      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl shadow-sm group" open>
-        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-blue-400" />
-            <h3 className="text-sm font-bold text-zinc-100">Connect PESU Academy to Unlock</h3>
-          </div>
-          <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
-        </summary>
-        <div className="p-6 pt-2 text-center border-t border-white/[0.06]">
-          <p className="text-zinc-400 text-sm mb-4 max-w-md mx-auto">
-            Sign in with your PESU Academy credentials to access the interactive attendance planner, semester calendar, and auto-calculated projections from your timetable. (You can still use the calculator mode without logging in, but it won't have your actual timetable or attendance data.)
-          </p>
-          <button
-            onClick={() => setActiveTab('pesu')}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors cursor-pointer"
-          >
-            <LogIn className="w-4 h-4" />
-            Login to PESU Academy
-          </button>
-        </div>
-      </details>
+    return (
+      <section className="panel panel-pad text-center sm:text-left">
+        <h2 className="text-base font-semibold text-ink">Get your attendance automatically</h2>
+        <p className="mt-1 max-w-xl text-sm text-ink-2">
+          Sign in with PESU Academy to see attendance for every subject, a semester calendar and projections from your own timetable. You can still use the calculators below without signing in.
+        </p>
+        <button type="button" onClick={() => setActiveTab('pesu')} className="btn btn-primary mt-4">
+          <LogIn className="h-4 w-4" />
+          Sign in to PESU Academy
+        </button>
+      </section>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* ================= HEADER & OVERVIEW ================= */}
-      <div className="bg-[#0e0e18] border border-white/[0.06] rounded-xl p-5 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="space-y-4">
+      {/* Overview */}
+      <section className="panel panel-pad space-y-4">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
           <div>
-            <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-blue-400" />
-              All-Subject Attendance Planner
-            </h3>
-            <p className="text-xs text-zinc-400 mt-1">
-              Review attendance if you attend every remaining class, the impact of skipping all remaining classes, and the semester calendar.
+            <h2 className="text-base font-semibold text-ink">All subjects at a glance</h2>
+            <p className="mt-0.5 text-sm text-ink-2">
+              What your attendance ends up as if you attend every remaining class, and if you skip them all.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             <button
-               onClick={() => setShowSyncModal(true)}
-               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition-all cursor-pointer"
-               title="Resync data from PESU Academy"
+              type="button"
+              onClick={() => setShowSyncModal(true)}
+              className="btn btn-secondary btn-sm"
+              title="Refresh data from PESU Academy"
             >
-               <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-               Resync
+              <RefreshCw className={`h-3.5 w-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              Refresh from PESU
             </button>
 
             {Object.keys(manualOverrides).length > 0 && (
-              <button
-                onClick={resetOverrides}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-zinc-200 border border-white/[0.06] transition-all cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> Reset
+              <button type="button" onClick={resetOverrides} className="btn btn-ghost btn-sm">
+                <RotateCcw className="h-3.5 w-3.5" /> Undo my edits
               </button>
             )}
           </div>
         </div>
 
-        {/* Target buffer selector */}
-        <div className="flex items-center gap-3 pt-2 border-t border-white/[0.06] text-xs">
-          <span className="font-semibold text-zinc-300">Custom Target Buffer:</span>
-          <div className="flex items-center gap-2">
+        <label className="inline-flex items-center gap-3 text-sm text-ink-2">
+          Aim for attendance of
+          <span className="flex items-center gap-1">
             <input
               type="number"
               min="0"
               max="100"
+              inputMode="decimal"
               value={targetBuffer}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
@@ -413,67 +412,66 @@ export default function InteractiveAttendancePlanner({
                   setTargetBuffer(''); // Allow temporary empty state for typing
                 }
               }}
-              className="w-16 p-1.5 font-bold rounded-lg bg-white/[0.04] border border-white/[0.08] text-center text-blue-400 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              className="input num w-20 text-center font-semibold"
             />
-            <span className="text-zinc-500 font-semibold">%</span>
-          </div>
-        </div>
-      </div>
+            <span className="text-ink-3">%</span>
+          </span>
+        </label>
+      </section>
 
-      {/* ==================== RESYNC MODAL ==================== */}
+      {/* Resync modal */}
       {showSyncModal && (
         <div
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60 sm:items-center sm:p-4"
           onClick={() => setShowSyncModal(false)}
         >
           <div
-            className="relative bg-[#111118] border border-white/[0.08] rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Refresh from PESU Academy"
+            className="relative w-full max-w-sm rounded-t-xl border border-line bg-surface p-5 sm:rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-zinc-200 mb-4">Resync Portal Data</h3>
-            <p className="text-xs text-zinc-400 mb-4">Enter your password to refresh timetable and calendar data.</p>
-            <form onSubmit={handleSyncSubmit} className="space-y-4">
+            <h3 className="text-base font-semibold text-ink">Refresh from PESU Academy</h3>
+            <p className="mt-1 text-sm text-ink-2">Enter your password to reload your timetable, calendar and attendance.</p>
+            <form onSubmit={handleSyncSubmit} className="mt-4 space-y-4">
               <div className="relative">
                 <input
                   type={showSyncPassword ? 'text' : 'password'}
-                  placeholder="PESU Academy Password"
+                  placeholder="PESU Academy password"
+                  aria-label="PESU Academy password"
                   value={syncPassword}
                   onChange={(e) => setSyncPassword(e.target.value)}
-                  className="w-full p-2.5 rounded-lg bg-[#0a0a12] border border-white/[0.08] text-sm text-zinc-200 pr-10"
+                  className="input pr-10"
                   required
                   disabled={isSyncing}
                 />
                 <button
                   type="button"
                   onClick={() => setShowSyncPassword((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink"
+                  aria-label={showSyncPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showSyncPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showSyncPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              {syncError && (
-                <p className="text-xs text-red-400">{syncError}</p>
-              )}
+              {syncError && <p className="text-sm text-bad">{syncError}</p>}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => { setShowSyncModal(false); setSyncPassword(''); setSyncError(''); }}
-                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-zinc-800 text-zinc-300"
+                  className="btn btn-secondary"
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSyncing}
-                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 text-white disabled:opacity-50"
-                >
+                <button type="submit" disabled={isSyncing} className="btn btn-primary">
                   {isSyncing ? (
                     <span className="flex items-center gap-1.5">
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      Syncing...
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      Syncing…
                     </span>
                   ) : (
-                    'Sync Now'
+                    'Refresh now'
                   )}
                 </button>
               </div>
@@ -482,211 +480,161 @@ export default function InteractiveAttendancePlanner({
         </div>
       )}
 
-      {/* ================= ALL SUBJECTS TABULAR PLANNER ================= */}
-      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl group" open>
-        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-emerald-400" />
-            <span className="text-sm font-bold text-zinc-100">Subject Attendance Overview</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-zinc-500">
-              {tableRows.length} subjects loaded
-            </span>
-            <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
-          </div>
+      {/* Subject table */}
+      <details className="disclosure panel" open>
+        <summary className="p-4">
+          <span className="text-left">
+            <span className="block text-sm font-semibold text-ink">Subject attendance</span>
+            <span className="block text-xs font-normal text-ink-3">{tableRows.length} subjects</span>
+          </span>
+          <ChevronDown className="chev" />
         </summary>
-        
-        <div className="p-4 pt-0 space-y-4">
-          <p className="text-[10px] text-zinc-500 italic">
-            Click the <strong className="text-blue-400">Action (Send)</strong> button next to any subject to copy its data to the individual modes below for deeper calculation.
+
+        <div className="space-y-3 border-t border-line p-4">
+          <p className="text-xs text-ink-3">
+            Press <Send className="inline h-3 w-3" /> on a subject to copy its numbers into the calculators further down the page.
           </p>
 
           {tableRows.length === 0 ? (
-            <div className="text-center py-8 text-zinc-500 text-xs">
-              No subjects found. Connect PESU Academy or add subjects in the Subjects tab.
+            <div className="py-8 text-center text-sm text-ink-3">
+              No subjects found. Sign in to PESU Academy or add subjects on the Subjects page.
             </div>
           ) : (
             <>
+              {/* Phones: one card per subject */}
               <div className="space-y-2 md:hidden">
-                {tableRows.map((row) => {
-                  const key = row.key;
-                  const classesLeftValue = manualOverrides[key]?.classesLeft !== undefined
-                    ? manualOverrides[key].classesLeft
-                    : row.classesLeft;
-
-                  return (
-                    <article key={key} className="rounded-lg border border-white/[0.07] bg-white/[0.018] p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h4 className="truncate text-sm font-bold text-zinc-100">{row.name}</h4>
-                          {row.code && <p className="mt-0.5 text-[10px] text-zinc-500">{row.code}</p>}
-                        </div>
-                        <button
-                          onClick={() => onSendToPlanner && onSendToPlanner({
-                            total: row.total,
-                            attended: row.attended,
-                            classesLeft: parseNonNegativeInt(classesLeftValue),
-                            name: row.name
-                          })}
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-blue-500/20 bg-blue-500/10 text-blue-400"
-                          title="Send to Mode 1 Planner"
-                          aria-label={`Send ${row.name} to Mode 1 Planner`}
-                        >
-                          <Send className="h-4 w-4" />
-                        </button>
+                {tableRows.map((row) => (
+                  <article key={row.key} className="rounded-lg border border-line p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-sm font-semibold text-ink">{row.name}</h3>
+                        {row.code && <p className="text-xs text-ink-3">{row.code}</p>}
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => sendRow(row)}
+                        className="btn btn-secondary btn-sm !px-2"
+                        title="Copy to the calculators below"
+                        aria-label={`Copy ${row.name} to the calculators below`}
+                      >
+                        <Send className="h-4 w-4" />
+                      </button>
+                    </div>
 
-                      <div className="mt-3 grid grid-cols-3 gap-2">
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-wide text-zinc-600">Current</span>
-                          <span className="mt-1 block text-base font-black text-zinc-100">{row.currentPct.toFixed(1)}%</span>
-                          <span className="text-[10px] text-zinc-500">{row.attended}/{row.total}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-wide text-zinc-600">Skip all</span>
-                          <span className="mt-1 block text-base font-black text-amber-300">{row.skipAllFinalPct.toFixed(1)}%</span>
-                          <span className="text-[10px] text-zinc-500">If none</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-wide text-zinc-600">Attend all</span>
-                          <span className={`mt-1 inline-block rounded px-1.5 py-0.5 text-sm font-black border ${statusColor(row.projectedPct)}`}>
-                            {row.projectedPct.toFixed(1)}%
-                          </span>
-                        </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div>
+                        <span className="block text-xs text-ink-3">Now</span>
+                        <span className="num mt-0.5 block text-lg font-semibold text-ink">{row.currentPct.toFixed(1)}%</span>
+                        <span className="num text-xs text-ink-3">{row.attended}/{row.total}</span>
                       </div>
+                      <div>
+                        <span className="block text-xs text-ink-3">Skip all</span>
+                        <span className="num mt-0.5 block text-lg font-semibold text-warn">{row.skipAllFinalPct.toFixed(1)}%</span>
+                      </div>
+                      <div>
+                        <span className="block text-xs text-ink-3">Attend all</span>
+                        <span className={`num mt-0.5 inline-block rounded border px-1.5 text-base font-semibold ${statusTone(row.projectedPct)}`}>
+                          {row.projectedPct.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
 
-                      <div className="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
-                        <label className="flex items-center gap-2 text-[10px] font-semibold text-zinc-500">
-                          Classes left
+                    <div className="mt-3 flex items-end justify-between gap-3 border-t border-line pt-3">
+                      <label className="flex items-center gap-2 text-xs text-ink-3">
+                        Classes left
+                        <input
+                          type="number"
+                          min="0"
+                          inputMode="numeric"
+                          value={classesLeftFor(row)}
+                          onChange={(e) => updateSubjectOverride(row.key, 'classesLeft', e.target.value)}
+                          className="input num w-16 px-1 py-1 text-center font-semibold"
+                        />
+                      </label>
+                      <div className="text-right text-xs">
+                        <div><span className="text-ink-3">75%: </span><SkipCell safe={row.safeMisses75} must={row.mustAttend75} /></div>
+                        <div className="mt-0.5"><span className="text-ink-3">{targetBuffer}%: </span><SkipCell safe={row.safeMissesBuffer} must={row.mustAttendBuffer} /></div>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="scrollbar-hide hidden overflow-x-auto md:block">
+                <table className="table-clean">
+                  <thead>
+                    <tr>
+                      <th>Subject</th>
+                      <th className="text-center">Now</th>
+                      <th className="text-center">Classes left</th>
+                      <th className="text-center">If you skip all</th>
+                      <th className="text-center">If you attend all</th>
+                      <th className="text-center">For 75%</th>
+                      <th className="text-center">For {targetBuffer}%</th>
+                      <th className="text-right"><span className="sr-only">Copy</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tableRows.map((row) => (
+                      <tr key={row.key}>
+                        <td className="min-w-[140px]">
+                          <div className="font-medium">{row.name}</div>
+                          {row.code && <div className="text-xs text-ink-3">{row.code}</div>}
+                        </td>
+                        <td className="text-center">
+                          <div className="num font-medium">{row.attended}/{row.total}</div>
+                          <div className="num text-xs text-ink-3">{row.currentPct.toFixed(1)}%</div>
+                        </td>
+                        <td className="text-center">
                           <input
                             type="number"
                             min="0"
-                            value={classesLeftValue}
-                            onChange={(e) => updateSubjectOverride(key, 'classesLeft', e.target.value)}
-                            className="h-9 w-16 rounded-md border border-white/[0.09] bg-[#171a21] text-center text-sm font-bold text-zinc-100"
+                            inputMode="numeric"
+                            aria-label={`Classes left for ${row.name}`}
+                            value={classesLeftFor(row)}
+                            onChange={(e) => updateSubjectOverride(row.key, 'classesLeft', e.target.value)}
+                            className="input num mx-auto w-16 px-1 py-1 text-center font-semibold"
+                            title="Edit the estimated classes left"
                           />
-                        </label>
-                        <div className="text-right text-[10px]">
-                          {row.safeMisses75 > 0 ? (
-                            <div className="font-bold text-emerald-400">75%: +{row.safeMisses75} skips safe</div>
-                          ) : (
-                            <div className="font-bold text-red-400">75%: Attend {row.mustAttend75}</div>
-                          )}
-                          <div className="mt-0.5 text-zinc-600">{targetBuffer}% buffer</div>
-                          {row.safeMissesBuffer > 0 ? (
-                            <div className="mt-0.5 font-bold text-emerald-400">+{row.safeMissesBuffer} skips safe</div>
-                          ) : (
-                            <div className="mt-0.5 font-bold text-red-400">Attend {row.mustAttendBuffer}</div>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-
-              <div className="hidden md:block overflow-x-auto scrollbar-hide">
-                <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="border-b border-white/[0.08] text-zinc-400 font-semibold uppercase text-[10px] tracking-wider">
-                <th className="py-2.5 px-3">Subject</th>
-                <th className="py-2.5 px-3 text-center">Current</th>
-                <th className="py-2.5 px-3 text-center">Classes Left</th>
-                <th className="py-2.5 px-3 text-center">Skip All Remaining</th>
-                <th className="py-2.5 px-3 text-center">Attend All Remaining</th>
-                <th className="py-2.5 px-3 text-center">75% Skips Left</th>
-                <th className="py-2.5 px-3 text-center">Buffer Skips</th>
-                <th className="py-2.5 px-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/[0.04]">
-              {tableRows.map((row) => {
-                const key = row.key;
-                return (
-                  <tr key={key} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="py-3 px-3 min-w-[120px]">
-                      <div className="font-semibold text-zinc-200">{row.name}</div>
-                      {row.code && <div className="text-[10px] text-zinc-500">{row.code}</div>}
-                    </td>
-
-                    <td className="py-3 px-3 text-center min-w-[70px]">
-                      <div className="font-bold text-zinc-200">{row.attended}/{row.total}</div>
-                      <div className="text-[10px] text-zinc-500">{row.currentPct.toFixed(1)}%</div>
-                    </td>
-
-                    <td className="py-3 px-3 text-center min-w-[90px]">
-                      <input
-                        type="number"
-                        min="0"
-                        value={manualOverrides[key]?.classesLeft !== undefined ? manualOverrides[key].classesLeft : row.classesLeft}
-                        onChange={(e) => updateSubjectOverride(key, 'classesLeft', e.target.value)}
-                        className="w-16 p-1 text-center font-semibold rounded bg-white/[0.04] border border-white/[0.08] text-zinc-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                        title="Edit estimated classes left"
-                      />
-                    </td>
-
-                    <td className="py-3 px-3 text-center font-bold text-amber-400 min-w-[100px]">
-                      {row.skipAllFinalPct.toFixed(1)}%
-                    </td>
-
-                    <td className="py-3 px-3 text-center min-w-[80px]">
-                      <span className={`px-2 py-0.5 rounded border font-bold whitespace-nowrap ${statusColor(row.projectedPct)}`}>
-                        {row.projectedPct.toFixed(1)}%
-                      </span>
-                    </td>
-
-                    <td className="py-3 px-3 text-center min-w-[100px]">
-                      {row.safeMisses75 > 0 ? (
-                        <span className="text-emerald-400 font-bold">+{row.safeMisses75} safe</span>
-                      ) : (
-                        <span className="text-red-400 font-bold whitespace-nowrap">Attend {row.mustAttend75}</span>
-                      )}
-                    </td>
-
-                    <td className="py-3 px-3 text-center min-w-[100px]">
-                      {row.safeMissesBuffer > 0 ? (
-                        <span className="text-emerald-400 font-bold">+{row.safeMissesBuffer} safe</span>
-                      ) : (
-                        <span className="text-red-400 font-bold whitespace-nowrap">Attend {row.mustAttendBuffer}</span>
-                      )}
-                    </td>
-
-                    <td className="py-3 px-3 text-right">
-                        <button
-                          onClick={() => onSendToPlanner && onSendToPlanner({
-                            total: row.total,
-                            attended: row.attended,
-                            classesLeft: manualOverrides[key]?.classesLeft !== undefined
-                              ? parseNonNegativeInt(manualOverrides[key].classesLeft)
-                              : row.classesLeft,
-                            name: row.name
-                          })}
-                          className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-all cursor-pointer"
-                          title="Send to Mode 1 Planner"
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
+                        </td>
+                        <td className="num text-center font-medium text-warn">{row.skipAllFinalPct.toFixed(1)}%</td>
+                        <td className="text-center">
+                          <span className={`num whitespace-nowrap rounded border px-2 py-0.5 font-medium ${statusTone(row.projectedPct)}`}>
+                            {row.projectedPct.toFixed(1)}%
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap text-center"><SkipCell safe={row.safeMisses75} must={row.mustAttend75} /></td>
+                        <td className="whitespace-nowrap text-center"><SkipCell safe={row.safeMissesBuffer} must={row.mustAttendBuffer} /></td>
+                        <td className="text-right">
+                          <button
+                            type="button"
+                            onClick={() => sendRow(row)}
+                            className="btn btn-secondary btn-sm !px-2"
+                            title="Copy to the calculators below"
+                            aria-label={`Copy ${row.name} to the calculators below`}
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
                 </table>
               </div>
             </>
-        )}
+          )}
         </div>
       </details>
 
-      {/* ================= INTERACTIVE GRID CALENDAR ================= */}
-      <details className="bg-[#0e0e18] border border-white/[0.06] rounded-xl group" open>
-        <summary className="flex items-center justify-between p-4 cursor-pointer list-none select-none hover:bg-white/[0.03] transition-colors">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-blue-400" />
-            <span className="text-sm font-bold text-zinc-100">Full-Semester Calendar</span>
-          </div>
-          <div className="flex items-center gap-2">
+      {/* Calendar */}
+      <details className="disclosure panel" open>
+        <summary className="p-4">
+          <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <CalendarIcon className="h-4 w-4 text-ink-3" />
+            Semester calendar
+          </span>
+          <span className="flex items-center gap-2">
             <button
               type="button"
               onClick={(event) => {
@@ -696,24 +644,22 @@ export default function InteractiveAttendancePlanner({
                 }
                 setShowEndDateEditor((open) => !open);
               }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/20 transition-colors cursor-pointer"
-              title="Edit semester end date"
+              className="btn btn-secondary btn-sm"
+              title="Change when the semester ends"
             >
-              <Edit2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Edit end date</span>
+              <Edit2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Change end date</span>
             </button>
-            <ChevronDown className="w-4 h-4 text-zinc-500 transition-transform group-open:rotate-180" />
-          </div>
+            <ChevronDown className="chev" />
+          </span>
         </summary>
-        
-        <div className="p-3 sm:p-4 pt-0 space-y-3 sm:space-y-4">
+
+        <div className="space-y-4 border-t border-line p-3 sm:p-4">
           {showEndDateEditor && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-blue-500/15 bg-blue-500/[0.05] p-3">
-              <label htmlFor="attendance-custom-end-date" className="text-[11px] sm:text-xs text-blue-200/80">
+            <div className="notice notice-info flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <label htmlFor="attendance-custom-end-date" className="text-sm">
                 Semester end date
-                <span className="block text-[10px] text-zinc-500">
-                  Attendance projections update through this date.
-                </span>
+                <span className="block text-xs text-ink-3">Projections count classes up to this date.</span>
               </label>
               <input
                 id="attendance-custom-end-date"
@@ -722,104 +668,82 @@ export default function InteractiveAttendancePlanner({
                 onChange={(event) => {
                   if (event.target.value) setCustomEndDate(event.target.value);
                 }}
-                className="w-full sm:w-auto p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-zinc-200 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                className="input w-full sm:w-auto"
               />
             </div>
           )}
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center justify-center gap-2 sm:justify-start">
-              <button
-                onClick={prevMonth}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-colors cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
+            <div className="flex items-center justify-center gap-1 sm:justify-start">
+              <button type="button" onClick={prevMonth} className="btn btn-ghost btn-sm !px-2" aria-label="Previous month">
+                <ChevronLeft className="h-4 w-4" />
               </button>
-              <h4 className="text-sm font-bold text-zinc-200 min-w-0 w-[124px] sm:w-[140px] text-center">
+              <h3 className="w-[140px] text-center text-sm font-semibold text-ink">
                 {MONTH_NAMES[currentMonth]} {currentYear}
-              </h4>
-              <button
-                onClick={nextMonth}
-                className="p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 transition-colors cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4" />
+              </h3>
+              <button type="button" onClick={nextMonth} className="btn btn-ghost btn-sm !px-2" aria-label="Next month">
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] sm:flex sm:flex-wrap sm:items-center sm:justify-end sm:gap-3 sm:text-[11px]">
-              <span className="flex items-center gap-1 text-zinc-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-zinc-600 inline-block" /> Weekend
-              </span>
-              <span className="flex items-center gap-1 text-red-300/60">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> Holiday
-              </span>
-              <span className="flex items-center gap-1 text-red-300/60">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/30 inline-block" /> After teaching end
-              </span>
-              <span className="flex items-center gap-1 text-amber-300">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Exam
-              </span>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-ink-2 sm:justify-end">
+              <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-raised ring-1 ring-line-strong" /> Weekend</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-bad/30" /> Holiday or after teaching ends</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-warn/40" /> Exam</span>
             </div>
           </div>
 
-          <p className="text-[11px] sm:text-xs text-zinc-400 font-medium flex items-start gap-1.5">
-            <CalendarIcon className="w-3.5 h-3.5" />
-            Calendar is view-only. Holidays, exams, weekends, and teaching-end dates are shown for reference.
-          </p>
-
-          {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1 text-center sm:gap-1.5">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-            <div key={d} className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-zinc-500 py-1">
-              {d}
-            </div>
-          ))}
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
+              <div key={d} className="py-1 text-xs font-medium text-ink-3">{d}</div>
+            ))}
 
-          {gridDays.map((cell, idx) => {
-            if (!cell) {
-                return <div key={`empty-${idx}`} className="h-12 sm:h-14 rounded-md sm:rounded-lg bg-white/[0.01]" />;
-            }
+            {gridDays.map((cell, idx) => {
+              if (!cell) {
+                return <div key={`empty-${idx}`} className="h-12 sm:h-14" />;
+              }
 
-            const iso = cell.date;
-            const dayEvents = eventsByDate[iso] || [];
-            const isWeekend = cell.weekday === 0 || cell.weekday === 6;
-            const isHoliday = dayEvents.some((e) => e.isHoliday);
-            const isExam = dayEvents.some((e) => /\b(ISA|ESA)\b/i.test(e.name || ''));
-            const teachingEndDate = customEndDate || isa2Start;
-            const isAfterTeachingEnd = customEndDate
-              ? iso > customEndDate
-              : teachingEndDate && iso >= teachingEndDate;
-            let bgClass = 'bg-white/[0.03] border-white/[0.06] text-zinc-200 hover:bg-white/[0.06]';
-            if (isWeekend) {
-              bgClass = 'bg-white/[0.01] border-white/[0.03] text-zinc-600 opacity-50 cursor-not-allowed';
-            } else if (isHoliday || isAfterTeachingEnd) {
-              bgClass = 'bg-red-500/5 border-red-500/10 text-red-300 opacity-60 cursor-not-allowed';
-            } else if (isExam) {
-              bgClass = 'bg-amber-500/10 border-amber-500/20 text-amber-300 cursor-not-allowed';
-            }
+              const iso = cell.date;
+              const dayEvents = eventsByDate[iso] || [];
+              const isWeekend = cell.weekday === 0 || cell.weekday === 6;
+              const isHoliday = dayEvents.some((e) => e.isHoliday);
+              const isExam = dayEvents.some((e) => /\b(ISA|ESA)\b/i.test(e.name || ''));
+              const teachingEndDate = customEndDate || isa2Start;
+              const isAfterTeachingEnd = customEndDate
+                ? iso > customEndDate
+                : teachingEndDate && iso >= teachingEndDate;
+              const isToday = iso === todayStr;
 
-            return (
-              <div
-                key={iso}
-                className={`h-12 sm:h-14 p-1 rounded-md sm:rounded-lg border flex flex-col justify-between ${bgClass}`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-[11px] sm:text-xs font-semibold">{cell.dayNumber}</span>
+              let tone = 'border-line bg-surface text-ink';
+              if (isWeekend) {
+                tone = 'border-transparent bg-raised/60 text-ink-3';
+              } else if (isHoliday || isAfterTeachingEnd) {
+                tone = 'border-bad/20 bg-bad/10 text-bad';
+              } else if (isExam) {
+                tone = 'border-warn/30 bg-warn/15 text-warn';
+              }
+
+              return (
+                <div
+                  key={iso}
+                  className={`flex h-12 flex-col justify-between rounded-md border p-1 text-left sm:h-14 ${tone} ${isToday ? 'ring-2 ring-accent' : ''}`}
+                >
+                  <span className="num text-xs font-medium">{cell.dayNumber}</span>
+                  <span className="truncate text-[10px] leading-tight opacity-80">
+                    {isHoliday ? (dayEvents.find((e) => e.isHoliday)?.name || 'Holiday')
+                      : isExam ? (dayEvents.find((e) => /\b(ISA|ESA)\b/i.test(e.name || ''))?.name || 'Exam')
+                        : isAfterTeachingEnd ? 'Teaching ends'
+                          : isWeekend ? 'Off' : ''}
+                  </span>
                 </div>
-
-                <div className="text-[8px] sm:text-[9px] truncate opacity-80 leading-tight">
-                  {isHoliday ? (dayEvents.find(e=>e.isHoliday)?.name || 'Holiday') :
-                   isExam ? (dayEvents.find(e=>/\b(ISA|ESA)\b/i.test(e.name||''))?.name || 'Exam') :
-                   isAfterTeachingEnd ? 'Teaching Ends' :
-                   isWeekend ? 'Off' : ''}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
           </div>
 
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2.5 text-[10px] sm:text-[11px] leading-relaxed text-amber-200/80">
-            <strong className="text-amber-200">Projection disclaimer:</strong> Calendar-based estimates may not be fully accurate, especially for Semesters 1 and 2. Holidays can be followed by compensatory classes, including extra classes or half-day timetable changes, and the timetable for a later week may change again. Treat these values as estimates, verify them against your actual timetable, and use the <strong className="text-amber-200">Send to Mode 1</strong> button to enter your own classes held and attended when needed.
+          <p className="text-xs text-ink-3">The calendar is for reference only. Holidays, exams, weekends and the teaching end date are marked.</p>
+
+          <div className="notice notice-warn text-xs leading-relaxed">
+            <strong className="font-medium">These are estimates.</strong> They come from the calendar and may be off, especially in semesters 1 and 2. Holidays can be followed by extra or half-day classes, and later weeks can change again. Check them against your real timetable, and use the copy button to enter your own classes held and attended if needed.
           </div>
         </div>
       </details>

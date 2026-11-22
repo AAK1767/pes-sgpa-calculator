@@ -583,13 +583,13 @@ export const SemesterPresets = {
 };
 
 export const GradeMap = [
-  { grade: 'S', min: 90, gp: 10, color: 'text-green-500', bg: 'bg-green-500' },
-  { grade: 'A', min: 80, gp: 9, color: 'text-blue-500', bg: 'bg-blue-500' },
-  { grade: 'B', min: 70, gp: 8, color: 'text-indigo-500', bg: 'bg-indigo-500' },
-  { grade: 'C', min: 60, gp: 7, color: 'text-yellow-500', bg: 'bg-yellow-500' },
-  { grade: 'D', min: 50, gp: 6, color: 'text-orange-500', bg: 'bg-orange-500' },
-  { grade: 'E', min: 40, gp: 5, color: 'text-red-400', bg: 'bg-red-400' },
-  { grade: 'F', min: 0, gp: 0, color: 'text-red-600', bg: 'bg-red-600' },
+  { grade: 'S', min: 90, gp: 10, color: 'text-grade-s', bg: 'bg-grade-s' },
+  { grade: 'A', min: 80, gp: 9, color: 'text-grade-a', bg: 'bg-grade-a' },
+  { grade: 'B', min: 70, gp: 8, color: 'text-grade-b', bg: 'bg-grade-b' },
+  { grade: 'C', min: 60, gp: 7, color: 'text-grade-c', bg: 'bg-grade-c' },
+  { grade: 'D', min: 50, gp: 6, color: 'text-grade-d', bg: 'bg-grade-d' },
+  { grade: 'E', min: 40, gp: 5, color: 'text-grade-e', bg: 'bg-grade-e' },
+  { grade: 'F', min: 0, gp: 0, color: 'text-grade-f', bg: 'bg-grade-f' },
 ];
 
 // Common grading schemes from different universities
